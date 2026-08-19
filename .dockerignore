@@ -1,0 +1,16 @@
+.git
+.agents
+.codex
+.venv
+.pytest_cache
+__pycache__
+*.py[cod]
+*.egg-info
+.coverage
+.third_party
+data
+outputs
+tests
+docs
+qwen3_0.6b_code_posttraining_plan_cloud.md
+*.log
