@@ -1,0 +1,3 @@
+# Install a CUDA-compatible torch build before this file on the cloud host.
+-e .[cloud]
+

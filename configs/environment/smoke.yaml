@@ -1,0 +1,21 @@
+experiment:
+  name: m0-qwen3-smoke
+  output_dir: outputs/experiments
+  seed: 42
+
+model:
+  name_or_path: Qwen/Qwen3-0.6B-Base
+  trust_remote_code: false
+  dtype: bfloat16
+  device_map: auto
+
+generation:
+  prompt: "Write a Python function that returns the sum of two integers."
+  max_new_tokens: 96
+  do_sample: false
+
+environment:
+  require_cuda: true
+  require_verl: true
+  require_vllm: true
+
