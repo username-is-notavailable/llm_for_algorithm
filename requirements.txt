@@ -1,3 +1,3 @@
-# Install a CUDA-compatible torch build before this file on the cloud host.
--e .[cloud]
-
+# Local CPU development only. Cloud dependencies are installed from verl's lock
+# by scripts/cloud_setup.sh.
+-e .[dev]

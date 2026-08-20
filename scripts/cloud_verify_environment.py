@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import argparse
 import importlib.metadata
 import json
 import os
@@ -18,23 +17,11 @@ EXPECTED_VERSIONS = {
 }
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate the pinned verl training container")
-    parser.add_argument(
-        "--skip-gpu",
-        action="store_true",
-        help="Only validate imports and versions (used while building the image)",
-    )
-    return parser.parse_args()
-
-
 def package_version(name: str) -> str:
     return importlib.metadata.version(name)
 
 
 def main() -> int:
-    args = parse_args()
-
     versions = {name: package_version(name) for name in EXPECTED_VERSIONS}
     mismatches = {
         name: {"expected": expected, "actual": versions[name]}
@@ -54,7 +41,8 @@ def main() -> int:
 
     del flash_attn, ray, tensordict, transformers, verl, vllm
 
-    verl_root = Path(os.environ.get("VERL_ROOT", "/opt/verl"))
+    project_root = Path(__file__).resolve().parents[1]
+    verl_root = Path(os.environ.get("VERL_ROOT", project_root / ".third_party" / "verl"))
     commit = subprocess.run(
         ["git", "-C", str(verl_root), "rev-parse", "HEAD"],
         check=True,
@@ -63,30 +51,35 @@ def main() -> int:
     ).stdout.strip()
     if commit != EXPECTED_VERL_COMMIT:
         raise RuntimeError(f"Unexpected verl commit: {commit}")
+    if not torch.cuda.is_available():
+        raise RuntimeError("CUDA is unavailable")
 
-    report: dict[str, object] = {
+    tensor = torch.ones(1, device="cuda")
+    if tensor.item() != 1:
+        raise RuntimeError("CUDA tensor smoke test failed")
+
+    driver_version = subprocess.run(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    report = {
         "python": sys.version.split()[0],
         "verl_commit": commit,
         "packages": versions,
+        "nvidia_driver": driver_version,
         "cuda_runtime": torch.version.cuda,
-        "cuda_available": torch.cuda.is_available(),
-    }
-
-    if not args.skip_gpu:
-        if not torch.cuda.is_available():
-            raise RuntimeError("CUDA is unavailable; run the container with --gpus all")
-        report["gpus"] = [
+        "cuda_available": True,
+        "gpus": [
             {
                 "index": index,
                 "name": torch.cuda.get_device_name(index),
                 "total_memory_bytes": torch.cuda.get_device_properties(index).total_memory,
             }
             for index in range(torch.cuda.device_count())
-        ]
-        tensor = torch.ones(1, device="cuda")
-        if tensor.item() != 1:
-            raise RuntimeError("CUDA tensor smoke test failed")
-
+        ],
+    }
     print(json.dumps(report, indent=2, ensure_ascii=False))
     return 0
 
