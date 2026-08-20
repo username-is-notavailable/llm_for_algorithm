@@ -50,7 +50,7 @@ def main() -> int:
     )
     model = AutoModelForCausalLM.from_pretrained(
         model_config["name_or_path"],
-        torch_dtype=dtype,
+        dtype=dtype,
         device_map=model_config.get("device_map", "auto"),
         trust_remote_code=model_config.get("trust_remote_code", False),
     )
@@ -69,4 +69,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
