@@ -11,6 +11,7 @@ if [[ ! -x "${VERL_PYTHON}" ]]; then
 fi
 
 cd "${PROJECT_ROOT}"
+source "${PROJECT_ROOT}/scripts/cloud_cache.sh"
 export VERL_ROOT
 "${VERL_PYTHON}" scripts/cloud_verify_environment.py
 "${VERL_PYTHON}" -m pytest -q

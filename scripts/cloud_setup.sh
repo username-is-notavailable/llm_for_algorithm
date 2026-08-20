@@ -17,6 +17,7 @@ export UV_HTTP_TIMEOUT="${UV_HTTP_TIMEOUT:-300}"
 export UV_HTTP_RETRIES="${UV_HTTP_RETRIES:-10}"
 
 cd "${PROJECT_ROOT}"
+source "${PROJECT_ROOT}/scripts/cloud_cache.sh"
 
 "${PYTHON_BIN}" - <<'PY'
 import sys

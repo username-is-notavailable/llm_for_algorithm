@@ -33,6 +33,16 @@ bash scripts/cloud_smoke_test.sh
 
 依赖下载优先使用阿里云 PyPI，官方 PyPI 作为新版本 PyTorch/CUDA 包缺失时的回退。可在运行 setup 前通过 `UV_INDEX` 和 `UV_DEFAULT_INDEX` 覆盖。
 
+可将上传的缓存放在项目目录：
+
+```text
+cache/
+├── uv/
+└── huggingface/
+```
+
+`cloud_setup.sh` 和 `cloud_smoke_test.sh` 会分别检测这两个目录。存在时优先使用项目缓存；不存在时回退到 uv 和 Hugging Face 的默认用户缓存。`cache/` 已整体加入 Git 忽略。
+
 正式环境位于 `.third_party/verl/.venv`。重复运行 setup 会复用 uv 下载缓存并将 verl 恢复到固定 commit。需要诊断时可分别运行：
 
 ```bash
