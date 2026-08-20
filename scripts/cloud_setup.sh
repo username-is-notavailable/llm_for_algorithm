@@ -7,6 +7,14 @@ UV_VERSION="0.11.16"
 VERL_REPO="https://github.com/verl-project/verl.git"
 VERL_REF="b256ebf83b304d83be5c1207fdf6867c04a0d077"
 VERL_ROOT="${VERL_ROOT:-${PROJECT_ROOT}/.third_party/verl}"
+ALIYUN_PYPI="https://mirrors.aliyun.com/pypi/simple/"
+
+# Prefer the Aliyun mirror. Keep official PyPI as the default fallback because
+# newly released PyTorch/CUDA wheels may not have reached the mirror yet.
+export UV_INDEX="${UV_INDEX:-aliyun=${ALIYUN_PYPI}}"
+export UV_DEFAULT_INDEX="${UV_DEFAULT_INDEX:-https://pypi.org/simple}"
+export UV_HTTP_TIMEOUT="${UV_HTTP_TIMEOUT:-300}"
+export UV_HTTP_RETRIES="${UV_HTTP_RETRIES:-10}"
 
 cd "${PROJECT_ROOT}"
 
@@ -25,7 +33,10 @@ command -v g++ >/dev/null || { echo "g++ with C++17 support is required" >&2; ex
 
 # Conda only supplies the bootstrap Python. uv and verl's committed lock own
 # the actual training environment and its CUDA dependency graph.
-"${PYTHON_BIN}" -m pip install --root-user-action=ignore "uv==${UV_VERSION}"
+"${PYTHON_BIN}" -m pip install \
+  --root-user-action=ignore \
+  --index-url "${ALIYUN_PYPI}" \
+  "uv==${UV_VERSION}"
 UV_BIN="$("${PYTHON_BIN}" -c 'import shutil; print(shutil.which("uv") or "")')"
 if [[ -z "${UV_BIN}" ]]; then
   echo "uv was installed but is not available on PATH" >&2
