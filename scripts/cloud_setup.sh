@@ -25,7 +25,7 @@ command -v g++ >/dev/null || { echo "g++ with C++17 support is required" >&2; ex
 
 # Conda only supplies the bootstrap Python. uv and verl's committed lock own
 # the actual training environment and its CUDA dependency graph.
-"${PYTHON_BIN}" -m pip install "uv==${UV_VERSION}"
+"${PYTHON_BIN}" -m pip install --root-user-action=ignore "uv==${UV_VERSION}"
 UV_BIN="$("${PYTHON_BIN}" -c 'import shutil; print(shutil.which("uv") or "")')"
 if [[ -z "${UV_BIN}" ]]; then
   echo "uv was installed but is not available on PATH" >&2
@@ -33,15 +33,39 @@ if [[ -z "${UV_BIN}" ]]; then
 fi
 
 mkdir -p .third_party
-if [[ ! -d "${VERL_ROOT}/.git" ]]; then
-  git clone --filter=blob:none "${VERL_REPO}" "${VERL_ROOT}"
-fi
-git -C "${VERL_ROOT}" fetch --tags origin
-git -C "${VERL_ROOT}" checkout --detach "${VERL_REF}"
-ACTUAL_VERL_REF="$(git -C "${VERL_ROOT}" rev-parse HEAD)"
-if [[ "${ACTUAL_VERL_REF}" != "${VERL_REF}" ]]; then
-  echo "VERL_REF must resolve exactly to a full commit: ${VERL_REF}" >&2
-  exit 1
+ACTUAL_VERL_REF="$(git -C "${VERL_ROOT}" rev-parse HEAD 2>/dev/null || true)"
+if [[ "${ACTUAL_VERL_REF}" != "${VERL_REF}" || ! -f "${VERL_ROOT}/manage_envs.py" ]]; then
+  VERL_STAGING="$(mktemp -d "${PROJECT_ROOT}/.third_party/verl.staging.XXXXXX")"
+  git -C "${VERL_STAGING}" init --quiet
+  git -C "${VERL_STAGING}" remote add origin "${VERL_REPO}"
+
+  FETCHED=0
+  for ATTEMPT in 1 2 3; do
+    echo "Fetching pinned verl commit (attempt ${ATTEMPT}/3)..."
+    if git -c http.version=HTTP/1.1 -C "${VERL_STAGING}" \
+      fetch --no-tags --depth=1 origin "${VERL_REF}"; then
+      FETCHED=1
+      break
+    fi
+  done
+  if [[ "${FETCHED}" -ne 1 ]]; then
+    echo "Failed to fetch verl after 3 attempts; staging directory: ${VERL_STAGING}" >&2
+    exit 1
+  fi
+
+  git -C "${VERL_STAGING}" checkout --detach FETCH_HEAD
+  STAGED_VERL_REF="$(git -C "${VERL_STAGING}" rev-parse HEAD)"
+  if [[ "${STAGED_VERL_REF}" != "${VERL_REF}" || ! -f "${VERL_STAGING}/manage_envs.py" ]]; then
+    echo "Fetched verl checkout failed validation: ${VERL_STAGING}" >&2
+    exit 1
+  fi
+
+  if [[ -e "${VERL_ROOT}" ]]; then
+    FAILED_VERL_ROOT="${VERL_ROOT}.failed-$(date +%Y%m%d-%H%M%S)"
+    mv "${VERL_ROOT}" "${FAILED_VERL_ROOT}"
+    echo "Archived incomplete verl checkout at: ${FAILED_VERL_ROOT}"
+  fi
+  mv "${VERL_STAGING}" "${VERL_ROOT}"
 fi
 
 (
