@@ -16,8 +16,6 @@ Your reasoning, proof of correctness, and complexity analysis.
 Your complete C++17 program.
 ```
 
-Do not put fenced code blocks inside <think>. Do not use <answer> tags.
-
 Problem:
 {problem.strip()}
 """

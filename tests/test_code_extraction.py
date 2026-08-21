@@ -44,7 +44,7 @@ def test_extracts_raw_cpp_without_code_fence() -> None:
     assert extract_code(response) == response
 
 
-def test_ignores_code_in_think_and_prefers_answer() -> None:
+def test_ignores_code_in_think_before_selecting_remaining_cpp_block() -> None:
     response = """
 <think>
 This discarded draft is deliberately longer.
@@ -60,3 +60,17 @@ int main() { return 0; }
 </answer>
 """
     assert extract_code(response) == "int main() { return 0; }"
+
+
+def test_answer_wrapper_has_no_priority_over_longer_cpp_block() -> None:
+    response = """<answer>
+```cpp
+int main() {}
+```
+</answer>
+```cpp
+#include <iostream>
+int main() { std::cout << 42; }
+```
+"""
+    assert extract_code(response) == "#include <iostream>\nint main() { std::cout << 42; }"

@@ -18,11 +18,10 @@ Milestone 0 不引入数据集。后续数据均按 `problem_id` 做 problem-lev
 
 约定如下：
 
-- `<think>...</think>` 只包含自然语言推理、算法说明、正确性分析和复杂度分析；
+- `<think>...</think>` 用于推理、算法说明、正确性分析和复杂度分析；其中允许出现代码或 code block，verifier 会先丢弃整个区域；
 - 最终答案是唯一一个带 `cpp` 标记的 Markdown code block；
 - code block 必须包含可独立编译执行的完整 C++17 程序；
-- v1 不使用 `<answer>...</answer>`；提取器对 `<answer>` 的支持仅用于兼容外部数据和异常生成；
-- 不在 `<think>` 中放 fenced code block，避免 verifier 误选中间代码；
+- `<answer>...</answer>` 不是协议所需结构；提取时仅将其视为透明包装，不给予内部代码更高优先级；
 - reasoning 缺失或标签损坏时，verifier 可以回退到最终 Markdown code block 或原始 C++，但这些不是标准训练 target；
 - 修改标准格式时必须新增协议版本，不得静默修改 v1。
 
@@ -55,13 +54,12 @@ SFT 样本先转换为结构化字段，再由统一 renderer 生成 Output Prot
 
 ### Verifier 提取优先级
 
-Output Protocol v1 的标准输出应直接命中 `cpp` fenced block。兼容非标准输出时，提取优先级为：
+提取器首先删除完整的 `<think>...</think>` 区域，再将 `<answer>` 标签视作透明包装。剩余内容的提取优先级为：
 
-1. `<answer>` 内的 `cpp` / `c++` block（外部兼容）；
-2. 整个响应中的 `cpp` / `c++` block；
-3. 可识别为 C++ 的普通 code block；
-4. `<answer>` 内的原始 C++；
-5. 整个响应中的原始 C++；
-6. 提取失败。
+1. 最长的 `cpp` / `c++` / `cc` / `cxx` block；
+2. 最长且可识别为 C++ 的无语言标记 code block；
+3. 可恢复的未闭合 C++ fence；
+4. 可识别为 C++ 的原始文本；
+5. 提取失败。
 
 在进入数据处理 Milestone 时，应为 renderer、协议解析、往返转换和异常样本建立独立测试。

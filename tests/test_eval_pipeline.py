@@ -54,7 +54,8 @@ def test_prompt_uses_output_protocol_v1() -> None:
     prompt = build_code_prompt("Add two integers.")
     assert "<think>" in prompt
     assert "```cpp" in prompt
-    assert "Do not use <answer>" in prompt
+    assert "<answer>" not in prompt
+    assert "Do not put fenced code blocks" not in prompt
 
 
 def test_default_toy_dataset_has_seven_unique_problems() -> None:
