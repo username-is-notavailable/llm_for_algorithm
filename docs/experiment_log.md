@@ -16,4 +16,16 @@
   - 产物：`outputs/experiments/m0-qwen3-smoke-20260820-072035/`（本地忽略，不提交）；
   - 已知问题：该次容器只挂载 outputs，导致 `environment.json` 的 `git_commit` 为 `null`。
 - 实施调整：目标云 GPU 平台不提供 Docker，M0 改为 Conda bootstrap + verl uv frozen lock；Docker 文件已移除。
-- 云端原生 Linux GPU：等待重新执行 `bash scripts/cloud_setup.sh` 与 `bash scripts/cloud_smoke_test.sh` 后补充结果。
+- 2026-08-21，云端原生 Linux GPU 最终验收：
+  - Experiment ID：`m0-qwen3-smoke-20260821-122539`；
+  - Git commit：`e1218fa6afd71f926abc7d02c54424646b46cfbf`；
+  - 配置：`configs/environment/smoke.yaml`；
+  - GPU：NVIDIA A100-PCIE-40GB，42,405,855,232 bytes；
+  - NVIDIA driver：590.48.01；PyTorch CUDA runtime：13.0；
+  - Python 3.12.13；PyTorch 2.11.0+cu130；Transformers 5.5.3；
+  - verl 0.10.0.dev0，commit `b256ebf83b304d83be5c1207fdf6867c04a0d077`；
+  - vLLM 0.24.0；FlashAttention 2.8.3；socksio 1.0.0；
+  - `scripts/cloud_verify_environment.py`、3 个 CPU 单元测试和 Qwen3-0.6B-Base 生成测试全部通过；
+  - CUDA allocated memory：1,200,636,928 bytes；峰值：1,214,435,328 bytes；
+  - 产物：`outputs/experiments/m0-qwen3-smoke-20260821-122539/`；
+  - 结论：M0 验收通过，无阻塞问题。
