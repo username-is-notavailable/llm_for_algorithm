@@ -2,7 +2,7 @@ source:
   dataset: nvidia/OpenCodeReasoning-2
   revision: eadf535931451525f3e5621d0f960c240bc62fd9
   split: cpp
-  candidate_scan_limit: 400000
+  candidate_scan_limit: 1174475
   candidate_pool_size: 30000
 question_sources:
   taco:

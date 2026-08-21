@@ -23,6 +23,33 @@ def _load_jsonl(path: str | Path) -> list[dict[str, Any]]:
         return [json.loads(line) for line in handle if line.strip()]
 
 
+def _save_candidate_checkpoint(
+    path: Path,
+    metadata_path: Path,
+    candidates: list[dict[str, Any]],
+    rejected: Counter,
+    signature: str,
+    scanned_rows: int,
+) -> None:
+    write_jsonl(path, candidates)
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "signature": signature,
+                "scanned_rows": scanned_rows,
+                "count": len(candidates),
+                "rejected": dict(rejected),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    print(
+        f"Checkpoint: {scanned_rows} rows, {len(candidates)} problem-level candidates",
+        flush=True,
+    )
+
+
 def _ocr_rows(
     config: dict[str, Any], source_jsonl: str | None, *, start_index: int = 0
 ) -> Iterable[dict[str, Any]]:
@@ -210,36 +237,47 @@ def main() -> int:
         candidates = _load_jsonl(candidate_cache)
         rejected = Counter(cached_metadata.get("rejected", {}))
         scanned_rows = int(cached_metadata.get("scanned_rows", 250000))
-        if scanned_rows < scan_limit:
-            print(
-                f"Extending {len(candidates)} cached candidates from {scanned_rows} to {scan_limit} OCR2 rows",
-                flush=True,
-            )
-            candidates, extension_rejected = deduplicate_candidates(
-                chain(candidates, _ocr_rows(config, args.source_jsonl, start_index=scanned_rows)),
-                config["filter"],
-            )
-            rejected.update(extension_rejected)
-            scanned_rows = scan_limit
-        else:
-            print(f"Reusing {len(candidates)} cached problem-level OCR2 candidates", flush=True)
     else:
-        candidates, rejected = deduplicate_candidates(_ocr_rows(config, args.source_jsonl), config["filter"])
-        scanned_rows = scan_limit
-    write_jsonl(candidate_cache, candidates)
-    candidate_cache_metadata.write_text(
-        json.dumps(
-            {
-                "signature": cache_signature,
-                "scanned_rows": scanned_rows,
-                "count": len(candidates),
-                "rejected": dict(rejected),
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    print(f"Cached {len(candidates)} problem-level OCR2 candidates", flush=True)
+        candidates = []
+        rejected = Counter()
+        scanned_rows = 0
+    if scanned_rows < scan_limit:
+        print(
+            f"Extending {len(candidates)} cached candidates from {scanned_rows} to {scan_limit} OCR2 rows",
+            flush=True,
+        )
+        batch: list[dict[str, Any]] = []
+
+        def flush_batch() -> None:
+            nonlocal candidates, batch
+            if not batch:
+                return
+            candidates, batch_rejected = deduplicate_candidates(
+                chain(candidates, batch), config["filter"]
+            )
+            rejected.update(batch_rejected)
+            batch = []
+            _save_candidate_checkpoint(
+                candidate_cache,
+                candidate_cache_metadata,
+                candidates,
+                rejected,
+                cache_signature,
+                scanned_rows,
+            )
+
+        try:
+            for row in _ocr_rows(config, args.source_jsonl, start_index=scanned_rows):
+                batch.append(row)
+                scanned_rows += 1
+                if len(batch) >= 10000:
+                    flush_batch()
+        except BaseException:
+            flush_batch()
+            raise
+        flush_batch()
+    else:
+        print(f"Reusing {len(candidates)} cached problem-level OCR2 candidates", flush=True)
     pool_size = int(config["source"]["candidate_pool_size"])
     candidates = balanced_order(candidates, int(config["filter"]["seed"]))[:pool_size]
     questions = _resolve_questions(candidates, config, args.questions_jsonl)
