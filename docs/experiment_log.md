@@ -39,3 +39,18 @@
   - 项目全量测试：17 passed in 3.78s；
   - 覆盖：Output Protocol v1 提取、正确代码、Compile Error、Wrong Answer、Runtime Error、TLE、输出上限、多 testcase 和临时目录清理；
   - 结论：M1 验收通过，无阻塞问题。
+
+## Milestone 2
+
+- 2026-08-21，Evaluation Pipeline 云端验收：
+  - Experiment ID：`m2-eval-toy-20260821-161401`；
+  - Git commit：`d416643`；
+  - 配置：`configs/eval/default.yaml`；
+  - 项目全量测试：24 passed in 3.66s；
+  - 数据：7 个手工 C++ toy problems，每题生成 1 个响应；
+  - code extraction success rate：1.0；compile rate：1.0；
+  - test pass rate：0.5882352941176471（10/17 testcase）；
+  - pass@1：0.5714285714285714（4/7 problems）；
+  - average response length：590.2857142857143 characters；
+  - 产物：`outputs/eval/m2-eval-toy-20260821-161401/`，包含配置、环境、逐样本结果和汇总指标；
+  - 结论：M2 验收通过，生成、提取、编译、判题、指标和实验产物链路完整，无阻塞问题。

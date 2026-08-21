@@ -2,7 +2,7 @@
 
 以 `Qwen/Qwen3-0.6B-Base` 为起点，使用 `verl` 建立可复现的代码能力后训练实验。
 
-当前进度：Milestone 0（仓库与云端环境）和 Milestone 1（Code Verifier）均已通过云端验收，当前进入 Milestone 2 Evaluation Pipeline。本地 Windows 仅运行 CPU 单元测试；模型、CUDA、vLLM 和 verl 验证在 Linux NVIDIA GPU 实例执行。
+当前进度：Milestone 0（仓库与云端环境）、Milestone 1（Code Verifier）和 Milestone 2（Evaluation Pipeline）均已通过云端验收，当前进入 Milestone 3 Fixed Eval Set。本地 Windows 仅运行 CPU 单元测试；模型、CUDA、vLLM 和 verl 验证在 Linux NVIDIA GPU 实例执行。
 
 ## 本地开发
 
@@ -107,5 +107,6 @@ bash scripts/cloud_eval_toy.sh
 
 - M0：仓库与云端环境（已完成）
 - M1：Code Verifier（已完成）
-- M2：Evaluation Pipeline（当前）
+- M2：Evaluation Pipeline（已完成）
+- M3：Fixed Eval Set（当前）
 - 后续阶段见项目方案文档
