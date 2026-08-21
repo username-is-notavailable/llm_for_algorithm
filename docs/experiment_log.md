@@ -69,3 +69,11 @@
   - 错误分布：5 compile errors、4 wrong answers、1 pass；编译失败均为模型生成被截断、缺少 `main` 或错误 C++ API，不是 verifier/环境故障；
   - 产物：`outputs/eval/m3-livecodebench-smoke-v1-20260821-193449/`；
   - 结论：M3 验收通过，固定 split、难度分层、manifest 校验、数据隔离和 10 题完整 Eval 链路均正常。
+
+## M4 Base Baseline 协议
+
+- 模型：`Qwen/Qwen3-0.6B-Base` revision `da87bfb608c14b7cf20ba1ce41287e8de496c0cd`；
+- 原生 context：32,768 tokens；generation cap：16,384 tokens；greedy decoding；
+- 数据：固定 `eval_v1` 399 题，smoke 使用固定 10 题；
+- 后端：vLLM 0.24 continuous batching，HF backend 仅保留作兼容与开发测试；
+- A100 smoke 通过前不记录正式 baseline；正式运行支持按批落盘及 `--resume`。

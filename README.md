@@ -114,6 +114,22 @@ bash scripts/cloud_eval_fixed_smoke.sh
 
 原始数据优先复用 `cache/huggingface`；有序 problem IDs 与选择参数固化在 `data/splits/eval_v1_problem_ids.json`。评测结果同时汇总 overall 与 easy/medium/hard 指标。详细来源、隔离规则和泄漏检查命令见 [docs/data.md](docs/data.md)。
 
+## Base Baseline
+
+M4 冻结模型原生 32K context 和 16K generation cap，正式评测使用 vLLM continuous batching。先在云端运行固定 10 题 smoke：
+
+```bash
+bash scripts/cloud_eval_m4.sh smoke
+```
+
+通过后运行 399 题正式 baseline：
+
+```bash
+bash scripts/cloud_eval_m4.sh full
+```
+
+每个请求批次完成后会立即追加 `generations.jsonl`。中断时使用同一配置和输出目录恢复，例如 `bash scripts/cloud_eval_m4.sh full --resume outputs/eval/m4-base-eval-v1-<timestamp>`。本地 WSL 可使用 `local-smoke` 做 2 题短生成技术检查；vLLM/Triton 仍要求可用的 CUDA 开发工具和 Python headers，该检查不产生可比较的 M4 指标。
+
 ## SFT Data Pipeline
 
 M5 数据准备提前于 M4 baseline 执行，以实际 token 分布决定统一生成上限和训练上下文；此阶段不启动训练：
@@ -130,6 +146,6 @@ bash scripts/cloud_prepare_sft.sh
 - M1：Code Verifier（已完成）
 - M2：Evaluation Pipeline（已完成）
 - M3：Fixed Eval Set（已完成）
-- M5：SFT Data Pipeline（提前准备数据，当前）
-- M4：Base Baseline（待长度协议冻结后执行）
+- M5：SFT Data Pipeline（提前完成数据准备）
+- M4：Base Baseline（32K context / 16K generation 协议已冻结，当前）
 - 后续阶段见项目方案文档

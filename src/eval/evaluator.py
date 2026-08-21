@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 
 from src.eval.metrics import compute_metrics
-from src.inference.generate import HuggingFaceGenerator, TextGenerator
+from src.inference.generate import TextGenerator, create_generator
 from src.inference.prompts import build_code_prompt
 from src.utils.config import load_config, require_sections
 from src.utils.experiment import collect_environment
@@ -68,7 +68,62 @@ def _create_output_dir(config: dict[str, Any]) -> Path:
     return output_dir
 
 
-def evaluate(config: dict[str, Any], generator: TextGenerator) -> tuple[Path, dict[str, Any]]:
+def _load_existing_records(
+    path: Path, problems: list[dict[str, Any]], num_samples: int
+) -> tuple[list[dict[str, Any]], set[str]]:
+    if not path.is_file():
+        return [], set()
+    known_ids = {problem["problem_id"] for problem in problems}
+    records = []
+    samples_by_problem: dict[str, set[int]] = {}
+    with path.open("r", encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, start=1):
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            problem_id = row.get("problem_id")
+            sample_index = row.get("sample_index")
+            if problem_id not in known_ids:
+                raise ValueError(f"Resume line {line_number}: unknown problem_id {problem_id}")
+            if not isinstance(sample_index, int) or not 0 <= sample_index < num_samples:
+                raise ValueError(f"Resume line {line_number}: invalid sample_index")
+            samples = samples_by_problem.setdefault(problem_id, set())
+            if sample_index in samples:
+                raise ValueError(f"Resume line {line_number}: duplicate generation")
+            samples.add(sample_index)
+            records.append(row)
+    partial = {
+        problem_id: len(samples)
+        for problem_id, samples in samples_by_problem.items()
+        if len(samples) != num_samples
+    }
+    if partial:
+        raise ValueError(f"Resume file contains partially completed problems: {partial}")
+    return records, set(samples_by_problem)
+
+
+def _prepare_output_dir(config: dict[str, Any], resume: str | Path | None) -> Path:
+    if resume is None:
+        output_dir = _create_output_dir(config)
+        (output_dir / "config.yaml").write_text(
+            yaml.safe_dump(config, sort_keys=False, allow_unicode=True), encoding="utf-8"
+        )
+        (output_dir / "environment.json").write_text(
+            json.dumps(collect_environment(), indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        return output_dir
+    output_dir = Path(resume)
+    if not output_dir.is_dir():
+        raise ValueError(f"Resume directory does not exist: {output_dir}")
+    saved_config_path = output_dir / "config.yaml"
+    if not saved_config_path.is_file() or yaml.safe_load(saved_config_path.read_text(encoding="utf-8")) != config:
+        raise ValueError("Resume config does not match the saved experiment config")
+    return output_dir
+
+
+def evaluate(
+    config: dict[str, Any], generator: TextGenerator, *, resume: str | Path | None = None
+) -> tuple[Path, dict[str, Any]]:
     require_sections(config, "experiment", "model", "prompt", "dataset", "generation", "verifier")
     if config["prompt"].get("template") != "output_protocol_v1":
         raise ValueError("Unsupported prompt template")
@@ -86,58 +141,73 @@ def evaluate(config: dict[str, Any], generator: TextGenerator) -> tuple[Path, di
             raise ValueError("dataset.limit must be a positive integer")
         problems = problems[:limit]
 
-    output_dir = _create_output_dir(config)
-    (output_dir / "config.yaml").write_text(
-        yaml.safe_dump(config, sort_keys=False, allow_unicode=True), encoding="utf-8"
-    )
-    (output_dir / "environment.json").write_text(
-        json.dumps(collect_environment(), indent=2, ensure_ascii=False), encoding="utf-8"
-    )
     num_samples = int(config["generation"].get("num_samples", 1))
+    if num_samples < 1:
+        raise ValueError("generation.num_samples must be at least 1")
     generation_options = {
         key: value for key, value in config["generation"].items() if key != "num_samples"
     }
+    request_batch_size = int(config.get("inference", {}).get("request_batch_size", 1))
+    if request_batch_size < 1:
+        raise ValueError("inference.request_batch_size must be at least 1")
+    output_dir = _prepare_output_dir(config, resume)
     verifier_config = config["verifier"]
-    records: list[dict[str, Any]] = []
     generations_path = output_dir / "generations.jsonl"
-    with generations_path.open("w", encoding="utf-8") as output:
-        for problem_index, problem in enumerate(problems, start=1):
-            print(f"[{problem_index}/{len(problems)}] Evaluating {problem['problem_id']}", flush=True)
-            prompt = build_code_prompt(problem["problem"])
-            responses = generator.generate(
-                prompt,
+    records, completed_ids = _load_existing_records(generations_path, problems, num_samples)
+    pending = [problem for problem in problems if problem["problem_id"] not in completed_ids]
+    if completed_ids:
+        print(f"Resuming with {len(completed_ids)}/{len(problems)} problems complete", flush=True)
+    with generations_path.open("a", encoding="utf-8") as output:
+        for batch_start in range(0, len(pending), request_batch_size):
+            batch = pending[batch_start : batch_start + request_batch_size]
+            completed_before = len(completed_ids)
+            print(
+                f"[{completed_before + 1}-{completed_before + len(batch)}/{len(problems)}] "
+                f"Generating batch of {len(batch)} problems",
+                flush=True,
+            )
+            prompts = [build_code_prompt(problem["problem"]) for problem in batch]
+            batch_responses = generator.generate_batch(
+                prompts,
                 num_samples=num_samples,
                 generation=generation_options,
             )
-            if len(responses) != num_samples:
-                raise RuntimeError("Generator returned an unexpected number of samples")
-            for sample_index, response in enumerate(responses):
-                code = extract_code(response)
-                judgement = None
-                if code is not None:
-                    judgement = judge(
-                        code,
-                        problem["tests"],
-                        compile_timeout_seconds=float(verifier_config["compile_timeout_seconds"]),
-                        execution_timeout_seconds=float(verifier_config["execution_timeout_seconds"]),
-                        memory_limit_bytes=int(verifier_config["memory_limit_mb"]) * 1024 * 1024,
-                        output_limit_bytes=int(verifier_config["output_limit_bytes"]),
-                    ).to_dict()
-                record = {
-                    "problem_id": problem["problem_id"],
-                    "difficulty": problem.get("difficulty"),
-                    "sample_index": sample_index,
-                    "prompt": prompt,
-                    "response": response,
-                    "response_length": len(response),
-                    "total_tests": len(problem["tests"]),
-                    "extraction_success": code is not None,
-                    "code": code,
-                    "judge": judgement,
-                }
-                records.append(record)
-                output.write(json.dumps(record, ensure_ascii=False) + "\n")
+            if len(batch_responses) != len(batch):
+                raise RuntimeError("Generator returned an unexpected number of requests")
+            for problem, prompt, responses in zip(batch, prompts, batch_responses):
+                if len(responses) != num_samples:
+                    raise RuntimeError("Generator returned an unexpected number of samples")
+                for sample_index, generated in enumerate(responses):
+                    response = generated.text
+                    code = extract_code(response)
+                    judgement = None
+                    if code is not None:
+                        judgement = judge(
+                            code,
+                            problem["tests"],
+                            compile_timeout_seconds=float(verifier_config["compile_timeout_seconds"]),
+                            execution_timeout_seconds=float(verifier_config["execution_timeout_seconds"]),
+                            memory_limit_bytes=int(verifier_config["memory_limit_mb"]) * 1024 * 1024,
+                            output_limit_bytes=int(verifier_config["output_limit_bytes"]),
+                        ).to_dict()
+                    record = {
+                        "problem_id": problem["problem_id"],
+                        "difficulty": problem.get("difficulty"),
+                        "sample_index": sample_index,
+                        "prompt": prompt,
+                        "response": response,
+                        "response_length": len(response),
+                        "response_tokens": generated.token_count,
+                        "finish_reason": generated.finish_reason,
+                        "total_tests": len(problem["tests"]),
+                        "extraction_success": code is not None,
+                        "code": code,
+                        "judge": judgement,
+                    }
+                    records.append(record)
+                    output.write(json.dumps(record, ensure_ascii=False) + "\n")
                 output.flush()
+                completed_ids.add(problem["problem_id"])
 
     metrics = compute_metrics(records)
     (output_dir / "metrics.json").write_text(
@@ -149,6 +219,7 @@ def evaluate(config: dict[str, Any], generator: TextGenerator) -> tuple[Path, di
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the code-generation evaluation pipeline")
     parser.add_argument("--config", default="configs/eval/default.yaml")
+    parser.add_argument("--resume", help="Resume an existing experiment output directory")
     return parser.parse_args()
 
 
@@ -157,8 +228,8 @@ def main() -> int:
     config = load_config(args.config)
     require_sections(config, "experiment", "model")
     set_seed(int(config["experiment"]["seed"]))
-    generator = HuggingFaceGenerator(config["model"])
-    output_dir, metrics = evaluate(config, generator)
+    generator = create_generator(config)
+    output_dir, metrics = evaluate(config, generator, resume=args.resume)
     print(json.dumps(metrics, indent=2, ensure_ascii=False))
     print(f"Artifacts: {output_dir}")
     return 0

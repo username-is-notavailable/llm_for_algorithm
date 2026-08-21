@@ -8,6 +8,7 @@ import pytest
 import yaml
 
 from src.eval.evaluator import evaluate, load_problems, validate_split_manifest
+from src.inference.generate import GeneratedText
 from src.inference.prompts import build_code_prompt
 
 
@@ -26,11 +27,16 @@ class FakeGenerator:
     def __init__(self, responses: list[list[str]]) -> None:
         self.responses = list(responses)
 
-    def generate(self, prompt: str, *, num_samples: int, generation: dict[str, Any]) -> list[str]:
-        del prompt, generation
-        result = self.responses.pop(0)
-        assert len(result) == num_samples
-        return result
+    def generate_batch(
+        self, prompts: list[str], *, num_samples: int, generation: dict[str, Any]
+    ) -> list[list[str]]:
+        del generation
+        results = [self.responses.pop(0) for _ in prompts]
+        assert all(len(result) == num_samples for result in results)
+        return [
+            [GeneratedText(text=value, token_count=len(value), finish_reason="stop") for value in result]
+            for result in results
+        ]
 
 
 def _write_dataset(path: Path) -> None:
@@ -71,6 +77,7 @@ def test_evaluator_writes_reproducible_artifacts(tmp_path: Path) -> None:
     config = {
         "experiment": {"name": "test-eval", "output_dir": str(tmp_path / "outputs"), "seed": 42},
         "model": {"name_or_path": "fake"},
+        "inference": {"request_batch_size": 2},
         "prompt": {"template": "output_protocol_v1"},
         "dataset": {"path": str(dataset_path)},
         "generation": {"num_samples": 1, "max_new_tokens": 64, "do_sample": False},
@@ -85,12 +92,42 @@ def test_evaluator_writes_reproducible_artifacts(tmp_path: Path) -> None:
     assert metrics["pass@1"] == 1.0
     assert metrics["compile_rate"] == 1.0
     assert metrics["test_pass_rate"] == 1.0
+    assert metrics["finish_reasons"] == {"stop": 2}
     assert (output_dir / "config.yaml").is_file()
     assert (output_dir / "environment.json").is_file()
     assert (output_dir / "generations.jsonl").is_file()
     assert json.loads((output_dir / "metrics.json").read_text(encoding="utf-8")) == metrics
     assert yaml.safe_load((output_dir / "config.yaml").read_text(encoding="utf-8")) == config
     assert len((output_dir / "generations.jsonl").read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_evaluator_resumes_completed_problems(tmp_path: Path) -> None:
+    dataset_path = tmp_path / "toy.jsonl"
+    _write_dataset(dataset_path)
+    config = {
+        "experiment": {"name": "resume-eval", "output_dir": str(tmp_path / "outputs"), "seed": 42},
+        "model": {"name_or_path": "fake"},
+        "inference": {"request_batch_size": 1},
+        "prompt": {"template": "output_protocol_v1"},
+        "dataset": {"path": str(dataset_path)},
+        "generation": {"num_samples": 1, "max_new_tokens": 64, "do_sample": False},
+        "verifier": {
+            "compile_timeout_seconds": 5,
+            "execution_timeout_seconds": 1,
+            "memory_limit_mb": 256,
+            "output_limit_bytes": 65536,
+        },
+    }
+    output_dir, _ = evaluate(config, FakeGenerator([[ADD_CODE], [PARITY_CODE]]))
+    generations = output_dir / "generations.jsonl"
+    first_record = generations.read_text(encoding="utf-8").splitlines()[0]
+    generations.write_text(first_record + "\n", encoding="utf-8")
+    (output_dir / "metrics.json").unlink()
+
+    _, metrics = evaluate(config, FakeGenerator([[PARITY_CODE]]), resume=output_dir)
+
+    assert metrics["pass@1"] == 1.0
+    assert len(generations.read_text(encoding="utf-8").splitlines()) == 2
 
 
 def test_dataset_rejects_duplicate_problem_ids(tmp_path: Path) -> None:

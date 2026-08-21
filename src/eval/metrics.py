@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import defaultdict
+from collections import Counter, defaultdict
 from typing import Any, Iterable
 
 from src.eval.pass_at_k import estimate_pass_at_k
@@ -49,6 +49,12 @@ def _compute_metrics(records: Iterable[dict[str, Any]], *, include_difficulty: b
         "average_response_length": sum(int(row["response_length"]) for row in rows)
         / generation_count,
     }
+    token_counts = [int(row["response_tokens"]) for row in rows if row.get("response_tokens") is not None]
+    if len(token_counts) == generation_count:
+        metrics["average_response_tokens"] = sum(token_counts) / generation_count
+    finish_reasons = Counter(str(row.get("finish_reason") or "unknown") for row in rows)
+    if set(finish_reasons) != {"unknown"}:
+        metrics["finish_reasons"] = dict(finish_reasons)
     if sample_count > 1:
         metrics[f"pass@{sample_count}"] = sum(pass_at_k_values) / problem_count
     if include_difficulty:
