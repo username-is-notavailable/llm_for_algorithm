@@ -14,6 +14,7 @@ EXPECTED_VERSIONS = {
     "transformers": "5.5.3",
     "vllm": "0.24.0",
     "flash-attn": "2.8.3",
+    "socksio": "1.0.0",
 }
 
 

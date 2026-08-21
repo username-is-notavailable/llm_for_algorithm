@@ -30,6 +30,7 @@ bash scripts/cloud_smoke_test.sh
 - uv `0.11.16`；
 - verl commit `b256ebf83b304d83be5c1207fdf6867c04a0d077`；
 - verl 的 `vllm + fsdp` frozen lock。
+- socksio `1.0.0`，用于云平台的 SOCKS HTTP 代理。
 
 依赖下载优先使用阿里云 PyPI，官方 PyPI 作为新版本 PyTorch/CUDA 包缺失时的回退。可在运行 setup 前通过 `UV_INDEX` 和 `UV_DEFAULT_INDEX` 覆盖。
 

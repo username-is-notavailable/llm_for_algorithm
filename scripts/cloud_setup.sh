@@ -4,6 +4,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PYTHON_BIN="${PYTHON_BIN:-python}"
 UV_VERSION="0.11.16"
+SOCKSIO_VERSION="1.0.0"
 VERL_REPO="https://github.com/verl-project/verl.git"
 VERL_REF="b256ebf83b304d83be5c1207fdf6867c04a0d077"
 VERL_ROOT="${VERL_ROOT:-${PROJECT_ROOT}/.third_party/verl}"
@@ -95,7 +96,8 @@ fi
 "${UV_BIN}" pip install \
   --python "${VERL_PYTHON}" \
   --no-deps \
-  --editable "${PROJECT_ROOT}"
+  --editable "${PROJECT_ROOT}" \
+  "socksio==${SOCKSIO_VERSION}"
 
 echo "Cloud environment ready."
 echo "Python: ${VERL_PYTHON}"
