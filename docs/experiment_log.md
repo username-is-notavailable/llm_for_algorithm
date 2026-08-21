@@ -54,3 +54,18 @@
   - average response length：590.2857142857143 characters；
   - 产物：`outputs/eval/m2-eval-toy-20260821-161401/`，包含配置、环境、逐样本结果和汇总指标；
   - 结论：M2 验收通过，生成、提取、编译、判题、指标和实验产物链路完整，无阻塞问题。
+
+## Milestone 3
+
+- 2026-08-21，Fixed Eval Set 云端 smoke 验收：
+  - Experiment ID：`m3-livecodebench-smoke-v1-20260821-193449`；
+  - Git commit：`a4adce6`；
+  - 数据源：`livecodebench/code_generation_lite`，官方 `release_v6`，revision `0fe84c3912ea0c4d4a78037083943e8f0c4dd505`；
+  - 固定 split：399 eval、101 dev；smoke 从 dev 固定选择 10 题（easy 3、medium 3、hard 4）；
+  - 项目全量测试：31 passed in 4.94s；
+  - smoke：10 generations，code extraction success rate 1.0，compile rate 0.5，test pass rate 0.1794871794871795，pass@1 0.1；
+  - 分难度 pass@1：easy 0.3333333333333333，medium 0.0，hard 0.0；
+  - average response length：2,214.2 characters；
+  - 错误分布：5 compile errors、4 wrong answers、1 pass；编译失败均为模型生成被截断、缺少 `main` 或错误 C++ API，不是 verifier/环境故障；
+  - 产物：`outputs/eval/m3-livecodebench-smoke-v1-20260821-193449/`；
+  - 结论：M3 验收通过，固定 split、难度分层、manifest 校验、数据隔离和 10 题完整 Eval 链路均正常。
