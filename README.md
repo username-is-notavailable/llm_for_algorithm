@@ -2,7 +2,7 @@
 
 以 `Qwen/Qwen3-0.6B-Base` 为起点，使用 `verl` 建立可复现的代码能力后训练实验。
 
-当前进度：Milestone 0 至 Milestone 3 均已通过云端验收，当前进入 Milestone 4 Base Baseline。本地 Windows 仅运行 CPU 单元测试；模型、CUDA、vLLM 和 verl 验证在 Linux NVIDIA GPU 实例执行。
+当前进度：Milestone 0 至 Milestone 3 均已通过云端验收；为先用真实 SFT token 分布冻结 M4 长度协议，当前提前准备 Milestone 5 SFT Data Pipeline，尚未开始训练。本地 Windows 仅运行 CPU 单元测试；模型、CUDA、vLLM 和 verl 验证在 Linux NVIDIA GPU 实例执行。
 
 ## 本地开发
 
@@ -114,11 +114,22 @@ bash scripts/cloud_eval_fixed_smoke.sh
 
 原始数据优先复用 `cache/huggingface`；有序 problem IDs 与选择参数固化在 `data/splits/eval_v1_problem_ids.json`。评测结果同时汇总 overall 与 easy/medium/hard 指标。详细来源、隔离规则和泄漏检查命令见 [docs/data.md](docs/data.md)。
 
+## SFT Data Pipeline
+
+M5 数据准备提前于 M4 baseline 执行，以实际 token 分布决定统一生成上限和训练上下文；此阶段不启动训练：
+
+```bash
+bash scripts/cloud_prepare_sft.sh
+```
+
+脚本从固定 revision 的 OpenCodeReasoning-2 C++ 数据中恢复原始题面，执行质量过滤、problem-level 去重、Eval contamination 排除、C++17 编译检查、嵌套 1K/5K/10K 构造和 Qwen tokenizer 长度统计。详细筛选规则与人工 audit 要求见 [docs/data.md](docs/data.md)。
+
 ## 里程碑
 
 - M0：仓库与云端环境（已完成）
 - M1：Code Verifier（已完成）
 - M2：Evaluation Pipeline（已完成）
 - M3：Fixed Eval Set（已完成）
-- M4：Base Baseline（当前）
+- M5：SFT Data Pipeline（提前准备数据，当前）
+- M4：Base Baseline（待长度协议冻结后执行）
 - 后续阶段见项目方案文档

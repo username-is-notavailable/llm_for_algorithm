@@ -1,0 +1,2399 @@
+{
+  "schema_version": 1,
+  "fingerprints": [
+    {
+      "problem_id": "livecodebench:atcoder:abc397_e",
+      "sha256": "1a28ac8f5327499e3898a2ca582b2789e289c7954d341c7c2e9919a4c6e309dc",
+      "simhash": 13693571790221607603,
+      "normalized_length": 1048
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc330_a",
+      "sha256": "0242b3e8eb49660009146909c353e7ab6e1d1962f97839e183a7a6a480ddc9db",
+      "simhash": 8549491179778005424,
+      "normalized_length": 957
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc350_d",
+      "sha256": "d5a2e707cb86888fb985c54447255009830dcf9f0cf86415c2610c0314b39e58",
+      "simhash": 13245943817336595230,
+      "normalized_length": 1351
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc387_f",
+      "sha256": "de1667adf5e10d996bd3d7d2b633ba18e6716de64d6973f35f0e0b336ac9750e",
+      "simhash": 12970840257861759986,
+      "normalized_length": 765
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc324_c",
+      "sha256": "9b81426c6aae8d7a16f2a53c2d622152a257f213ea629cc9944f47766a6fe1a7",
+      "simhash": 14411776174386521194,
+      "normalized_length": 2182
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc398_c",
+      "sha256": "feae74c114676df1bf2d60dbf64ab8e9024251d7c6c83ece7d6bb14c8009de0a",
+      "simhash": 7288841225147952400,
+      "normalized_length": 1058
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc311_b",
+      "sha256": "9d6c31911c6d81239829c643d11461dc5db799e061cbefa537e3bdfdb369d22c",
+      "simhash": 11569400218077641824,
+      "normalized_length": 1362
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc390_b",
+      "sha256": "15416aa3626f259f1aeee00aa82d3e76eff5bdb19abfb88056cbe81b07b8b34e",
+      "simhash": 17588002359492641570,
+      "normalized_length": 794
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc351_c",
+      "sha256": "f935724b48c9b804d8f37a8769d90370196a9bb0f5b56ea1baea4430c712a8eb",
+      "simhash": 8542941089091584895,
+      "normalized_length": 2700
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc309_b",
+      "sha256": "4691e5bb38ffff0af4e97a8432c7d0ee76c8b3345de6cb7712387965cfec86f2",
+      "simhash": 14039179322898368579,
+      "normalized_length": 1497
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc355_e",
+      "sha256": "7b0b7e82e57f91b02c3bb3573ec8c61d4f7516477ba5e1205ed30509171af709",
+      "simhash": 14051044640811977350,
+      "normalized_length": 3009
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc381_d",
+      "sha256": "76458db223f12640fd7c3b1e99afc3fda70a002ef1eb2472dea382833e95d5c3",
+      "simhash": 13565747858055033604,
+      "normalized_length": 1359
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc195_e",
+      "sha256": "00327fedc100671f8ef993861de7d2dbc5b6bf63ee74c1c41a2bd46a55d63560",
+      "simhash": 2637264728722924216,
+      "normalized_length": 1880
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc329_f",
+      "sha256": "130626e1c3f44d5a7bc5189cd645af5f77cf3ad96af8a9901cfc2c09825f9d8f",
+      "simhash": 8240629881771834130,
+      "normalized_length": 1530
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc384_d",
+      "sha256": "7bfb5a335dbb768a71f80d26f2bbe6c3e6657303aa6d0d6791811c9d951978b1",
+      "simhash": 3639478578248831299,
+      "normalized_length": 1261
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc387_a",
+      "sha256": "b252d7607b28769e6bacda4a631bf179726c81276ac5a46e0f11dc671069c480",
+      "simhash": 14809283994264373098,
+      "normalized_length": 414
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc187_b",
+      "sha256": "f5b75aac531886e59015b9755145e777b7fb5c84ca95311f935e3588ed17f1c8",
+      "simhash": 17585047034562866377,
+      "normalized_length": 1336
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc342_a",
+      "sha256": "14b14cf357653a598a109e6fdb30ec129b40df340b0985a58def9981956ea5b8",
+      "simhash": 3870819930798899630,
+      "normalized_length": 668
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc351_f",
+      "sha256": "326d6e1a65643584fd66a7615a2e48df38111a01075f6efe4651dd120472469b",
+      "simhash": 14269407191555089184,
+      "normalized_length": 697
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc398_a",
+      "sha256": "dce7d33cbea8e2f84237d246604b91ab794795f9efd7e279bc31c3c9ab2ac40b",
+      "simhash": 18422880820099928495,
+      "normalized_length": 418
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc361_d",
+      "sha256": "9436e609cd0030fb51819400c3c18d294becda6e3020cbb39a793f617e040c7b",
+      "simhash": 2581982954379267004,
+      "normalized_length": 1576
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc346_a",
+      "sha256": "023f53fdeb01c36150b18ec6a6b67252d456614154cb51a9fb25814eb72a7f95",
+      "simhash": 11543867266630403684,
+      "normalized_length": 541
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc385_e",
+      "sha256": "30391ae835c3c23bbf172d72cb87bcc2129dc79386cead062881d17d846aea35",
+      "simhash": 13820141781172115235,
+      "normalized_length": 1411
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc302_a",
+      "sha256": "7e49c47acb352101ee2f685c19483e11c116395a8c4795c91988481628498aa4",
+      "simhash": 13692002308015580020,
+      "normalized_length": 628
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc364_d",
+      "sha256": "8202d05c7e249bb6eff2a6106749a7f5a2ab4ec9356f8f46962f9ff44b1656e5",
+      "simhash": 15282594757946803762,
+      "normalized_length": 1303
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc181_a",
+      "sha256": "ecf5dea2847eee64ebfd74e4ebb380512365f6850f6fa91519731cdae558bcd8",
+      "simhash": 12513930606001414831,
+      "normalized_length": 1783
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc313_b",
+      "sha256": "0896626e7f7bdca8d2d7bc91cf7c5403e16bcba0ac4a7db66cd5428bab3280b5",
+      "simhash": 12701992688163927010,
+      "normalized_length": 2073
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc377_d",
+      "sha256": "e3d4de8e845f0d05bea0cd491f2700df9d575a5fdb2d1f589d132d4266cd43b3",
+      "simhash": 3785089070327919971,
+      "normalized_length": 950
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc322_e",
+      "sha256": "e3322c602e1112fa001f4b7d4cc140caafd8ed2fed77c8e389cebec56dbbfe62",
+      "simhash": 8749314121701609012,
+      "normalized_length": 1475
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc396_b",
+      "sha256": "27c6ad353a739a0161debbad79d72d779d5dd34066d8e90082ccadb8b9e3b266",
+      "simhash": 16322028787803288032,
+      "normalized_length": 1735
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc352_e",
+      "sha256": "dad9faad4d326b1e40eb5b15a0600b812e472fe0f3d286c624e161c4f4213b90",
+      "simhash": 2674819553643899806,
+      "normalized_length": 1626
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc400_a",
+      "sha256": "990dc4622108670aa9b1acdca6fe37facf095338c81dc2430a6eb0011b2c6d6b",
+      "simhash": 9031816080148835052,
+      "normalized_length": 658
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc370_d",
+      "sha256": "0f6c4ea7cab7533b04d084e4752cd9d6631959511434f3b6d60cf7c44bfa1ed3",
+      "simhash": 7408346891594250020,
+      "normalized_length": 2287
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc338_f",
+      "sha256": "24c0a9215771f1e6ca851cc2393d4b338c1174148d207cf9b8b81334c4fb917c",
+      "simhash": 5369675299815602862,
+      "normalized_length": 1763
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc190_d",
+      "sha256": "1391002b1710cb6949dc952e1dd78baabe4c63e6a00bb0e85001a5e06c15bf37",
+      "simhash": 2646956275168966120,
+      "normalized_length": 1612
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc348_d",
+      "sha256": "d2060c06a61bd4764e1bd731fb4c57d03ab3841e9c00425edda3d11d57f4811e",
+      "simhash": 12012783716699001077,
+      "normalized_length": 1960
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc364_c",
+      "sha256": "03edd67e3891a70ee5833e20cfcf25ac72bf6f791ce04feb604e62daa9842878",
+      "simhash": 14138000712202019678,
+      "normalized_length": 1179
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc196_b",
+      "sha256": "dd8f35b094990cfae77f029fbf29e0890d237834eec78838b206b041b2d1e449",
+      "simhash": 3059117815050727699,
+      "normalized_length": 3005
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc332_b",
+      "sha256": "fefbbd0d4cd047962eb96b1b4735f010d235572b1a70c1d7b056b469ea6a8c1b",
+      "simhash": 13418449347607582600,
+      "normalized_length": 1811
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc356_c",
+      "sha256": "ddc5ce31da4dcda9b02f333b394b87e50a5e8b92b11d2daaabc3ce9de15ce2f1",
+      "simhash": 16202740005517063342,
+      "normalized_length": 1983
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc332_c",
+      "sha256": "eaf4b5273133f545134ca8f4619b64ae57b045e32349dfc8381e3674b890e3a5",
+      "simhash": 853085856195887418,
+      "normalized_length": 2496
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc381_a",
+      "sha256": "4ec0d25cb0ca1559f1acd2e6dfa2f61a3558661808408c22373bb6baa7f7f0bb",
+      "simhash": 4957337173610521456,
+      "normalized_length": 1086
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc380_a",
+      "sha256": "bff66ab8763c490520cdf7ecc17509befe265bae17488007ef0b9e589d68e907",
+      "simhash": 12646474953847933050,
+      "normalized_length": 836
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc368_c",
+      "sha256": "151f4343935b107595f4c491df119810da2a29c0ca7f88e072cac127ba3c8984",
+      "simhash": 2274376045772833496,
+      "normalized_length": 1457
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc380_d",
+      "sha256": "2d7f274d0a6d7327dfd461ed17d484b2b2bf566c2e5094d1e43516dce4cc695b",
+      "simhash": 7932555130216445464,
+      "normalized_length": 1402
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc338_a",
+      "sha256": "563babcc1190f4de739142cbca8311eac00e24362678eab1186ed86f15c067b5",
+      "simhash": 11678132765527878097,
+      "normalized_length": 929
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc340_c",
+      "sha256": "3c5fb8d8f34d7d68d1df7eb2912fbd7f5abcbe83326e4007d93b1769387abd94",
+      "simhash": 11323815986540394036,
+      "normalized_length": 1845
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc384_e",
+      "sha256": "44a84165d6801b665aad092b778327fee5570dedf86c3dba145e5083fc56acd3",
+      "simhash": 14201368059225382292,
+      "normalized_length": 2477
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc355_d",
+      "sha256": "50861563f9bd69935023974f9692e2ba105e999d07e1ecce2fee9f9af8e1d646",
+      "simhash": 10560737944523334523,
+      "normalized_length": 673
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc388_d",
+      "sha256": "69874a879ceff23a54e96bdd29269464fa0b704ca3fc712ce90604f55bc4bd63",
+      "simhash": 9080955200990635943,
+      "normalized_length": 1188
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc382_f",
+      "sha256": "87335de3d2ef6af53029360da52d6110b42804ed4c079b18a41c2c0ca539cb27",
+      "simhash": 7115521460792447854,
+      "normalized_length": 3131
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc371_f",
+      "sha256": "77e4d172488acb3fca8b4b88b449bc50503def4b5f977cfe322cf4f87dcd3b8c",
+      "simhash": 5644823645556711150,
+      "normalized_length": 2292
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc349_c",
+      "sha256": "4ed99b7dbd91b42cf58c9ce2f2625f0c6fa32eb554c125ceb13686c5e32c6095",
+      "simhash": 2938545139333591366,
+      "normalized_length": 1194
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc336_c",
+      "sha256": "8d1aa9d98854f4ae78b5c31546591e84aa326282ea7551f07d84d32c7f1139a1",
+      "simhash": 14604902446647912824,
+      "normalized_length": 687
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc338_e",
+      "sha256": "96fc426e8ec74f8e3a5ff58f21946af9279c2473d6ca490d78ee6fca333e8102",
+      "simhash": 7103597792763893427,
+      "normalized_length": 1051
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc303_a",
+      "sha256": "f423f9ef7734dd8129358a1bb23ef6fb102e037d0ebac8d14f57811c9af5af62",
+      "simhash": 13534842162120321766,
+      "normalized_length": 1377
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc378_f",
+      "sha256": "0d0f5ba178a09cafddccec0c59352d049e7951bb1f22147a43ce7f702f309f1e",
+      "simhash": 13695019571464393511,
+      "normalized_length": 984
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc399_c",
+      "sha256": "0f31d072824e1e22ef8f10bfd3d17dfd1dff1b5fdd2d09cb40e68295d64e8653",
+      "simhash": 6909058106392325891,
+      "normalized_length": 899
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc311_c",
+      "sha256": "1a93b9b757dda47ee33a3de6f4908658755e5c1fbad18e3b1e4fa6fccbeafe26",
+      "simhash": 2137981220464357820,
+      "normalized_length": 1747
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc389_f",
+      "sha256": "0b6dc3e98363690c11eb5e761b53e632f2abd3601552ca6d68d6736f2b820331",
+      "simhash": 5658606290144832062,
+      "normalized_length": 2020
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc341_b",
+      "sha256": "eebaa68b5f2e628c090ffa2bba278b5142dbd8919fd04e7651a6d33948224f9d",
+      "simhash": 15684605582306446590,
+      "normalized_length": 1766
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc328_d",
+      "sha256": "a4b9cf731d0b539fada46f7d8917e0d9b68e3e44909e98d829d85e3b819d284a",
+      "simhash": 10794545562645103298,
+      "normalized_length": 1173
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc334_a",
+      "sha256": "9f0e815f1c9107089a30f5b8ce47beda0d6f564388f78ba4fd6064392ef2e7f5",
+      "simhash": 11933922732800892977,
+      "normalized_length": 720
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc351_e",
+      "sha256": "1295229690507173d1b5054b6052a9abce030cc59a4001ab96e4db194b0910da",
+      "simhash": 5530173550737538400,
+      "normalized_length": 1448
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc307_e",
+      "sha256": "b5e8340f35754267866555c1d09433373ecda5b8fea5ecf617bb557187e41428",
+      "simhash": 11734109424728240777,
+      "normalized_length": 908
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc322_a",
+      "sha256": "f7e769ab3d9694432316dea6223dc83db3931779c581cb96c26a62bf7ea61f7c",
+      "simhash": 15281645324347363673,
+      "normalized_length": 876
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc388_f",
+      "sha256": "2d1574700d2e7424942050ed166e6b3ccac824b028e58d582bf92766d695d93e",
+      "simhash": 10843097657368687231,
+      "normalized_length": 1141
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc366_c",
+      "sha256": "a23ccc930635efd25300b2ce54511e0653dd2e622afe93ccee32af35fbdcbf5b",
+      "simhash": 14164582384109743097,
+      "normalized_length": 1792
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc355_a",
+      "sha256": "88cf089bf7a25650a1ecc81ef1073f2adcf75d523dfe6102dae169c338a71240",
+      "simhash": 4614811059666288627,
+      "normalized_length": 986
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc399_b",
+      "sha256": "e8e5e10a9479a8df7252b93aca3d6a36dd59e426d767e80d4a5ea6c5285a4807",
+      "simhash": 868750200653933112,
+      "normalized_length": 1836
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc345_d",
+      "sha256": "085104ef46c43c03067c336f402249d56dc4e8023f59c21a50292ab45309b874",
+      "simhash": 11961856474558168029,
+      "normalized_length": 1391
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc357_b",
+      "sha256": "57e4d33fb1860c0290a9dd279f8cc16c317a4a004967244170ef71f732cc194e",
+      "simhash": 14888732666067457738,
+      "normalized_length": 1047
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc377_a",
+      "sha256": "93445e43cfffe2bbce8f1cd6d60d01a46edde358e2f8cc496a3adb001263c6d0",
+      "simhash": 17205808281342579057,
+      "normalized_length": 739
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc314_b",
+      "sha256": "c269b750c8ec4d6dbae3d884239edc4fff618baab593bfc4bf3d7506932eea9b",
+      "simhash": 3836226813847800116,
+      "normalized_length": 1735
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc331_e",
+      "sha256": "df075358b19eec755f95ad28457a8fad82dca0ab48a37f237cdb70b5f17ffeb7",
+      "simhash": 885606225758883426,
+      "normalized_length": 1840
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc331_c",
+      "sha256": "b7e1733ed2f59b16fd0e27d6ffe278fda2c0ba2222ea8be4976d2b5d4a5a4dae",
+      "simhash": 16827032876798796968,
+      "normalized_length": 1138
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc380_g",
+      "sha256": "f39ad781cb5ad536a9b9915b7d3c0f96b00510449ab4d90c1f7f4e1d203cc3ef",
+      "simhash": 5507821731842686520,
+      "normalized_length": 1601
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc357_d",
+      "sha256": "d8cbd872b844d12ade2629fc3af4b5139d20285c525d9c4edc25b49132825ed1",
+      "simhash": 11717301316169015714,
+      "normalized_length": 801
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc382_b",
+      "sha256": "fe0442e2081d6cca0b5558bbbbfbce1dfa210da4340471f41fb34cf5a8f0824a",
+      "simhash": 1842618153085830011,
+      "normalized_length": 1657
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc385_a",
+      "sha256": "701170996d0c382ee98195221963c03d8e22dbef67a268d2f33f2ddf82509eef",
+      "simhash": 17331588542092337434,
+      "normalized_length": 771
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc312_d",
+      "sha256": "66cd3ff8e39daa8daaa8d834257975de124590cc0c936fc4272af898566455e6",
+      "simhash": 3967087698496696222,
+      "normalized_length": 950
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc185_e",
+      "sha256": "ae7f52357035dcfbb6438d07a4d88d5fb01400ac7a725967bec6f291fe652bb1",
+      "simhash": 13231549857869506481,
+      "normalized_length": 1253
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc379_e",
+      "sha256": "e8f59a827e6943d8a2bd9c20cdc16089bc6b2c3fff4a790cab7c835ba62794a6",
+      "simhash": 2163550798833154910,
+      "normalized_length": 721
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc378_b",
+      "sha256": "3ceaa28139aba734b25f4f08deadc673b7f3901d9ab0f742e69ad0b68ab1233f",
+      "simhash": 9960409688949709374,
+      "normalized_length": 1151
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc354_a",
+      "sha256": "2bd48e72d440b4180f910a7101394a2069a9549a9c61801db949644c565db871",
+      "simhash": 13856281324550670254,
+      "normalized_length": 1242
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc312_f",
+      "sha256": "26d812f2cef73683e9a8a563619a124a4e63fb839410b50c0b61e3a57d93b097",
+      "simhash": 6270405447723510649,
+      "normalized_length": 1308
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc343_d",
+      "sha256": "6329dc0c7f98e9591ebcdfe494d0c89964559b111b66d105163d3e2acacfc581",
+      "simhash": 9300661989607851792,
+      "normalized_length": 2245
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc181_b",
+      "sha256": "51f3e38dd32d0f1973776c592c600d5fabf9d3153af33637cf769233f713ff24",
+      "simhash": 3304026090558625131,
+      "normalized_length": 1654
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc339_b",
+      "sha256": "9f752b5920f5d1d46639138f0843753d7002d7427bb458598cd3733c2a3be466",
+      "simhash": 1789368743680371060,
+      "normalized_length": 1197
+    },
+    {
+      "problem_id": "livecodebench:codeforces:1899_C",
+      "sha256": "2e12a5cf9004b5b05defba6f4e707d546f2321286e97c0dc737bb679d8644b70",
+      "simhash": 14109769590066700523,
+      "normalized_length": 1122
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc318_d",
+      "sha256": "2250622245e960b58cbea4333b43cd3c7d5071a70301b6b3ebbf51d6155aaae5",
+      "simhash": 2680616180674270181,
+      "normalized_length": 1156
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc361_f",
+      "sha256": "ef050cf047eb90e3a38f4a07b5e9444e22283f222b5d7ca49bea9c794c440f13",
+      "simhash": 10761157474045323838,
+      "normalized_length": 523
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc373_c",
+      "sha256": "a4353e527660272c8c3c62a0df14295efbb36260737aae80d9e662e9bca97156",
+      "simhash": 12005239729141421952,
+      "normalized_length": 627
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc195_d",
+      "sha256": "a20ac0da7c259e125e7c7d9f30c975172f6ed030a3499b2b3f852ffc512ddbfa",
+      "simhash": 13014852703016450474,
+      "normalized_length": 1521
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc378_e",
+      "sha256": "fac5c7ddd865cac9abeefcc7fcb8a8c71374cd0998f38ecf3d7975d12b9b2b76",
+      "simhash": 17582348498413441296,
+      "normalized_length": 894
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc314_e",
+      "sha256": "8e4079e9b606a8a507ec41e11dbc8f905ef62dc0ae33232f0db98db9d960a5dc",
+      "simhash": 3070610485397177039,
+      "normalized_length": 3220
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc364_f",
+      "sha256": "5adbee31c0630e24aabd0ea2bb82f71660b4dc1c92304850cb770c3f684f92c0",
+      "simhash": 12505291235049219764,
+      "normalized_length": 1543
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc385_b",
+      "sha256": "e6a1b6d7bcf17cbbf4689221fa1384a698b233a2056c6d924d1c041a4ce29a71",
+      "simhash": 10647071477703294449,
+      "normalized_length": 2181
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc321_c",
+      "sha256": "e0d0f5e1593fe8d39ebb1cac924546bb8c2948cd63ae5a7e40605de2eb8c3ba6",
+      "simhash": 8783540408212136878,
+      "normalized_length": 1011
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc400_e",
+      "sha256": "47989986b98142e220bb4cbc825cde7f012d15f72315621e1067cbbc97327daf",
+      "simhash": 8476124446161611514,
+      "normalized_length": 1152
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc328_e",
+      "sha256": "4f4258e988ff5bdc2cb0b3becd2b8cbdf357600c028f4d07601abe2ffbc4faa1",
+      "simhash": 1880928074847729262,
+      "normalized_length": 1970
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc196_c",
+      "sha256": "3ef1ab4f754cbecff109fc02cc6f1e189182255b5b41c6fbc18b17386d99848b",
+      "simhash": 8505967328499392820,
+      "normalized_length": 1866
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc374_g",
+      "sha256": "b8f7d2c504c088fa95740647d0e9073e0680d180bb69c0d44069d833e394b5d5",
+      "simhash": 3895439251752923638,
+      "normalized_length": 1696
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc370_g",
+      "sha256": "2aff4d97f72f97a727a9d56bbb3cdafd7cb6d4b0a2c5fbe83b59ded5c3c168cc",
+      "simhash": 9206482951937415864,
+      "normalized_length": 781
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc329_c",
+      "sha256": "2b3a9ed0005e311a1e907c46e8450f3298eb7f04fe0aa1f12879705232adb8ef",
+      "simhash": 420134387486290567,
+      "normalized_length": 1131
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc362_c",
+      "sha256": "7ff17329964be9ee69392c91f2c01f3e6e0034d626c231bb19787fc381bbd19f",
+      "simhash": 10921209515321389868,
+      "normalized_length": 1034
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc356_e",
+      "sha256": "3bff70726c239b495185ce22f8b7896060473e3fc9e416986f94fc5404af8d21",
+      "simhash": 338917269219163057,
+      "normalized_length": 922
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc378_g",
+      "sha256": "a9b411859929f5cba32a9d2138e781a5b6f8b2a2f05b88fc909c942f60ed9c3c",
+      "simhash": 15198203802107880634,
+      "normalized_length": 1198
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc365_a",
+      "sha256": "4896559da6f021b17aa02ba6e5ffbca5a5b4a971bddccea65ed892e218055d53",
+      "simhash": 9129441874278851763,
+      "normalized_length": 974
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc183_a",
+      "sha256": "bb60c80775a22b8eaa2f20772e88c2b61b97b0643cdc3f8808edce133c9bcacd",
+      "simhash": 17045810894491866080,
+      "normalized_length": 1380
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc327_e",
+      "sha256": "30d247c7605f2297ed537acea3cde594846205e983aec578af1d5ee1839552fe",
+      "simhash": 8402729471295696171,
+      "normalized_length": 1405
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc368_a",
+      "sha256": "1b27e7ed15ff8a7e90082f220b26b28c2f6aeec67665914bda92b697ade40001",
+      "simhash": 14166714209127228192,
+      "normalized_length": 1005
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc378_a",
+      "sha256": "8315d60b95db4fe605cefa42382559614da1a7ba141fea1048d411389f30ce12",
+      "simhash": 11257924632638858018,
+      "normalized_length": 912
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc382_a",
+      "sha256": "452bf46749be1714a330f78d2168ee2e5b557562eb38d717a33919e8d3793c68",
+      "simhash": 14524899896306897535,
+      "normalized_length": 1546
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc303_b",
+      "sha256": "38ee2e3c15bf784912618e0316f6ddf31491ce5483ef112c36918c90945c79d5",
+      "simhash": 3244052081341231807,
+      "normalized_length": 1134
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc188_a",
+      "sha256": "655595a6747f419cea3610301c99a5aa1621d29d939dc51a0b7d34635a6fb374",
+      "simhash": 15391280286842566532,
+      "normalized_length": 1982
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc308_d",
+      "sha256": "795c187c8a49726a1529e5d1886b731f84b52baa1919cded4277bf9f6665a8ba",
+      "simhash": 13877495856528127862,
+      "normalized_length": 1695
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc304_a",
+      "sha256": "71f5e19eeaf6249b1cc150e54383bb9478d65ba404621ff06e6820b957b80f48",
+      "simhash": 4151027861968413356,
+      "normalized_length": 1257
+    },
+    {
+      "problem_id": "livecodebench:codeforces:1873_A",
+      "sha256": "f36cf5722009ab5e3015849be465066f438651f2356bfb1e76448f378742fbb2",
+      "simhash": 11543339544554208845,
+      "normalized_length": 1204
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc381_e",
+      "sha256": "f06107b25c184c0cc06cc4ea858cce02d43418bd9afeb7f13d98d76153963abe",
+      "simhash": 12452944764661656358,
+      "normalized_length": 1662
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc367_c",
+      "sha256": "13086c65d9652dd0e64f3f7dec858d5ffbc5aab89c1907e44b379845b07a7caa",
+      "simhash": 10126212596738252990,
+      "normalized_length": 1336
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc388_b",
+      "sha256": "1367da65e2643d67824bd0ab7aaf9a2c7d2ea7bebe72391d225b1abaa202506d",
+      "simhash": 6979257745644513570,
+      "normalized_length": 1073
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc318_b",
+      "sha256": "4d136c9592e05d7901dae44d74f931d59fecdbed0090c7fb955d2a67d2b3d9b7",
+      "simhash": 11889401442190473202,
+      "normalized_length": 1169
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc386_b",
+      "sha256": "72b1b6b63fff2aade18c5eafe4bc0a121837036e88e395692dd6ab32235ef00f",
+      "simhash": 9558704111951735324,
+      "normalized_length": 897
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc366_a",
+      "sha256": "44cd72b1de7ed41c4df97f2855efa0b8e8318c400b2cc5bb16305bf6ee3120bb",
+      "simhash": 12214187135261590331,
+      "normalized_length": 968
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc371_c",
+      "sha256": "15f8ffc67d5a5e3777b747e6aecd380fe810a543e74e1c0995f3c81a05d1c22c",
+      "simhash": 683464366525904636,
+      "normalized_length": 3004
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc184_d",
+      "sha256": "3d835c002fbb2f0a5b717bccd6c9a13b7c5b7a29b86cb1c3036232424be6c736",
+      "simhash": 10882260179226344974,
+      "normalized_length": 854
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc302_d",
+      "sha256": "8bd2fa513a0a78801e949c269e2763b4844f0f396095defe57d0bf294adf3c90",
+      "simhash": 13127815608192217952,
+      "normalized_length": 1537
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc320_a",
+      "sha256": "0283cd3e239c145a4d8c5585a950760b363371e80fcfc4f742b0ed42604c65a3",
+      "simhash": 4941299775794890506,
+      "normalized_length": 411
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc392_d",
+      "sha256": "db7f5313b02059a2cca9b2f8041609ed14a1c238fdffbf33548807f1d9a66c2d",
+      "simhash": 3917638367435417962,
+      "normalized_length": 1164
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc333_e",
+      "sha256": "126c804cfe7788610569cf54ad86466c33b393f157a6e8e9e3d49adc094c12ea",
+      "simhash": 14288447558242399624,
+      "normalized_length": 2724
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc301_d",
+      "sha256": "d1bc8f573378cd9c1b86c8f6ac2f9160349d5abd1b8c0e5b6a8968d2fe9d843a",
+      "simhash": 7355308058206569424,
+      "normalized_length": 1014
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc319_c",
+      "sha256": "c441356e5854d846c14e18fa396fa32e8b223816df350fd652b5097da7e9a041",
+      "simhash": 11262973634051694761,
+      "normalized_length": 2300
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc376_d",
+      "sha256": "87f800145e74ae48b6bea22043cd7eb5127a3686d27fb6d8934fcab9f0b530cd",
+      "simhash": 13315662679495957218,
+      "normalized_length": 1024
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc375_d",
+      "sha256": "25f2d40e9a465d371381b1a2f6c6b74980246c2adca5a90920f949d7ec6d8f75",
+      "simhash": 6902406882025486198,
+      "normalized_length": 743
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc391_g",
+      "sha256": "28bd313c886f74e9c74f3e56a4f4dfc57f38c1ebe90bdc3680459b86ad54a8d1",
+      "simhash": 6959550702999794629,
+      "normalized_length": 1312
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc352_a",
+      "sha256": "cc0c6052aacb890651566fa7a4c572628688c5a14e2c6e2043f5483e53564862",
+      "simhash": 3244106192564757243,
+      "normalized_length": 1061
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc381_b",
+      "sha256": "e3fc58e04303e5010b3fc35c42dc668205c945aa02413fad9b1d7367ccf5530f",
+      "simhash": 12583953990817448754,
+      "normalized_length": 1068
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc368_b",
+      "sha256": "99d82cc1fe0cfb630bfe8504c363226324aa1d8115daa686688954bd6c36df09",
+      "simhash": 14457318908375702438,
+      "normalized_length": 800
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc328_c",
+      "sha256": "b2773a9d697bb4167ed1dd4e8669c04c67a790015df6352bd549997d3b271394",
+      "simhash": 3929299988060889943,
+      "normalized_length": 1754
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc375_e",
+      "sha256": "28e9631ef73475f404071f047ba58e0c99810b399b23c3a8230eb9ff815c5d2b",
+      "simhash": 3647588028143608810,
+      "normalized_length": 1332
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc195_c",
+      "sha256": "55f114c038cd88c2709922f493afbb8e7d057bf0ab5ff254fec50bd3d1f0f704",
+      "simhash": 8797794188522320756,
+      "normalized_length": 2313
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc397_d",
+      "sha256": "71353bda05e76a882250b459630977e0e67ba18aac2a5aa59ab8a1d3d3655458",
+      "simhash": 17627192286598055483,
+      "normalized_length": 781
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc353_d",
+      "sha256": "434470986eec1187a56deba8fca0f99f14f577f31b4a1b3b17a555183105dd85",
+      "simhash": 4436380296552522686,
+      "normalized_length": 927
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc301_e",
+      "sha256": "ab6382874ae771ecc5ab55ac7af87f18c3e9a852c6de0ca177e1f82744693179",
+      "simhash": 16288362144219067159,
+      "normalized_length": 2170
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc354_e",
+      "sha256": "b7ccde4b5d88b40e794d6b7f6d4f4272d7a505df8c1e222cf2664f7ad21b4fe1",
+      "simhash": 10020855496935760765,
+      "normalized_length": 1500
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc315_f",
+      "sha256": "093845ed39728273eee0be837c21ae78c9f7b9a6c6a625f9caeee5301714fd82",
+      "simhash": 7358085552801427825,
+      "normalized_length": 1557
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc359_d",
+      "sha256": "2c265a1eb89105012fc0726bac9281679d256888b535bf6f9bb2a55f878e379c",
+      "simhash": 17330805853315523560,
+      "normalized_length": 1342
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc333_a",
+      "sha256": "9d675cb66159802a66336dd1ec07e7bfb3d31c13581b5be41f3f5c1175fd0f7d",
+      "simhash": 16040264379660226686,
+      "normalized_length": 421
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc183_c",
+      "sha256": "85f8fec83ba33fe83b8d3cc2e7fecaf177aa570902c81cba3bdc81f4b1abc014",
+      "simhash": 16063494577385666540,
+      "normalized_length": 896
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc339_c",
+      "sha256": "57e6576419a1f0e1de804225e209dd138387702e872454a57ef2170f8bee2a8f",
+      "simhash": 5081815364869304299,
+      "normalized_length": 1048
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc326_d",
+      "sha256": "98d1b76f996a8631cbe51a9dae90a4568727028d321beff835102d6ca881de56",
+      "simhash": 14757950074667155799,
+      "normalized_length": 2282
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc350_b",
+      "sha256": "24570bd41675e2739061f9b7b6f9b1e6ce729486376aab5747cc6605001ae0d5",
+      "simhash": 5062791002549112474,
+      "normalized_length": 1412
+    },
+    {
+      "problem_id": "livecodebench:codeforces:1883_C",
+      "sha256": "908b4779e70e4c76825627df93eec62fbc51cfdf006f89fb0f59dff96cd903b9",
+      "simhash": 3159907055904401095,
+      "normalized_length": 1626
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc324_d",
+      "sha256": "b16c3bbdeeab91ec7b874f505939a9a3e6647f8b4d2aa5b5a9b9c7b025dac647",
+      "simhash": 3068323070425887374,
+      "normalized_length": 1306
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc322_d",
+      "sha256": "3a838bbad87884eb5cae2b7f66177406f146c81abd667f883b9f8a7d496600b5",
+      "simhash": 3939782233840935599,
+      "normalized_length": 2434
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc376_c",
+      "sha256": "7ba9de7718eac624a8cb994da97349931bcc329e3855750c32b067abcbc03dd2",
+      "simhash": 16497704651496602295,
+      "normalized_length": 1881
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc323_e",
+      "sha256": "cb598cf31c8d1fafd76544e0922e1a8d5cb50eca6a8f555d709b24af59330a05",
+      "simhash": 7044251674222363336,
+      "normalized_length": 1833
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc310_d",
+      "sha256": "2739649ada18dfee68f21a347ab3a82dbef91eb09905830d03ee3f6802f833b9",
+      "simhash": 774629806693932909,
+      "normalized_length": 1277
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc196_d",
+      "sha256": "f432373aeedf87d408772bc82eb67998e81ad64945b4cc562ca1d01d2e97e956",
+      "simhash": 9837943978493789116,
+      "normalized_length": 2412
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc368_f",
+      "sha256": "8eac117c2dc7671eb8f5584f99fb1a375e7c9f9f8abe5c082c6d067e2cfe75b2",
+      "simhash": 12707116595147607021,
+      "normalized_length": 1149
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc353_c",
+      "sha256": "b193fa5f967f105011a0a7a1ff64e0d25ea025b84f71c5e102986d12e7b71cf4",
+      "simhash": 17407952824493318958,
+      "normalized_length": 762
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc312_c",
+      "sha256": "9fe900cbadd30b01a2db4155a74abfde0d83342cc95d9df3e7203a61be644acf",
+      "simhash": 7781700009519789611,
+      "normalized_length": 1051
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc332_d",
+      "sha256": "84b6a7a540669b57b5fb6aa7ee3245ffae8f8253056ebfdd41874afd24f55a3c",
+      "simhash": 566994216852287722,
+      "normalized_length": 2937
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc302_f",
+      "sha256": "70f0f05183d402b8792db2466b0568627b4f62943d69fa36888ba3f7767ac203",
+      "simhash": 12107074404872024754,
+      "normalized_length": 1761
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc191_d",
+      "sha256": "f426404efdb5e76e9238a50f90e4353c2b3256d98bca703dc4c081c87a9353cd",
+      "simhash": 3648888722705866930,
+      "normalized_length": 1813
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc373_e",
+      "sha256": "fcb17af740dd1bb8e2b26067ba45e7c95246f57cf974340130aa3309ed2e2ab9",
+      "simhash": 10269241374050017808,
+      "normalized_length": 1945
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc378_d",
+      "sha256": "a38597be95d3e6a2c0974d66279ae88b9e7b5458e9e0d151a2993d1ad7d40de8",
+      "simhash": 9422791768290998651,
+      "normalized_length": 1159
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc373_g",
+      "sha256": "e106cd0593da8c5a346f7f460ff5c45369f6daaf77192939888b4b109f5cbbba",
+      "simhash": 1496080449070588710,
+      "normalized_length": 1481
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc396_a",
+      "sha256": "5c96da5cca46d67d04dbb28489715c948b04019c98a56569feebf94f3cc022fe",
+      "simhash": 12541578314276703393,
+      "normalized_length": 1019
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc361_c",
+      "sha256": "d6763cc3db087c51c0b459395c3bcf811d50a4e66ab9158c37505444119d5fde",
+      "simhash": 11823595841926014823,
+      "normalized_length": 941
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc354_b",
+      "sha256": "a8f3ed93a4bf75d1752259c7a5b18f8c1f42f74588012ad06d9f6e6c8d2a1761",
+      "simhash": 7875897681311617959,
+      "normalized_length": 1920
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc336_d",
+      "sha256": "e578b933151ce7d86dc223a71a09f2176e36d2a4d831b1c514b54cfb6344aa68",
+      "simhash": 15395448335979025042,
+      "normalized_length": 1605
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc184_c",
+      "sha256": "0889cf8b1445a913ced5bde5202490d58c4ba2506ee2d08391e3e2ffda269def",
+      "simhash": 3842625435564188346,
+      "normalized_length": 1609
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc312_a",
+      "sha256": "686fed414d593b78512a81c621bbabf749d1c4893a4e3852a1b69bd25fdc501b",
+      "simhash": 9488741080479020580,
+      "normalized_length": 584
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc331_a",
+      "sha256": "85443acd087bc813871be0d6b7c0b51065eeff84216d3f699f8128289b186a5a",
+      "simhash": 3656715975899938168,
+      "normalized_length": 1055
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc374_c",
+      "sha256": "a9d31602be4ba334778da51ed0e214ff2df062b1bfaddc2e25341114b0a81690",
+      "simhash": 648187907940542316,
+      "normalized_length": 1741
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc397_a",
+      "sha256": "8cec8c05d7bd3139562a425828e24a7fefbcf9ef9ac67f2aa203558476d68581",
+      "simhash": 7448679805262151682,
+      "normalized_length": 1019
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc394_e",
+      "sha256": "ee99cdc65a85e7e7018d5fbd41da1c4fbf872feb401a98f6d72dfb973f949d50",
+      "simhash": 11307855955611117024,
+      "normalized_length": 1629
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc369_d",
+      "sha256": "d43ea19965462b4f2031d3165778e0505149875f676bff11b6123741b4d18212",
+      "simhash": 14431983797803323302,
+      "normalized_length": 1854
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc397_f",
+      "sha256": "39104724aefeb9aba956e86790ffe3b44ecda22debfc5afd1368ad8cd15bdc06",
+      "simhash": 6775423380698059669,
+      "normalized_length": 1196
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc320_d",
+      "sha256": "199c25fff3ac4fca1dbc8755c0cb845b3ccc083b647cee53a1702b982e84d9f5",
+      "simhash": 2577549477149439914,
+      "normalized_length": 1441
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc389_g",
+      "sha256": "10a1d6d10e5c9e3db61d96c7edbf9b8d51d0af44d1881d487c6b8318973dfd10",
+      "simhash": 18341165350688132886,
+      "normalized_length": 1496
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc319_b",
+      "sha256": "cc624a2d6c9e9d9f0f9b9abf908a6b7493a947348ce3e20f9723aec63dc6b590",
+      "simhash": 13020605609268326779,
+      "normalized_length": 1006
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc375_b",
+      "sha256": "b362c3e27db53ca768e6cb3ccf8637ce7e7a6b5866fb900c3e6088eb92a001d9",
+      "simhash": 8126235310468751338,
+      "normalized_length": 1206
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc352_c",
+      "sha256": "c8311dfc81f2df393f9090c5be087a03a7b19d646c0cc88673f2efcaa8ad3501",
+      "simhash": 6166493936301944830,
+      "normalized_length": 1666
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc346_b",
+      "sha256": "918544edccecc08809913cc4d35fec510c0d08d72e2f584c2086db3085287bf9",
+      "simhash": 1604063363938685618,
+      "normalized_length": 1190
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc369_g",
+      "sha256": "3d929bf79c0c57e1d860a2b2aac3a25d9956ee2e080d5c3c42f7e1b78ec1138d",
+      "simhash": 17842940379502109046,
+      "normalized_length": 2234
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc359_e",
+      "sha256": "e4eb945fe907b2723af840001d0e8f6ce50355cb38381d17a36c82fa81dda18b",
+      "simhash": 2205165331061583114,
+      "normalized_length": 1652
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc340_a",
+      "sha256": "a21bc33eda4e63c0d18b5a01a6c45c04e1f0f3aad19e2698eba72e1ce0689858",
+      "simhash": 4630912584995431784,
+      "normalized_length": 789
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc303_d",
+      "sha256": "8303979dc856aab5894113b32fde39cf2cb89054f2e3ad9787ab4c9efefd6561",
+      "simhash": 5106162157695675029,
+      "normalized_length": 1819
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc383_c",
+      "sha256": "1dc443c0aa20bf610d12f006c765f31254d5e1922da0ea4cbc0bebb2ed994a06",
+      "simhash": 18056829978638068690,
+      "normalized_length": 1150
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc372_f",
+      "sha256": "082bd3f0e15b4afbe720cd93a69443081be6addc1bdb2a2378f6e0d4579e5b85",
+      "simhash": 8997284569656914214,
+      "normalized_length": 1738
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc304_c",
+      "sha256": "e51abe2b5a61f337108d34a5ddb9142cbcea14471166848cf3c789f26e76b680",
+      "simhash": 8796683844258921758,
+      "normalized_length": 1481
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc366_e",
+      "sha256": "27d3f99afaf18eb4cc6a03a76b231bff950b4f511082da2fb0a1272b6cbeaaf2",
+      "simhash": 5424197300126088458,
+      "normalized_length": 805
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc325_d",
+      "sha256": "d82c15c1c87e450fa518a6d0ed779b470e66a5bbdb31cca7615b73c0e8e5a01d",
+      "simhash": 5594849100790836522,
+      "normalized_length": 1647
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc349_d",
+      "sha256": "4d9e33b545bcc7ab81147119da07d69868a0af4e32e19e012a56ab6f6e7a96f3",
+      "simhash": 2873207457054754054,
+      "normalized_length": 1903
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc192_b",
+      "sha256": "d32b3e30930afa814aa5a98cab4c2ff76d397b61399f0d04b932b18a44a4e13e",
+      "simhash": 3599313770149416443,
+      "normalized_length": 1752
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc376_e",
+      "sha256": "200a8ba8183f03123bbfd404022f81488029ce8e646e9ee883e8edd26e63cadc",
+      "simhash": 3789806569703334434,
+      "normalized_length": 1077
+    },
+    {
+      "problem_id": "livecodebench:codeforces:1899_B",
+      "sha256": "ec4697e790d25dc9cef72c069a4a6a4a07fa30cc9d156cbe7f65102afe8275d6",
+      "simhash": 18040625054168751102,
+      "normalized_length": 2178
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc391_a",
+      "sha256": "f3d0b77957f794aabe1c4225c68d1538824e656990a3528dcd0fb0c4563804a6",
+      "simhash": 16227633288723006985,
+      "normalized_length": 725
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc377_c",
+      "sha256": "41b517653f015b38d2fc0022ba187aa983ff7ddd487183891df6a248e4385585",
+      "simhash": 11352475107931804437,
+      "normalized_length": 1877
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc385_c",
+      "sha256": "e7413686bea12c9b83fe0ae4124e88d596460e08ab3c768e415522ee53d4412c",
+      "simhash": 4507805249174082084,
+      "normalized_length": 1025
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc396_g",
+      "sha256": "dbb218199c3fde4cddf9a9caa2fdc5774679ab608a2c5664b5076edf0316b029",
+      "simhash": 9072052548097746403,
+      "normalized_length": 1303
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc360_a",
+      "sha256": "40a6af76a77b8d1f3eb511351bbadcbc653a6e3f0dc2245a0ae0a21c49f1795f",
+      "simhash": 8036585514546205819,
+      "normalized_length": 883
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc341_a",
+      "sha256": "e93904ce0e0f39fe7c91e6cec9bc2bcd5a2f84d2f761db31f23d6167288c6677",
+      "simhash": 2709413700938077611,
+      "normalized_length": 438
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc312_e",
+      "sha256": "87c813a7763b4cd14794b32795e10b46768eca90866899e084d40ac6300db4e7",
+      "simhash": 5066521774040350223,
+      "normalized_length": 1457
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc367_b",
+      "sha256": "3e6cb20b4151ffe5693e930a30709302e47b85abc597c908996a972f55a3a9ff",
+      "simhash": 13118730510937298484,
+      "normalized_length": 753
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc311_a",
+      "sha256": "52176193f547d5cab029f5901d0b7e38ad54fa3356dd367de1ab16cfd43acd50",
+      "simhash": 17334086666460241235,
+      "normalized_length": 959
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc336_a",
+      "sha256": "b6beb7a2a99fae1fad6d7efdc21ba5f80800d80df9abb0e5c17699af81afbe69",
+      "simhash": 13190609791563113332,
+      "normalized_length": 588
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc337_b",
+      "sha256": "1c4d13c550eb7d91de091a1086c7bb7da98c62096eda6b53d3c972e1212ec282",
+      "simhash": 2453032941768616475,
+      "normalized_length": 1657
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc387_c",
+      "sha256": "9b0dc098e033e1b8029725162f01e85cd60da894b34d79cd88dfe928de37a6d3",
+      "simhash": 8360015468339764009,
+      "normalized_length": 736
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc326_b",
+      "sha256": "e8adbcacc05dc7baa88b6d6ca18171d904bf9944cdd693099942bceb40407586",
+      "simhash": 2676848640481858210,
+      "normalized_length": 676
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc372_g",
+      "sha256": "ca5b4a6ba41d5ce23bea25e760b1dcc3e8edc356ef83fe00f802c953272a3f2a",
+      "simhash": 5526701218419503906,
+      "normalized_length": 1646
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc359_c",
+      "sha256": "9ea6e8b18abf660b9e8255a2de66244d1f3931588d99ed6069995104f74402ed",
+      "simhash": 2573783145103557515,
+      "normalized_length": 1672
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc308_e",
+      "sha256": "b71c7c9f19f3f02c7363748e23f0d0b1df79200ca56b2994af6dae518ccf93d9",
+      "simhash": 5009581398507320496,
+      "normalized_length": 999
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc310_a",
+      "sha256": "311ed0402ccd7cc730ccaa4e43f91721c0c629363288f42f685241877649c2a6",
+      "simhash": 12020221419200954751,
+      "normalized_length": 1027
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc383_d",
+      "sha256": "99f3d9860a1ab9561f29266c6a3e074d159caf2f9dd9e3c96228d4cabe777db0",
+      "simhash": 13152635168196854578,
+      "normalized_length": 402
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc393_a",
+      "sha256": "f0253d0eaeb0d7863619d413b8a4c584da035db853738f45ddba76a14c5e08bc",
+      "simhash": 13102946191709513516,
+      "normalized_length": 1143
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc359_b",
+      "sha256": "e0badecd378487af871ca7ff07c679dbfa3aec593dc0f04a010e2bd0519f45b2",
+      "simhash": 18309705543335251953,
+      "normalized_length": 995
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc192_a",
+      "sha256": "66b9f0af9f4ce5e4c80b404297a8b5fdb15c2cb4b86730b472d4be7c8e5acc3a",
+      "simhash": 14774798582723503304,
+      "normalized_length": 1953
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc395_e",
+      "sha256": "d621770db97975d62801c402daccaa5d33920398d6bac06d0378e159989d578f",
+      "simhash": 8406211811963106229,
+      "normalized_length": 2303
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc346_d",
+      "sha256": "cfe263aa749771219b18fa58cc758ac595d6b6e0d46dd1817c81fdf6a6a5625c",
+      "simhash": 9714503202126160343,
+      "normalized_length": 1270
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc346_e",
+      "sha256": "650e3670fe54ddbb0b610ad1f3962d52c6c6508762939e16f5b2e7f95e39fa7e",
+      "simhash": 8951533892312314472,
+      "normalized_length": 1859
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc325_f",
+      "sha256": "514624affaa718489d461a7e9f863d6d4526acdb8624a48c2cfb7c7043b7084c",
+      "simhash": 12843887699182839004,
+      "normalized_length": 1914
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc357_c",
+      "sha256": "ff53ab2bd6e929a1e3e3aa413d552c08b0cf7d569c47d02c62b110b93b8662a0",
+      "simhash": 11861203167599716334,
+      "normalized_length": 1065
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc329_b",
+      "sha256": "de2eca1326a4ae46d6d254ddc202975d786818fa2b85eb6f6b2b8d8c972601a5",
+      "simhash": 6673549958465696497,
+      "normalized_length": 687
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc337_d",
+      "sha256": "69f675f94f67921ed6218897d42f41a563f46b24ba7f885c81e0179b22596d4d",
+      "simhash": 183343934244546835,
+      "normalized_length": 2034
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc194_d",
+      "sha256": "b52cc0128532dc9a0448474723c0d8567ed8de0231b21329645a77db59091692",
+      "simhash": 10849016185548913100,
+      "normalized_length": 1440
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc394_c",
+      "sha256": "e3232908d54d02d82fcc637433829c9593baf0d383ebfb822ae2aef60c954adc",
+      "simhash": 12610025627807741198,
+      "normalized_length": 1986
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc391_e",
+      "sha256": "9b84e800ab1b68884a2a7a01ca5fcdcbe85e68e92cc47f6aff5b8637738840d9",
+      "simhash": 16215941035949984043,
+      "normalized_length": 1490
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc340_b",
+      "sha256": "88abf1623b4f849123c97bea63125f29a1a00e7cc3fb8c322f9c2364a8929652",
+      "simhash": 16474067928782648554,
+      "normalized_length": 1249
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc377_b",
+      "sha256": "0b082f14c6afae9d62ecb5ff5423f15c78d0b5923d259d3b57c4b943e041796a",
+      "simhash": 10701704963664075538,
+      "normalized_length": 1520
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc305_a",
+      "sha256": "3e75f9f80b3dec7faf3d0828cbf69ec46e41444509b3fd38fe22f0ec876d1bbd",
+      "simhash": 2819010241186478898,
+      "normalized_length": 1054
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc377_g",
+      "sha256": "68fdb98c34d7e8e05e8bfce8738a2c328939463f18a6d8c28bb4a4a86dcda464",
+      "simhash": 16435843955794375458,
+      "normalized_length": 1336
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc349_b",
+      "sha256": "2ff956d30ba850b2a1fc491b8828b1f54ddc9dd2ec27027734dd5c6cf6772778",
+      "simhash": 7622868172109992263,
+      "normalized_length": 1044
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc326_e",
+      "sha256": "723732e155e636eba6a0ef9cbfc405b8799d7383f05bd54d6f51b2b8b9688cc1",
+      "simhash": 15817475745953785168,
+      "normalized_length": 1793
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc330_b",
+      "sha256": "7fcfbe0770060ab2e6840d7f64d8d4b4fc4187e8b453ed0e9104eeb814c0de15",
+      "simhash": 13122178656604694382,
+      "normalized_length": 761
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc301_b",
+      "sha256": "05951b55e4cf48bf2adfc770db90a6cf6b431c561867e896dc209947e3da1388",
+      "simhash": 3790645765265655096,
+      "normalized_length": 1260
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc351_d",
+      "sha256": "47c257608dcd79fb3531d9e6a86a79b756a889089840be2a8c2a367d91cf4c96",
+      "simhash": 3783806537841133031,
+      "normalized_length": 2285
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc379_c",
+      "sha256": "00656a8c8d30d87de7385a5f2f21204dfb25d246d9018981bdee32ed5bb11cf0",
+      "simhash": 10814881241492511740,
+      "normalized_length": 1327
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc186_d",
+      "sha256": "61b4e5c84a8e79f12725038b25a5fb9d2e822221261f171283dc4692f0aebaa2",
+      "simhash": 11372975105155786019,
+      "normalized_length": 2075
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc353_e",
+      "sha256": "a19922d54be523f20d647ca0805e7be16b1ce314eedf84be453de5490be32564",
+      "simhash": 8372332237916328520,
+      "normalized_length": 761
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc370_b",
+      "sha256": "c40cc837963778ab272beffc5685dbe78264a6f4d971f7fee1e0374fd4b72582",
+      "simhash": 10473464435944036860,
+      "normalized_length": 1027
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc371_d",
+      "sha256": "ca9813eb90b8446afd1df28dbc4cffcdf047cd2f08a69a1445b2163fb0c56b8a",
+      "simhash": 11999205090090841062,
+      "normalized_length": 1169
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc302_e",
+      "sha256": "5a948fe37d31a62144084927c30df354f6ed44848437b07d0491182387245ac8",
+      "simhash": 17034136759088643386,
+      "normalized_length": 2017
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc395_c",
+      "sha256": "a00bdb98f05688bd56f2f757afb8a4b5395e8076ede7d4a2858aaa445ddd881d",
+      "simhash": 16453388715188069016,
+      "normalized_length": 918
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc337_a",
+      "sha256": "ce835f154f1a2453c624c1d1a9d00bcc55a5295098c9fee2e585308bd438d63a",
+      "simhash": 5501401040453040516,
+      "normalized_length": 1006
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc382_c",
+      "sha256": "65f02d1b54573a8a6ef4ebaa8be5e078ad02eeb9e23332eb6b125aab854eda58",
+      "simhash": 3845063062985987052,
+      "normalized_length": 1831
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc364_a",
+      "sha256": "a2082cbea1a428c6544d78a7058a2fb2a455330344fae2bec80529b34e4c9826",
+      "simhash": 14737448370005913969,
+      "normalized_length": 927
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc341_c",
+      "sha256": "7a958666a5e680cafc559811d136f9e8e7cf8dfaaa8943ccdbb52be2886590dc",
+      "simhash": 16347873018992475099,
+      "normalized_length": 2214
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc343_a",
+      "sha256": "65c398d532e8a6c387111d5df230cc459c728ce0a9ed68d7718a29e81e6971f4",
+      "simhash": 17192446707441968678,
+      "normalized_length": 542
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc361_b",
+      "sha256": "96dba7c6fcfb25fbbfff00e202e4eb51c17139ca7ccd166c527ad6072516e151",
+      "simhash": 4380455180748181714,
+      "normalized_length": 1117
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc188_b",
+      "sha256": "6628d65e7c3e63fbbb5d5f343436748e08c6c8e2f138dd10cf00eb60f1947963",
+      "simhash": 7751028752075877294,
+      "normalized_length": 1861
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc338_d",
+      "sha256": "083605e1f84454e130b3c92e1a06528aa1bd5d905cf3bd0fa585ed509e292580",
+      "simhash": 3485086257860064147,
+      "normalized_length": 2577
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc386_d",
+      "sha256": "f9fb06a5c11ac7aa0104a961550ce8030b66315efd0dd840e3164ca40d1aac5b",
+      "simhash": 11732971295343657662,
+      "normalized_length": 1648
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc195_a",
+      "sha256": "61bc9fdfdf29d088ede4bacfa5e45011a09bb44602ec7764ad51916cd3196a5a",
+      "simhash": 14997948683609355123,
+      "normalized_length": 1032
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc347_e",
+      "sha256": "68d8a7b54340cf359ecaefd6e4efbabeb745905b9f5cd9e1c040258a56760e3d",
+      "simhash": 5601124259044756187,
+      "normalized_length": 1477
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc195_b",
+      "sha256": "15522653fc5fa04a021617500c5dd056f45d83c9a0fa03c181f6509104788d43",
+      "simhash": 2596790546370235196,
+      "normalized_length": 1343
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc375_g",
+      "sha256": "2945339100e3f7383b86b6fed8e0298af240845e71a8dca9ec08f4ff89b9f5e7",
+      "simhash": 13189913000299902883,
+      "normalized_length": 1957
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc352_b",
+      "sha256": "1406bf205753dc888e23a28da432132bb445a7d6a68ec003c5869f979f5347d8",
+      "simhash": 3755926711491773701,
+      "normalized_length": 1796
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc385_f",
+      "sha256": "64b420d7d16565783085beb0693d1a9150d92226e27212140aad63f89ea506e5",
+      "simhash": 9869154644108377909,
+      "normalized_length": 1555
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc306_e",
+      "sha256": "5a11d0f99f55b9ecfa9e4597eba52057a749bdf4fa0eacb587543c2ed45d4f77",
+      "simhash": 13435832889548152510,
+      "normalized_length": 1428
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc363_b",
+      "sha256": "2c6f477cefa73230432cd21f0eeba9a97537a7e6bd5d1b66495b700cabf98335",
+      "simhash": 10776678171318941474,
+      "normalized_length": 1350
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc182_c",
+      "sha256": "74110c7c5c6a05d284ca53f4fdd92e2bafcd2ccf154db1eb145fb3937117e86a",
+      "simhash": 2594741882846937499,
+      "normalized_length": 1220
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc192_d",
+      "sha256": "6f70d62ff70b917554459021cae7b529c83779fe986d489712031ce11a52ef52",
+      "simhash": 13067086013712011824,
+      "normalized_length": 1472
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc390_c",
+      "sha256": "bb0c16f206ad7ee6b0474dba0b2cc7f7a78084dd8bf8274ae10b5ffbb3e049e1",
+      "simhash": 11713351630091508174,
+      "normalized_length": 1713
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc348_e",
+      "sha256": "af3512c7a8e82c3f514322aa72229599b846f93e2b389e90173d6a260b901d33",
+      "simhash": 12277287144885548970,
+      "normalized_length": 1017
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc399_d",
+      "sha256": "997627a6c3035c48ff98a7cf9c59f9da4c643b653b8658c5ce23f1a3d3442da4",
+      "simhash": 10195648958091027375,
+      "normalized_length": 1955
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc395_a",
+      "sha256": "13fbeb2c1c9cdd49b373e6c2ca3675d64da68d8acf20fbba123cf150b472074c",
+      "simhash": 16173587889215612721,
+      "normalized_length": 879
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc342_d",
+      "sha256": "3ab39ae133672f4ab01a31349b7e0ed0e7c7307042daba97ad1379358beb1dc8",
+      "simhash": 1636792897568172442,
+      "normalized_length": 796
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc380_e",
+      "sha256": "b1c08c8eff0b30b941e1abdbad0f81ba27e3c31a537ecd8104deeaa14adead2a",
+      "simhash": 16505533202738486190,
+      "normalized_length": 1114
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc338_c",
+      "sha256": "95015c4d8cdb76172f88fda0b485560f6f53cecc5419fad62fb6bacf185ab8e9",
+      "simhash": 5411052640901087793,
+      "normalized_length": 2014
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc325_c",
+      "sha256": "e4113df53d2d9f6e458f83fcccb670717844721db0792ee05733aad692381b3d",
+      "simhash": 5370384048306732554,
+      "normalized_length": 1357
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc372_a",
+      "sha256": "5e22c80d57594182cfda89e271dea7161389e46e5920ef35ea334f69474cdfe5",
+      "simhash": 10516657707039429258,
+      "normalized_length": 598
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc323_a",
+      "sha256": "99039b3765b24e24a1565d13022951aac4628d3f3ff73ec43ad4bd85f0d3de10",
+      "simhash": 11805920605971917602,
+      "normalized_length": 807
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc324_f",
+      "sha256": "06a3feb2e850239bc1275f202990b3b12eb1fb47ba29c15cca922ab50421efb4",
+      "simhash": 1442596931568957357,
+      "normalized_length": 1673
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc310_b",
+      "sha256": "f5df1a16557c0dc1839a96a08db317c95d222d79dcad70502a3ab4dc061e678f",
+      "simhash": 12596122018779743214,
+      "normalized_length": 1903
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc385_d",
+      "sha256": "46cbe0a804af02266996d7cec68ad06067de7c66c7a30753cb242f4e54a50608",
+      "simhash": 8539082281639260018,
+      "normalized_length": 1955
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc314_f",
+      "sha256": "ee79201e4bc855a2da3539b4dbf5928b4f0cf98fc88f04b814d5a134fa4bb49f",
+      "simhash": 2215299232110813825,
+      "normalized_length": 3585
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc364_e",
+      "sha256": "903b45fb4eda5e9ce1e0d84763d81d40240f176d7bfc85d7d4aedc75fe933080",
+      "simhash": 12133818571784130704,
+      "normalized_length": 1595
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc186_b",
+      "sha256": "1301408433a712f8da69fdd521bef6baa509e1500bb9f3be14c07d7bf27c467a",
+      "simhash": 3361760911940890386,
+      "normalized_length": 1037
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc315_c",
+      "sha256": "dbfa905ee0b15f1fa95401cf69deb5a88c8194228700e3531babb3b3b351b25c",
+      "simhash": 10887871728820263976,
+      "normalized_length": 1422
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc390_e",
+      "sha256": "2e3fd237c48d382598c8c4f214c5955f642601a26cf8e3aa9641244c2f7224ff",
+      "simhash": 452038485029327854,
+      "normalized_length": 1428
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc396_c",
+      "sha256": "9364c1c62f2c8120b9e7f3f0626746c0ae8015c0a59b173473e3a5de069ba25a",
+      "simhash": 8293981546627002883,
+      "normalized_length": 1059
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc334_d",
+      "sha256": "4cc4c6387d5b83a413780d93191a053b631c380138e3f0e004ef1bbc9d72c225",
+      "simhash": 4512183508056966065,
+      "normalized_length": 1115
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc325_b",
+      "sha256": "b901c59ef8073610f38f49a184b72138503c662e1111c32f2ccf6a0c9904a22b",
+      "simhash": 15730608367296259899,
+      "normalized_length": 1429
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc381_c",
+      "sha256": "bf12b76142951fae5a1cc23620fe10036c828a3672c9a2cd1ae4bdbbf7dd84d7",
+      "simhash": 13543344277600659974,
+      "normalized_length": 1204
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc318_c",
+      "sha256": "cff5a4dccd14eaf14ff665b56320de34dc6dc2831c10d64a8a556a916f93eabf",
+      "simhash": 13444651985288986096,
+      "normalized_length": 1535
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc341_d",
+      "sha256": "739cf2e57a11037e0f82a4750aa434334a70bf974ff0433dc15dc5d4e446a689",
+      "simhash": 3177498644331463340,
+      "normalized_length": 877
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc301_f",
+      "sha256": "484d556c208d8f421549640913268e9f50d824cbdfd533432e97e97e5f2112f7",
+      "simhash": 273497974751441186,
+      "normalized_length": 1284
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc196_a",
+      "sha256": "9a0b0e5905000e13c3e3b3e23d9fdec712ffc466975ca30dbe7c12fb73870e32",
+      "simhash": 6630322074720477456,
+      "normalized_length": 1004
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc347_a",
+      "sha256": "10841053ff233a48bac9cf2f087316186357af6ad83c060cec6880ab28dbb59c",
+      "simhash": 17370132197757756320,
+      "normalized_length": 819
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc376_f",
+      "sha256": "f61c273a9a1cdb2339c0ecb7dc819ba84364a2224c3c786688007a7cedb132f6",
+      "simhash": 8845890017633157878,
+      "normalized_length": 2411
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc330_e",
+      "sha256": "3025b54999a8db77207ac44175f45457e9412b2a97b457d8a7122eda3e409ece",
+      "simhash": 4528297260686460350,
+      "normalized_length": 1344
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc380_c",
+      "sha256": "8901242ce2f5c07d484b544848a46c926bc451faa6bb0c97d289c0aeaeda8f54",
+      "simhash": 4522404020623918052,
+      "normalized_length": 1389
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc327_d",
+      "sha256": "3e3ab85dcb00a74b96610fb9f78650d793943717dde577818d33b25b03dfecd2",
+      "simhash": 12432682556253971040,
+      "normalized_length": 1283
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc323_d",
+      "sha256": "08469698db64205a2832e1eed9c7085f82498e077beba78aad88ead4a103506d",
+      "simhash": 16192930894864042879,
+      "normalized_length": 1528
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc189_b",
+      "sha256": "2dba9a68a17d7c4ceec50d863e134a32dce3452767b0d905b73b85dd178f81d2",
+      "simhash": 5160626850820397862,
+      "normalized_length": 1666
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc394_b",
+      "sha256": "36907f267554e084006856cc7ff9b3a95975ad4313f444416d8454ea620e30fa",
+      "simhash": 3033858545661346660,
+      "normalized_length": 804
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc365_b",
+      "sha256": "a93c899ecd21150575ef960e6d390f91f327a8d5f1192d9a869742bbced052bb",
+      "simhash": 2024121186936239001,
+      "normalized_length": 570
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc321_e",
+      "sha256": "1e3451131e761dcab50cbe9838209d0c4c928028e9d4af0412db8d447ff8e372",
+      "simhash": 1626673803362568624,
+      "normalized_length": 1748
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc388_a",
+      "sha256": "9440b4c2765cfc099e11ec7a4c409f6ef6aad238f65e6890521491f3816ed4ed",
+      "simhash": 15102170063590996081,
+      "normalized_length": 761
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc367_e",
+      "sha256": "1e68fab9006df3b1dfccc070d786169c5fa0a88197685b463d6261fc569a3931",
+      "simhash": 7086250806932732958,
+      "normalized_length": 1075
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc378_c",
+      "sha256": "ed3413ddb189508e22820d061a70be7810b670de5a581bcbe10a2b8b84285835",
+      "simhash": 12618556702374819496,
+      "normalized_length": 1045
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc307_d",
+      "sha256": "cac46e6b48232d2bf37a5bc3bcbcf6ab98c03dc7f018cdc20ec91084a81c65de",
+      "simhash": 3584828435131310290,
+      "normalized_length": 1178
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc368_e",
+      "sha256": "a248ce2841308361d062c879a356a20d3e7914fb2115e3cdcdf96c83a522a948",
+      "simhash": 16561834437070679436,
+      "normalized_length": 2119
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc368_g",
+      "sha256": "b33b6e09cca23e98b5385e61da370834eecaed2e396a579916c966c7dca5fe83",
+      "simhash": 1501142802098752440,
+      "normalized_length": 1508
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc332_a",
+      "sha256": "723e5ff231c9bb8a0c37f9652468181fe44b045f2aaaa2628acd7280f3fd3290",
+      "simhash": 15686881818339121696,
+      "normalized_length": 1578
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc398_d",
+      "sha256": "e6b3bffad1b410a683a588b353988e871ad4c56ad9ce57cb121cdebf5ea9f161",
+      "simhash": 9784887402174060590,
+      "normalized_length": 1861
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc327_b",
+      "sha256": "0c3033e763191c667fbb6bb9941767fc9ccd580f72d14678845bae85af5b25cf",
+      "simhash": 7221013431462912615,
+      "normalized_length": 579
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc315_b",
+      "sha256": "69cde82e663283a432ef981da99bf67d4a8b269207a2249d04e7b2717bc8bf12",
+      "simhash": 4667504953817026171,
+      "normalized_length": 1137
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc391_b",
+      "sha256": "536945c8d4435196c4ac1127edd7a8d5faf1a3575549c79bd0a7c6ffcacf11fb",
+      "simhash": 2459369015586468340,
+      "normalized_length": 1152
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc358_e",
+      "sha256": "437f0b31413c036cc2eddc99c0911162c0cfb5f9425ec982eb8b289fce7a68c0",
+      "simhash": 7765791516361500402,
+      "normalized_length": 1166
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc392_g",
+      "sha256": "7e04980abe3f07abe6799e5060e24fa8c4c55db8eee6cb15e4a73f9485b77c16",
+      "simhash": 12578250258015725986,
+      "normalized_length": 741
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc309_c",
+      "sha256": "93d849aa7f1fc0edc3e1434b4afe7c57b2a73c9f773077247a9b0c9abdee9b72",
+      "simhash": 15396643827327595033,
+      "normalized_length": 1606
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc348_a",
+      "sha256": "036bc897e371bdd17810fbeecc843c999afaa61a0963510f99d2720c3460bee3",
+      "simhash": 1485723330893826004,
+      "normalized_length": 676
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc350_a",
+      "sha256": "499cb7d4517d73af1b97406ed7f89c68df21bab6b32d1d9953203d4141cb34be",
+      "simhash": 14643559382854138744,
+      "normalized_length": 1135
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc326_c",
+      "sha256": "91dfdbd244f946545ff61acb62c70c221fdcea9d6e2fbc07bee56fbc6cb5d0e3",
+      "simhash": 6648988290829084648,
+      "normalized_length": 1103
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc311_d",
+      "sha256": "86652b20f4e0f23a3fd5eca39f2aa138da5222fbd04934dceae2c543ca8262c2",
+      "simhash": 11838390049111440470,
+      "normalized_length": 1575
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc371_e",
+      "sha256": "c7475e28255be7fd3592c0159194aaf5b1f691e5e28066e619b979ee89cb3e22",
+      "simhash": 17549725103631036786,
+      "normalized_length": 693
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc329_e",
+      "sha256": "fbc943b4e603874a555afa7fb5b964ae01fb13c3515de3fe430b9e01f7d401a5",
+      "simhash": 7050098731362609474,
+      "normalized_length": 1197
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc304_d",
+      "sha256": "8bd76dce914e294caaa7a6874eeae1e279c570ec39937a4aeb9a623c3ca2d9a5",
+      "simhash": 13595831699282539635,
+      "normalized_length": 2018
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc356_b",
+      "sha256": "b95459c0e24b8bac9e48c9a6fbb567c108d28b7f5502325aea8d5155c9a91e9e",
+      "simhash": 18049480993041247612,
+      "normalized_length": 1021
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc356_a",
+      "sha256": "48bba6168ee88ef78f46185948e0c7b90b6e19bc44e49957dfceedeb20a9da55",
+      "simhash": 9538547242199065250,
+      "normalized_length": 798
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc325_a",
+      "sha256": "dfa7286a514683495a08c4f2e07788f051c2ad7d597e05a17bb8d69fdebea04e",
+      "simhash": 10492779301225256273,
+      "normalized_length": 980
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc362_e",
+      "sha256": "35c44dce416b50b72555a833a2b4836c0aad09468791a836394cdbb7d653a2f9",
+      "simhash": 401258520005553051,
+      "normalized_length": 1208
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc313_a",
+      "sha256": "29c8d8bb9d1c197be393de62d1b5cd1e6b13ec349ce448e625a5c8c28ddfb24c",
+      "simhash": 1157253416295249723,
+      "normalized_length": 835
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc357_a",
+      "sha256": "c8eb0db9f3169f691d05b5a7938dc0e5686df4a59127f40aa56e364a5a59a27f",
+      "simhash": 10277063763353720448,
+      "normalized_length": 1413
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc367_f",
+      "sha256": "8f987728f874d9333086ce0a08de2f4b25c39b5fdaf21cabe4d45efa7056d262",
+      "simhash": 14417791627963331386,
+      "normalized_length": 1332
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc396_f",
+      "sha256": "470e53487f3fee2bdeda64ef39c5458de3617a5a7bca3541b4c374283efee022",
+      "simhash": 8975477918954075946,
+      "normalized_length": 988
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc184_e",
+      "sha256": "0f664b5cf40115d3f71d873b2881e531cb0b6d32074f1086186f272cd8918a59",
+      "simhash": 14721620384319075368,
+      "normalized_length": 1023
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc193_b",
+      "sha256": "6e2196320fd5cfffca21295a68190d6809dbb8dfbfdf754c5446b742063a90d5",
+      "simhash": 10877301369676871594,
+      "normalized_length": 1479
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc189_a",
+      "sha256": "37dc3c9e0dbcc68edf61a80beab7fa6744756954728509d13a004905fe1d1610",
+      "simhash": 10163709315411583620,
+      "normalized_length": 1575
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc339_d",
+      "sha256": "31f6fbabc30a13a68bb4e648cdbeb18c3649462db8b7cfb32d8ac84db52eacd3",
+      "simhash": 1770861773938767966,
+      "normalized_length": 1753
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc353_a",
+      "sha256": "8ee982cb3d95d0f058fb1fbbb887809203da93c341470d30fb249d47726d5e8c",
+      "simhash": 1498667656935030570,
+      "normalized_length": 987
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc363_d",
+      "sha256": "6c3ff676e2af6238c468867663088bdd6fe2f0ac14a87934e9f5ec8857de3f80",
+      "simhash": 18196601845227257912,
+      "normalized_length": 590
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc309_e",
+      "sha256": "e6539eba8c45f875b6391cab119ea0961e74b792b628535d79aaadb113a644ba",
+      "simhash": 8521084223141816172,
+      "normalized_length": 1213
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc340_d",
+      "sha256": "632280b29757f330c7da38614a61ac210e8f4d8d19f0a7ff06fda16d470fe643",
+      "simhash": 1560724587940530098,
+      "normalized_length": 1391
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc335_a",
+      "sha256": "6029c06e79f956154d70041200033f8527fa08c820b7b9fc08fc469488af6504",
+      "simhash": 7913720361551860328,
+      "normalized_length": 736
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc341_f",
+      "sha256": "25517d6cca04ecf06fce62c515eed183a68d356beadc5e12ceeb0c8f4d01668d",
+      "simhash": 7129114294610719674,
+      "normalized_length": 2130
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc182_e",
+      "sha256": "8aeead5869f1c09ca68276f0279f6f5b529839053c575929d36960ecbdee0b02",
+      "simhash": 6130362206521111287,
+      "normalized_length": 1085
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc370_c",
+      "sha256": "75d148e354485f125483190a1e63333b9f2e2ddab53b5f4d30bf6a4c7231229f",
+      "simhash": 3189499882147381415,
+      "normalized_length": 1974
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc305_c",
+      "sha256": "61035ee4fb024934b0e3eb22f0469f87533033580078344faf34160767ec8a48",
+      "simhash": 4505398693875866599,
+      "normalized_length": 1707
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc397_c",
+      "sha256": "7971ebaf3e88b0f98ad6c59850ebc568d0521c3b0d1bddf4eba3bd03ac905af5",
+      "simhash": 2195348927495193299,
+      "normalized_length": 1228
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc183_b",
+      "sha256": "eaec94e801e3863d151c720a6a392a1933be51a29a7764034b5ff84153b0aca9",
+      "simhash": 16453650534682573738,
+      "normalized_length": 1187
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc337_e",
+      "sha256": "cf4d9c5ac7a9050aa248614a4d59da28f62f637b16e3d056f657e349d9a1a830",
+      "simhash": 7307794795931839287,
+      "normalized_length": 3755
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc301_c",
+      "sha256": "5f2c7adcb517164a1093b300a49b5433bceedfc3b0581df014cb5f867d49aa63",
+      "simhash": 3810983264071557553,
+      "normalized_length": 1276
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc194_c",
+      "sha256": "2bd032d8fdd56780e55163ff9d0c2bb98c8fdcd6b6df519c5bc61bed4851b1a8",
+      "simhash": 13919363383489832328,
+      "normalized_length": 1621
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc395_b",
+      "sha256": "15b71f932633b03c7d053392b856e427cf844e3f46bb1c74743af178669d365e",
+      "simhash": 9531674814669271281,
+      "normalized_length": 1329
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc358_b",
+      "sha256": "3b430e5605a5a94a2d328ae8b5003055cd1d48e3203fe84e7afde84d44909ba6",
+      "simhash": 14160398281225960371,
+      "normalized_length": 2391
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc369_b",
+      "sha256": "e7cefebcdb3a6875f3be11176c88e2de7aaec48db2b74aca285f3bb746451fc8",
+      "simhash": 12255956582226143952,
+      "normalized_length": 1617
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc384_b",
+      "sha256": "fff708267e97aa81e41b8fd07fc093ff53a614ea63c33a2b6b7794dc0e539a63",
+      "simhash": 16931933941287357228,
+      "normalized_length": 2188
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc320_e",
+      "sha256": "88e16cc603df9974649ebd6908a9618e809208dc22e63992d679cf45648663b4",
+      "simhash": 8291390230916053830,
+      "normalized_length": 2228
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc386_f",
+      "sha256": "3cd70353273236b509a7d5048c350e45894f99d52630d668cba7cc7b05bde204",
+      "simhash": 17906668003319209698,
+      "normalized_length": 1410
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc344_a",
+      "sha256": "3d556fb5c6ed129b278d9023998b8c4a5d9b69f1850f0ecb28f950326604f449",
+      "simhash": 2422633672867877754,
+      "normalized_length": 696
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc307_a",
+      "sha256": "b644fd427c2cad360ad5d603d9866a9883df82bb59b9cfc02023295e990e8405",
+      "simhash": 6023102029999409075,
+      "normalized_length": 1060
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc399_f",
+      "sha256": "217f2b79496a9c79ebb86e6be69fbace049c5bb3bb7123c853c583a41eaf2b69",
+      "simhash": 3533422164835992226,
+      "normalized_length": 691
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc384_a",
+      "sha256": "ad7c3780cf89af04d4b39689dd202c9b26625f4b40af3afcb4510386936ba173",
+      "simhash": 3138558930125583178,
+      "normalized_length": 835
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc367_g",
+      "sha256": "be4e870599b7cb972d51d475fca57cb50551d9529794ea25071acc80dfd863c7",
+      "simhash": 15685297714441855985,
+      "normalized_length": 1595
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc328_b",
+      "sha256": "15e9cc6cac5ec8bfa8207b066e7a139beaa2630c6c7f76f7c450862012ecda8f",
+      "simhash": 3319802859712740002,
+      "normalized_length": 1067
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc320_c",
+      "sha256": "16c17479517ac940efe934d29b2abc7643f3d55bc0fc828ee37716f8f21c4e75",
+      "simhash": 14059562755774050135,
+      "normalized_length": 2396
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc389_a",
+      "sha256": "ecff954b19262dc91406342e39c8ad9dc983596ce59616d331c032abaaaac086",
+      "simhash": 4439184678258604127,
+      "normalized_length": 636
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc344_d",
+      "sha256": "98e6b584d830a692afc481b612a2b2502c036ff69d68ab75b981792301e5cfbf",
+      "simhash": 12399601232202207419,
+      "normalized_length": 1610
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc363_c",
+      "sha256": "74107e3d2836f2285234eba57370cb35a628a54ae59b4d7a56afef2e13210311",
+      "simhash": 8902453276388328274,
+      "normalized_length": 1294
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc359_a",
+      "sha256": "29ce760093b61a6cd436f1d157a311899976ead9fc34d78ba2921cb3e219a4c9",
+      "simhash": 8471125202736248623,
+      "normalized_length": 809
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc360_c",
+      "sha256": "24d313fac49a9f72a10a465af6de32f79548d200dc4e6ae753195d81d5735bdf",
+      "simhash": 11537742545880253809,
+      "normalized_length": 1191
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc391_f",
+      "sha256": "ff44866695785e9e2259ab754c30dc8b238d9278667dd77cb528ef36943b9317",
+      "simhash": 10671665720144155638,
+      "normalized_length": 1606
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc361_e",
+      "sha256": "4da18c9e36d9c106eeb722bf8dfc6768966c6d83a41ebd3c8e732b336dc94e10",
+      "simhash": 3789681193822257445,
+      "normalized_length": 1079
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc392_b",
+      "sha256": "a4fbc193a4adeb0f88c6743cb656166ebc63e116279d379a04f1df93108fb10d",
+      "simhash": 3912926035774321851,
+      "normalized_length": 1010
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc374_a",
+      "sha256": "1c36e4b3e42618be0e5e97d7147ba1eb1a0ac1b4ab0381b97d2aa47586676659",
+      "simhash": 9424634847853316995,
+      "normalized_length": 641
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc374_f",
+      "sha256": "5ea831030711c0e5b219ec8b68b0d6b2ac25383edaa2fce89b3e0f6405f173c2",
+      "simhash": 8617716727888309948,
+      "normalized_length": 1826
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc351_a",
+      "sha256": "f81d1313f8b9117042b946405f6ff32757b0acab357baba8c0cf932e16401b1e",
+      "simhash": 17241909038316432112,
+      "normalized_length": 1751
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc335_d",
+      "sha256": "7cf14283ee1a52023a2d67829a23e5cb03aea619dfed870033500d92cf5d2cf3",
+      "simhash": 9891643624827134359,
+      "normalized_length": 1674
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc314_a",
+      "sha256": "5702d0a9ca6547dddb97aef2cdd78de2b17212711162f4b7067d2c5220bee346",
+      "simhash": 2279747297848390568,
+      "normalized_length": 916
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc191_a",
+      "sha256": "529a073fc3727cb792b44eb0c00285086603614f5137eb1ae1c02e54703df314",
+      "simhash": 10762751901404949324,
+      "normalized_length": 1171
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc322_c",
+      "sha256": "5776452edc31b1e0f23f83ea42fe14f15f542e36f0ea5f2302135ac0f6ea6013",
+      "simhash": 422469428806869613,
+      "normalized_length": 1399
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc190_c",
+      "sha256": "14870d105a94597e9216e73b711daa0703cb26b48f48f9a293fb0680142c4f9c",
+      "simhash": 13114601539201795012,
+      "normalized_length": 2787
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc305_e",
+      "sha256": "b200bbfb0d906fce8f998138056daaea105e9a5e22ac798cd883a373fc78baed",
+      "simhash": 1584887434026988322,
+      "normalized_length": 1999
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc348_c",
+      "sha256": "b4614b8a0dd77b9e6b8efe79eb3870bd64ecd5fb5ffc4771a093c392bacb5c35",
+      "simhash": 11631070832981747019,
+      "normalized_length": 1275
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc400_c",
+      "sha256": "8e73079e7d909b4ee52bc3547d4807a0e747a16e5e298e5873b935b59c731bcc",
+      "simhash": 11464888074814399914,
+      "normalized_length": 755
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc393_b",
+      "sha256": "42ec158d692270337bac1db65caf8b911d2886a96a3597b4539edfb1206a7e47",
+      "simhash": 5520672278290781415,
+      "normalized_length": 687
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc386_a",
+      "sha256": "8e7a0418b6098a7c51e96c66779c37b7b13a989545850f9b09d67f793e4db1bf",
+      "simhash": 15989796944240882423,
+      "normalized_length": 1043
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc363_a",
+      "sha256": "a1f2f17c4e81d8d507bd13c46e1b68b12b84fa0f05c19194aaf8386f1f112142",
+      "simhash": 4601931339806520464,
+      "normalized_length": 1347
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc379_f",
+      "sha256": "272b23f06bb5c0279404c76aaab122d1439aee7d964d13288050fc7c88e65fda",
+      "simhash": 9642311758649091992,
+      "normalized_length": 1617
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc331_b",
+      "sha256": "299d4de68d8abfb823ee189fa55229daf8c8d6161927d5c5442ab78f483edcae",
+      "simhash": 1269886555033670758,
+      "normalized_length": 696
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc347_b",
+      "sha256": "18f99ec55cdc7b6d7dc27101b675d1125dc7d87aa0d783ee3049d5b5d12546b5",
+      "simhash": 11897330129575079747,
+      "normalized_length": 606
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc390_a",
+      "sha256": "c7b56dcc8e46213dd753c39e76b2c63402859554d4ee0085fbfc842fe0b1f546",
+      "simhash": 2922403969106731579,
+      "normalized_length": 888
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc390_d",
+      "sha256": "fa154fdc7c30109e3491209719c7174c25c574624295c58dcc62d080be3e9ade",
+      "simhash": 830209841177758664,
+      "normalized_length": 1891
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc338_b",
+      "sha256": "c1d4705c53ea5780e38bfdc6425adca71bb863cc8cdad61cf472093f973637b3",
+      "simhash": 11570706755009742339,
+      "normalized_length": 884
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc334_e",
+      "sha256": "d1d1088ea5560ae994ae1c6d742e7abc6ec2b0e2171340f1fcbebee526f9c142",
+      "simhash": 3454942263065641815,
+      "normalized_length": 2124
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc188_d",
+      "sha256": "db22f8a01d618dbd140d072d649f165c143109fc9e06e29b878fdaef8ea8d04b",
+      "simhash": 14920345528417759654,
+      "normalized_length": 2336
+    },
+    {
+      "problem_id": "livecodebench:atcoder:arc189_c",
+      "sha256": "2b1df10ace1117d65b3c441ed2ccf7b10142533cd24048b54434455897a87d8a",
+      "simhash": 7766208780508633064,
+      "normalized_length": 2421
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc375_a",
+      "sha256": "7b76bb44d09e497f8f8a26605c090628d23687e6c6055c532563dc6c153d1e7e",
+      "simhash": 3933730822837497370,
+      "normalized_length": 723
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc397_g",
+      "sha256": "0184708afbc7b96b482aba5a77c1ea25306cbdbf0bf69521ba6fc47ebca2a08c",
+      "simhash": 8506221429969826409,
+      "normalized_length": 1218
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc315_e",
+      "sha256": "062d617d4e3410db498905b2880b319c9eac3ad9d4632ecfaab4cb01ddbe5e7a",
+      "simhash": 17164014851589964708,
+      "normalized_length": 1636
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc384_c",
+      "sha256": "d37a4384bf928f8c47c66fd9db9261c1d58beb4ea1828993a5748396b18587fd",
+      "simhash": 13116250946198952067,
+      "normalized_length": 2707
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc334_b",
+      "sha256": "5e1343a38b53cd36018a03a16c3703221ba1d47154428178e3031f324875d7fe",
+      "simhash": 14299810019443581558,
+      "normalized_length": 1452
+    },
+    {
+      "problem_id": "livecodebench:atcoder:abc389_e",
+      "sha256": "e5213dc13369307295aaa0401c9bf49b17b2ebbaf33024462cb97c796fb48868",
+      "simhash": 18205136150901409406,
+      "normalized_length": 844
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+source:
+  dataset: nvidia/OpenCodeReasoning-2
+  revision: eadf535931451525f3e5621d0f960c240bc62fd9
+  split: cpp
+  candidate_scan_limit: 250000
+  candidate_pool_size: 30000
+question_sources:
+  taco:
+    dataset: BAAI/TACO
+    revision: d593ed0a2becbbc952230bb89be09189bf1056dc
+    data_pattern: ALL/{split}-*.parquet
+  apps:
+    dataset: codeparrot/apps
+    revision: 0f10e424e13e1c2a69f851e153097b71b6734a1f
+    source_revision: 21e74ddf8de1a21436da12e3e653065c5213e9d1
+    data_pattern: all/{split}/*.parquet
+  code_contests:
+    dataset: deepmind/code_contests
+    revision: 802411c3010cb00d1b05bad57ca77365a3c699d6
+  open-r1/codeforces:
+    dataset: open-r1/codeforces
+    revision: fbe3f6e903ee854eec2e69e9d96d0306cde59baf
+filter:
+  seed: 20260821
+  require_judgement: right
+  minimum_pass_rate: 0.8
+  allow_unverified: false
+  minimum_problem_characters: 80
+  minimum_reasoning_characters: 80
+  maximum_response_characters: 50000
+  compile_check: true
+tokenizer:
+  name_or_path: Qwen/Qwen3-0.6B-Base
+  revision: da87bfb608c14b7cf20ba1ce41287e8de496c0cd
+output:
+  directory: data/processed
+  eval_fingerprints: data/splits/eval_v1_fingerprints.json
+  stats: data/processed/sft_stats.json
+  audit_sample: data/processed/sft_audit_100.jsonl
+  sizes: [1000, 5000, 10000]
