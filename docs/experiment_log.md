@@ -29,3 +29,13 @@
   - CUDA allocated memory：1,200,636,928 bytes；峰值：1,214,435,328 bytes；
   - 产物：`outputs/experiments/m0-qwen3-smoke-20260821-122539/`；
   - 结论：M0 验收通过，无阻塞问题。
+
+## Milestone 1
+
+- 2026-08-21，Code Verifier 云端验收：
+  - Git commit：`4b74008`；
+  - 环境：Linux，Python 3.12.13，g++ C++17；
+  - 定向测试：`tests/test_code_extraction.py` 与 `tests/test_verifier.py`，14 passed in 1.55s；
+  - 项目全量测试：17 passed in 3.78s；
+  - 覆盖：Output Protocol v1 提取、正确代码、Compile Error、Wrong Answer、Runtime Error、TLE、输出上限、多 testcase 和临时目录清理；
+  - 结论：M1 验收通过，无阻塞问题。
