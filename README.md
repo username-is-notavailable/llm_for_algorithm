@@ -89,6 +89,8 @@ print(result.to_dict())
 
 执行器使用独立临时目录、进程组超时终止、CPU/内存/core dump/输出大小限制，并在判题结束后清理临时文件。这些措施用于本地与开发阶段的基础防护，不等同于容器、nsjail 或其他强安全隔离，不应在高权限主机上执行任意来源的不可信代码。
 
+训练与生成的标准响应格式已冻结为 Output Protocol v1：`<think>...</think>` 后跟唯一的 `cpp` Markdown code block，不使用 `<answer>` 作为标准标签。内部数据 schema、数据源适配和兼容提取规则见 [docs/data.md](docs/data.md)。
+
 ## 里程碑
 
 - M0：仓库与云端环境（已完成）

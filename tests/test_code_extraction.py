@@ -42,3 +42,21 @@ def test_rejects_response_without_cpp_code() -> None:
 def test_extracts_raw_cpp_without_code_fence() -> None:
     response = "signed main() { return 0; }"
     assert extract_code(response) == response
+
+
+def test_ignores_code_in_think_and_prefers_answer() -> None:
+    response = """
+<think>
+This discarded draft is deliberately longer.
+```cpp
+#include <iostream>
+int main() { std::cout << "wrong draft with more text"; }
+```
+</think>
+<answer>
+```cpp
+int main() { return 0; }
+```
+</answer>
+"""
+    assert extract_code(response) == "int main() { return 0; }"
