@@ -4,7 +4,7 @@ from src.eval.metrics import compute_metrics
 from src.eval.pass_at_k import estimate_pass_at_k
 
 
-def _row(problem_id: str, sample: int, *, extracted: bool, compiled: bool, passed: int) -> dict:
+def _row(problem_id: str, sample: int, *, extracted: bool, compiled: bool, passed: int, difficulty: str | None = None) -> dict:
     return {
         "problem_id": problem_id,
         "sample_index": sample,
@@ -12,6 +12,7 @@ def _row(problem_id: str, sample: int, *, extracted: bool, compiled: bool, passe
         "total_tests": 1,
         "extraction_success": extracted,
         "judge": {"compiled": compiled, "passed": passed, "total": 1} if extracted else None,
+        "difficulty": difficulty,
     }
 
 
@@ -39,3 +40,12 @@ def test_compute_metrics_with_multiple_samples() -> None:
     assert metrics["pass@1"] == 0.25
     assert metrics["pass@2"] == 0.5
     assert metrics["average_response_length"] == 10
+
+
+def test_compute_metrics_reports_difficulty_breakdown() -> None:
+    metrics = compute_metrics([
+        _row("easy", 0, extracted=True, compiled=True, passed=1, difficulty="easy"),
+        _row("hard", 0, extracted=True, compiled=True, passed=0, difficulty="hard"),
+    ])
+    assert metrics["by_difficulty"]["easy"]["pass@1"] == 1.0
+    assert metrics["by_difficulty"]["hard"]["pass@1"] == 0.0

@@ -12,6 +12,9 @@ __pycache__/
 data/raw/
 data/processed/
 data/splits/
+!data/splits/
+data/splits/*
+!data/splits/eval_v1_problem_ids.json
 outputs/
 .third_party/
 *.log

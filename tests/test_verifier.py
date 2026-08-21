@@ -45,6 +45,13 @@ def test_wrong_answer() -> None:
     assert result.passed == 0
 
 
+def test_output_comparison_matches_livecodebench_line_and_decimal_rules() -> None:
+    same_numbers = judge("#include <iostream>\nint main(){std::cout << \"1.0 2.00\\n\";}", [{"input": "", "output": "1 2\n"}])
+    wrong_lines = judge("#include <iostream>\nint main(){std::cout << \"1 2\\n\";}", [{"input": "", "output": "1\n2\n"}])
+    assert same_numbers.passed == 1
+    assert wrong_lines.error_type == "wrong_answer"
+
+
 def test_runtime_error() -> None:
     code = "int main() { int* value = nullptr; *value = 1; }"
     result = judge(code, [{"input": "", "output": ""}])

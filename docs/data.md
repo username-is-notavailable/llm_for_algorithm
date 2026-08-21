@@ -63,3 +63,17 @@ SFT 样本先转换为结构化字段，再由统一 renderer 生成 Output Prot
 5. 提取失败。
 
 在进入数据处理 Milestone 时，应为 renderer、协议解析、往返转换和异常样本建立独立测试。
+
+## Fixed Eval Set v1
+
+正式评测集使用 `livecodebench/code_generation_lite`，固定来源为官方 `release_v6` 和 Hugging Face revision `0fe84c3912ea0c4d4a78037083943e8f0c4dd505`。这里的 `eval_v1` 是本项目 split 版本，与上游 `release_v6` 是两个不同的版本维度。
+
+上游 1,055 题中仅接收带标准 stdin/stdout tests 且具有 `easy`、`medium` 或 `hard` 标签的题；LeetCode function-call 题在当前 verifier 不兼容时明确拒绝。对剩余候选按难度分层、固定 seed `20260821` 抽取 500 题，再按 80/20 分为：
+
+- `eval_v1`：399 题，仅用于阶段性正式评分；
+- `dev_v1`：101 题，可用于开发观察，与 eval 不重叠；
+- `smoke_10`：dev 中固定的 10 题，用于流水线验收，不作为正式得分。
+
+唯一可信 split 定义是提交到 Git 的 `data/splits/eval_v1_problem_ids.json`。它记录上游 revision、选择参数、难度计数、有序 problem IDs 和 split SHA-256；评测入口会拒绝与 manifest 不一致的 processed 文件。原始数据与转换后的 tests 体积较大，分别保存在项目 `cache/huggingface/` 和被 Git 忽略的 `data/processed/`。
+
+构造任何 SFT 或 GRPO 数据后，必须在训练前执行 `scripts/check_data_leakage.py`。检查范围包括 problem ID、标准化题面 SHA-256 和长题面的 SimHash 近重复；命中时命令以非零状态退出。Eval 的题面、代码、推理和 tests 都不得作为训练或 reward 调试数据。

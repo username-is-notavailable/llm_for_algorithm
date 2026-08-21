@@ -6,7 +6,7 @@ from typing import Any, Iterable
 from src.eval.pass_at_k import estimate_pass_at_k
 
 
-def compute_metrics(records: Iterable[dict[str, Any]]) -> dict[str, float | int]:
+def _compute_metrics(records: Iterable[dict[str, Any]], *, include_difficulty: bool) -> dict[str, Any]:
     rows = list(records)
     if not rows:
         raise ValueError("Cannot compute metrics for an empty result set")
@@ -38,7 +38,7 @@ def compute_metrics(records: Iterable[dict[str, Any]]) -> dict[str, float | int]
     assert sample_count is not None
     problem_count = len(by_problem)
     generation_count = len(rows)
-    metrics: dict[str, float | int] = {
+    metrics: dict[str, Any] = {
         "problems": problem_count,
         "generations": generation_count,
         "samples_per_problem": sample_count,
@@ -51,4 +51,17 @@ def compute_metrics(records: Iterable[dict[str, Any]]) -> dict[str, float | int]
     }
     if sample_count > 1:
         metrics[f"pass@{sample_count}"] = sum(pass_at_k_values) / problem_count
+    if include_difficulty:
+        difficulties = sorted({str(row["difficulty"]) for row in rows if row.get("difficulty")})
+        if difficulties:
+            metrics["by_difficulty"] = {
+                difficulty: _compute_metrics(
+                    [row for row in rows if row.get("difficulty") == difficulty], include_difficulty=False
+                )
+                for difficulty in difficulties
+            }
     return metrics
+
+
+def compute_metrics(records: Iterable[dict[str, Any]]) -> dict[str, Any]:
+    return _compute_metrics(records, include_difficulty=True)

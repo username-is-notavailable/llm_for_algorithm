@@ -4,9 +4,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 
-from src.eval.evaluator import evaluate, load_problems
+from src.eval.evaluator import evaluate, load_problems, validate_split_manifest
 from src.inference.prompts import build_code_prompt
 
 
@@ -101,9 +102,13 @@ def test_dataset_rejects_duplicate_problem_ids(tmp_path: Path) -> None:
         "tests": [{"input": "", "output": ""}],
     }
     path.write_text(json.dumps(value) + "\n" + json.dumps(value) + "\n", encoding="utf-8")
-    try:
+    with pytest.raises(ValueError, match="duplicate problem_id"):
         load_problems(path)
-    except ValueError as error:
-        assert "duplicate problem_id" in str(error)
-    else:
-        raise AssertionError("duplicate problem IDs were accepted")
+
+
+def test_frozen_manifest_rejects_changed_problem_order(tmp_path: Path) -> None:
+    problems = [{"problem_id": "a"}, {"problem_id": "b"}]
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text(json.dumps({"problem_ids": {"smoke": ["b", "a"]}}), encoding="utf-8")
+    with pytest.raises(ValueError, match="frozen manifest"):
+        validate_split_manifest(problems, manifest, "smoke")

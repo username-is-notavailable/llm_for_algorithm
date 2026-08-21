@@ -49,6 +49,17 @@ def load_problems(path: str | Path) -> list[dict[str, Any]]:
     return problems
 
 
+def validate_split_manifest(problems: list[dict[str, Any]], path: str | Path, split: str) -> None:
+    manifest = json.loads(Path(path).read_text(encoding="utf-8"))
+    try:
+        expected_ids = manifest["problem_ids"][split]
+    except (KeyError, TypeError) as error:
+        raise ValueError(f"Manifest does not define split {split}") from error
+    actual_ids = [problem["problem_id"] for problem in problems]
+    if actual_ids != expected_ids:
+        raise ValueError(f"Dataset IDs do not match frozen manifest split {split}")
+
+
 def _create_output_dir(config: dict[str, Any]) -> Path:
     experiment = config["experiment"]
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -57,12 +68,18 @@ def _create_output_dir(config: dict[str, Any]) -> Path:
     return output_dir
 
 
-def evaluate(config: dict[str, Any], generator: TextGenerator) -> tuple[Path, dict[str, float | int]]:
+def evaluate(config: dict[str, Any], generator: TextGenerator) -> tuple[Path, dict[str, Any]]:
     require_sections(config, "experiment", "model", "prompt", "dataset", "generation", "verifier")
     if config["prompt"].get("template") != "output_protocol_v1":
         raise ValueError("Unsupported prompt template")
     set_seed(int(config["experiment"]["seed"]))
     problems = load_problems(config["dataset"]["path"])
+    manifest_path = config["dataset"].get("manifest")
+    if manifest_path:
+        manifest_split = config["dataset"].get("manifest_split")
+        if not isinstance(manifest_split, str) or not manifest_split:
+            raise ValueError("dataset.manifest_split is required with dataset.manifest")
+        validate_split_manifest(problems, manifest_path, manifest_split)
     limit = config["dataset"].get("limit")
     if limit is not None:
         if not isinstance(limit, int) or limit < 1:
@@ -108,6 +125,7 @@ def evaluate(config: dict[str, Any], generator: TextGenerator) -> tuple[Path, di
                     ).to_dict()
                 record = {
                     "problem_id": problem["problem_id"],
+                    "difficulty": problem.get("difficulty"),
                     "sample_index": sample_index,
                     "prompt": prompt,
                     "response": response,

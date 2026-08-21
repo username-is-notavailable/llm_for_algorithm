@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tempfile
 from dataclasses import asdict, dataclass, field
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import Iterable, Mapping
 
@@ -56,7 +57,21 @@ def _coerce_test_case(value: TestCase | Mapping[str, str]) -> TestCase:
 
 
 def _outputs_match(actual: str, expected: str) -> bool:
-    return actual.split() == expected.split()
+    actual_lines = [line.strip() for line in actual.strip().splitlines()]
+    expected_lines = [line.strip() for line in expected.strip().splitlines()]
+    if len(actual_lines) != len(expected_lines):
+        return False
+    for actual_line, expected_line in zip(actual_lines, expected_lines):
+        if actual_line == expected_line:
+            continue
+        try:
+            actual_numbers = [Decimal(token) for token in actual_line.split()]
+            expected_numbers = [Decimal(token) for token in expected_line.split()]
+        except InvalidOperation:
+            return False
+        if actual_numbers != expected_numbers:
+            return False
+    return True
 
 
 def judge(

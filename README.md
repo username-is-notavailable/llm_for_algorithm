@@ -103,6 +103,17 @@ bash scripts/cloud_eval_toy.sh
 
 每次运行生成 `outputs/eval/<experiment_id>/`，包含解析后的 `config.yaml`、`environment.json`、逐 generation 的 `generations.jsonl` 和汇总 `metrics.json`。第一版指标包括 code extraction success rate、compile rate、test pass rate、pass@1 和平均响应字符数；提取失败按该题全部 testcase 失败计入 test pass rate 分母。
 
+## Fixed Eval Set
+
+M3 固定使用 LiveCodeBench `release_v6` 的明确 revision，经 stdin/stdout 兼容过滤和难度分层后得到 399 题正式 eval、101 题 dev，以及 dev 内固定的 10 题 smoke。准备数据并运行云端 smoke：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_eval.py
+bash scripts/cloud_eval_fixed_smoke.sh
+```
+
+原始数据优先复用 `cache/huggingface`；有序 problem IDs 与选择参数固化在 `data/splits/eval_v1_problem_ids.json`。评测结果同时汇总 overall 与 easy/medium/hard 指标。详细来源、隔离规则和泄漏检查命令见 [docs/data.md](docs/data.md)。
+
 ## 里程碑
 
 - M0：仓库与云端环境（已完成）

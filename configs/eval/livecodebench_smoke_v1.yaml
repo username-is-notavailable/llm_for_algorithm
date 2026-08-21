@@ -1,0 +1,25 @@
+experiment:
+  name: m3-livecodebench-smoke-v1
+  output_dir: outputs/eval
+  seed: 42
+model:
+  name_or_path: Qwen/Qwen3-0.6B-Base
+  revision: da87bfb608c14b7cf20ba1ce41287e8de496c0cd
+  trust_remote_code: false
+  dtype: bfloat16
+  device_map: auto
+prompt:
+  template: output_protocol_v1
+dataset:
+  path: data/processed/livecodebench_v1/smoke_10.jsonl
+  manifest: data/splits/eval_v1_problem_ids.json
+  manifest_split: smoke
+generation:
+  num_samples: 1
+  max_new_tokens: 1024
+  do_sample: false
+verifier:
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576
