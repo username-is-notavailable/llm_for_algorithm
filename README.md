@@ -91,6 +91,18 @@ print(result.to_dict())
 
 训练与生成的标准响应格式已冻结为 Output Protocol v1：`<think>...</think>` 后跟唯一的 `cpp` Markdown code block，不使用 `<answer>` 作为标准标签。内部数据 schema、数据源适配和兼容提取规则见 [docs/data.md](docs/data.md)。
 
+## Evaluation Pipeline
+
+Milestone 2 的默认配置使用固定 Qwen revision、Output Protocol v1 prompt 和 7 个手工 toy problems：
+
+```bash
+bash scripts/cloud_eval_toy.sh
+```
+
+该入口会沿用云端 setup/smoke test 的环境检查和项目内缓存优先策略，并逐题输出进度。也可以直接调用 Python 模块并传入自定义配置。
+
+每次运行生成 `outputs/eval/<experiment_id>/`，包含解析后的 `config.yaml`、`environment.json`、逐 generation 的 `generations.jsonl` 和汇总 `metrics.json`。第一版指标包括 code extraction success rate、compile rate、test pass rate、pass@1 和平均响应字符数；提取失败按该题全部 testcase 失败计入 test pass rate 分母。
+
 ## 里程碑
 
 - M0：仓库与云端环境（已完成）
