@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import tempfile
@@ -166,7 +167,34 @@ def main() -> int:
     if project_cache.is_dir():
         os.environ.setdefault("HF_HOME", str(project_cache))
 
-    candidates, rejected = deduplicate_candidates(_ocr_rows(config, args.source_jsonl), config["filter"])
+    output = config["output"]
+    output_dir = Path(output["directory"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+    candidate_cache = output_dir / "sft_candidates_raw.jsonl"
+    candidate_cache_metadata = output_dir / "sft_candidates_raw.meta.json"
+    cache_input = {
+        "source": config["source"],
+        "filter": config["filter"],
+        "source_jsonl": args.source_jsonl,
+    }
+    cache_signature = hashlib.sha256(
+        json.dumps(cache_input, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    cached_metadata = None
+    if candidate_cache_metadata.is_file():
+        cached_metadata = json.loads(candidate_cache_metadata.read_text(encoding="utf-8"))
+    if candidate_cache.is_file() and cached_metadata and cached_metadata.get("signature") == cache_signature:
+        candidates = _load_jsonl(candidate_cache)
+        rejected = Counter(cached_metadata.get("rejected", {}))
+        print(f"Reusing {len(candidates)} cached problem-level OCR2 candidates", flush=True)
+    else:
+        candidates, rejected = deduplicate_candidates(_ocr_rows(config, args.source_jsonl), config["filter"])
+        write_jsonl(candidate_cache, candidates)
+        candidate_cache_metadata.write_text(
+            json.dumps({"signature": cache_signature, "count": len(candidates), "rejected": dict(rejected)}, indent=2),
+            encoding="utf-8",
+        )
+        print(f"Cached {len(candidates)} problem-level OCR2 candidates", flush=True)
     pool_size = int(config["source"]["candidate_pool_size"])
     candidates = balanced_order(candidates, int(config["filter"]["seed"]))[:pool_size]
     questions = _resolve_questions(candidates, config, args.questions_jsonl)
@@ -224,9 +252,6 @@ def main() -> int:
         if index % 1000 == 0:
             print(f"Tokenized {index}/{len(selected)}", flush=True)
 
-    output = config["output"]
-    output_dir = Path(output["directory"])
-    output_dir.mkdir(parents=True, exist_ok=True)
     for size in sorted(int(value) for value in output["sizes"]):
         write_jsonl(output_dir / f"sft_{size // 1000}k.jsonl", selected[:size])
     audit = balanced_order(selected, int(config["filter"]["seed"]) + 1)[:100]

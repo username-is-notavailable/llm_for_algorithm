@@ -81,6 +81,8 @@ def test_difficulty_normalization_and_balanced_order() -> None:
         rows.append(row)
     ordered = balanced_order(rows, seed=7)
     assert ordered[0]["difficulty"] != ordered[1]["difficulty"]
+    raw_rows = [_row("raw-a"), _row("raw-b")]
+    assert {row["question_id"] for row in balanced_order(raw_rows, seed=7)} == {"raw-a", "raw-b"}
 
 
 def test_eval_leakage_exact_and_near_duplicate() -> None:

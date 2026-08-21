@@ -146,13 +146,22 @@ def is_eval_leak(problem: str, fingerprints: list[dict[str, Any]], max_hamming_d
 
 
 def stable_order(rows: Iterable[dict[str, Any]], seed: int) -> list[dict[str, Any]]:
-    return sorted(rows, key=lambda row: hashlib.sha256(f"{seed}:{row['problem_id']}".encode()).digest())
+    def stable_id(row: dict[str, Any]) -> str:
+        for field in ("problem_id", "question_id", "id"):
+            if row.get(field):
+                return str(row[field])
+        raise ValueError("Row has no stable identifier")
+
+    return sorted(rows, key=lambda row: hashlib.sha256(f"{seed}:{stable_id(row)}".encode()).digest())
 
 
 def balanced_order(rows: Iterable[dict[str, Any]], seed: int) -> list[dict[str, Any]]:
     groups: dict[tuple[str, str], deque[dict[str, Any]]] = defaultdict(deque)
     for row in stable_order(rows, seed):
-        key = (row["difficulty"], str(row["metadata"].get("platform", "unknown")))
+        metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        difficulty = normalize_difficulty(row.get("difficulty"))
+        platform = metadata.get("platform") or row.get("source") or "unknown"
+        key = (difficulty, str(platform).lower())
         groups[key].append(row)
     result: list[dict[str, Any]] = []
     keys = sorted(groups)
