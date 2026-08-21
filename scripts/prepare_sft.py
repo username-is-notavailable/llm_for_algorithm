@@ -7,6 +7,7 @@ import os
 import tempfile
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from itertools import chain
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -22,9 +23,13 @@ def _load_jsonl(path: str | Path) -> list[dict[str, Any]]:
         return [json.loads(line) for line in handle if line.strip()]
 
 
-def _ocr_rows(config: dict[str, Any], source_jsonl: str | None) -> Iterable[dict[str, Any]]:
+def _ocr_rows(
+    config: dict[str, Any], source_jsonl: str | None, *, start_index: int = 0
+) -> Iterable[dict[str, Any]]:
     if source_jsonl:
-        yield from _load_jsonl(source_jsonl)
+        for index, row in enumerate(_load_jsonl(source_jsonl)):
+            if index >= start_index:
+                yield row
         return
     from datasets import load_dataset
 
@@ -38,6 +43,8 @@ def _ocr_rows(config: dict[str, Any], source_jsonl: str | None) -> Iterable[dict
     for index, row in enumerate(stream):
         if index >= int(source["candidate_scan_limit"]):
             break
+        if index < start_index:
+            continue
         if index and index % 10000 == 0:
             print(f"Scanned {index} OCR2 rows", flush=True)
         yield row
@@ -172,8 +179,10 @@ def main() -> int:
     output_dir.mkdir(parents=True, exist_ok=True)
     candidate_cache = output_dir / "sft_candidates_raw.jsonl"
     candidate_cache_metadata = output_dir / "sft_candidates_raw.meta.json"
+    signature_source = dict(config["source"])
+    signature_source.pop("candidate_scan_limit", None)
     cache_input = {
-        "source": config["source"],
+        "source": signature_source,
         "filter": config["filter"],
         "source_jsonl": args.source_jsonl,
     }
@@ -183,18 +192,54 @@ def main() -> int:
     cached_metadata = None
     if candidate_cache_metadata.is_file():
         cached_metadata = json.loads(candidate_cache_metadata.read_text(encoding="utf-8"))
-    if candidate_cache.is_file() and cached_metadata and cached_metadata.get("signature") == cache_signature:
+    legacy_source = dict(config["source"])
+    legacy_source["candidate_scan_limit"] = 250000
+    legacy_signature = hashlib.sha256(
+        json.dumps(
+            {"source": legacy_source, "filter": config["filter"], "source_jsonl": args.source_jsonl},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+    cache_matches = cached_metadata and cached_metadata.get("signature") in {
+        cache_signature,
+        legacy_signature,
+    }
+    scan_limit = int(config["source"]["candidate_scan_limit"])
+    if candidate_cache.is_file() and cache_matches:
         candidates = _load_jsonl(candidate_cache)
         rejected = Counter(cached_metadata.get("rejected", {}))
-        print(f"Reusing {len(candidates)} cached problem-level OCR2 candidates", flush=True)
+        scanned_rows = int(cached_metadata.get("scanned_rows", 250000))
+        if scanned_rows < scan_limit:
+            print(
+                f"Extending {len(candidates)} cached candidates from {scanned_rows} to {scan_limit} OCR2 rows",
+                flush=True,
+            )
+            candidates, extension_rejected = deduplicate_candidates(
+                chain(candidates, _ocr_rows(config, args.source_jsonl, start_index=scanned_rows)),
+                config["filter"],
+            )
+            rejected.update(extension_rejected)
+            scanned_rows = scan_limit
+        else:
+            print(f"Reusing {len(candidates)} cached problem-level OCR2 candidates", flush=True)
     else:
         candidates, rejected = deduplicate_candidates(_ocr_rows(config, args.source_jsonl), config["filter"])
-        write_jsonl(candidate_cache, candidates)
-        candidate_cache_metadata.write_text(
-            json.dumps({"signature": cache_signature, "count": len(candidates), "rejected": dict(rejected)}, indent=2),
-            encoding="utf-8",
-        )
-        print(f"Cached {len(candidates)} problem-level OCR2 candidates", flush=True)
+        scanned_rows = scan_limit
+    write_jsonl(candidate_cache, candidates)
+    candidate_cache_metadata.write_text(
+        json.dumps(
+            {
+                "signature": cache_signature,
+                "scanned_rows": scanned_rows,
+                "count": len(candidates),
+                "rejected": dict(rejected),
+            },
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+    print(f"Cached {len(candidates)} problem-level OCR2 candidates", flush=True)
     pool_size = int(config["source"]["candidate_pool_size"])
     candidates = balanced_order(candidates, int(config["filter"]["seed"]))[:pool_size]
     questions = _resolve_questions(candidates, config, args.questions_jsonl)
