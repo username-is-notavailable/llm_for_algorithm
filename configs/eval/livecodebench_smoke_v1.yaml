@@ -16,7 +16,7 @@ dataset:
   manifest_split: smoke
 generation:
   num_samples: 1
-  max_new_tokens: 1024
+  max_new_tokens: 2048
   do_sample: false
 verifier:
   compile_timeout_seconds: 10
