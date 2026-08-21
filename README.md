@@ -6,11 +6,21 @@
 
 ## 本地开发
 
+项目使用两个职责不同、互不混用的环境：
+
+- `.venv`：轻量 CPU 开发环境，只运行配置、数据处理和 verifier 单元测试；
+- `.third_party/verl/.venv`：由 `cloud_setup.sh` 管理的完整 GPU/M0/训练环境。
+
+日常本地开发只需：
+
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
+source .venv/bin/activate
 python -m pip install -e ".[dev]"
 pytest
 ```
+
+不要向 `.venv` 安装 PyTorch、vLLM、FlashAttention 或 verl，也不要手工修改 `.third_party/verl/.venv` 的锁定依赖。
 
 ## 云端 smoke test
 
@@ -44,6 +54,8 @@ cache/
 
 `cloud_setup.sh` 和 `cloud_smoke_test.sh` 会分别检测这两个目录。存在时优先使用项目缓存；不存在时回退到 uv 和 Hugging Face 的默认用户缓存。`cache/` 已整体加入 Git 忽略。
 
+从其他机器或容器导出的 uv 缓存可能带有指向旧 `$HOME/.cache/uv` 的绝对符号链接；脚本会在目标文件确实存在时自动将这些链接改写为项目缓存内的相对链接。
+
 正式环境位于 `.third_party/verl/.venv`。重复运行 setup 会复用 uv 下载缓存并将 verl 恢复到固定 commit。需要诊断时可分别运行：
 
 ```bash
@@ -61,9 +73,25 @@ export HF_TOKEN=<token>
 
 运行记录写入 `outputs/experiments/<experiment_id>/`，包括解析后的配置、环境元数据和日志。
 
+## Code Verifier
+
+Milestone 1 提供 C++17 代码提取、编译、受限执行和多测试用例判题：
+
+```python
+from src.verifier import extract_code, judge
+
+code = extract_code(model_response)
+if code is None:
+    raise ValueError("C++ code extraction failed")
+result = judge(code, [{"input": "1 2\n", "output": "3\n"}])
+print(result.to_dict())
+```
+
+执行器使用独立临时目录、进程组超时终止、CPU/内存/core dump/输出大小限制，并在判题结束后清理临时文件。这些措施用于本地与开发阶段的基础防护，不等同于容器、nsjail 或其他强安全隔离，不应在高权限主机上执行任意来源的不可信代码。
+
 ## 里程碑
 
 - M0：仓库与云端环境（已完成）
-- M1：Code Verifier（当前）
-- M2：Evaluation Pipeline
+- M1：Code Verifier（已完成）
+- M2：Evaluation Pipeline（等待确认）
 - 后续阶段见项目方案文档

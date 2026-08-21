@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.metadata
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -20,6 +21,16 @@ EXPECTED_VERSIONS = {
 
 def package_version(name: str) -> str:
     return importlib.metadata.version(name)
+
+
+def find_nvidia_smi() -> str:
+    executable = shutil.which("nvidia-smi")
+    if executable is not None:
+        return executable
+    wsl_executable = Path("/usr/lib/wsl/lib/nvidia-smi")
+    if wsl_executable.is_file() and os.access(wsl_executable, os.X_OK):
+        return str(wsl_executable)
+    raise RuntimeError("nvidia-smi is unavailable on PATH and at the standard WSL location")
 
 
 def main() -> int:
@@ -60,7 +71,7 @@ def main() -> int:
         raise RuntimeError("CUDA tensor smoke test failed")
 
     driver_version = subprocess.run(
-        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"],
+        [find_nvidia_smi(), "--query-gpu=driver_version", "--format=csv,noheader"],
         check=True,
         capture_output=True,
         text=True,

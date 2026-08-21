@@ -39,8 +39,8 @@ command -v g++ >/dev/null || { echo "g++ with C++17 support is required" >&2; ex
   --root-user-action=ignore \
   --index-url "${ALIYUN_PYPI}" \
   "uv==${UV_VERSION}"
-UV_BIN="$("${PYTHON_BIN}" -c 'import shutil; print(shutil.which("uv") or "")')"
-if [[ -z "${UV_BIN}" ]]; then
+UV_BIN="$("${PYTHON_BIN}" -c 'from pathlib import Path; import shutil, sys; print(shutil.which("uv") or Path(sys.executable).with_name("uv"))')"
+if [[ ! -x "${UV_BIN}" ]]; then
   echo "uv was installed but is not available on PATH" >&2
   exit 1
 fi
