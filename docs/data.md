@@ -82,7 +82,7 @@ SFT 样本先转换为结构化字段，再由统一 renderer 生成 Output Prot
 
 第一阶段仅使用 `nvidia/OpenCodeReasoning-2` 的 C++ split。数据源固定到 revision `eadf535931451525f3e5621d0f960c240bc62fd9`；数据集卡许可为 CC BY 4.0，同时每条样本继续保留上游 `license`、`dataset`、`split` 和 `index`，因为原始题面仍受各上游数据源条款约束。
 
-OCR2 的 `question` 字段是 `-` 占位符。准备脚本按照官方方法从固定 revision 的 TACO、APPS、CodeContests 或 open-r1/codeforces 回填题面，禁止使用占位题面训练。verl 当前 `datasets` 已不执行旧式 dataset scripts，因此 TACO 直接读取同一固定 revision 内的 `ALL/*.parquet`，APPS 固定使用官方 `refs/convert/parquet` commit，同时保留其源仓库 commit。真实准备结果显示：250,000 rows 得到 7,849 个严格候选，400,000 rows 只增加到 8,487 个，题目在相邻 rows 中高度重复。为了不使用 `pass_rate=-1` 的未验证样本凑数，v1 固定扫描完整的 1,174,475-row C++ split、最多保留 30,000 个 problem-level 候选。扫描每完成 10,000 rows 就更新候选与 checkpoint 元数据；网络或下游失败后可以从最近的 checkpoint 继续。随后执行：
+OCR2 的 `question` 字段是 `-` 占位符。准备脚本按照官方方法从固定 revision 的 TACO、APPS、CodeContests 或 open-r1/codeforces 回填题面，禁止使用占位题面训练。verl 当前 `datasets` 已不执行旧式 dataset scripts，因此 TACO 直接读取同一固定 revision 内的 `ALL/*.parquet`，APPS 固定使用官方 `refs/convert/parquet` commit，同时保留其源仓库 commit。真实准备结果显示：250,000 rows 得到 7,849 个严格候选，400,000 rows 只增加到 8,487 个，题目在相邻 rows 中高度重复。为了不使用 `pass_rate=-1` 的未验证样本凑数，v1 固定扫描完整的 1,174,475-row C++ split、最多保留 30,000 个 problem-level 候选。扫描每完成 10,000 rows 就更新候选与 checkpoint 元数据；网络或下游失败后可以从最近的 checkpoint 继续。准备入口默认最多重启失败进程 20 次，以规避流式 HTTP 客户端关闭后引发的不可恢复进程状态；可通过 `SFT_PREPARE_MAX_ATTEMPTS` 和 `SFT_PREPARE_RETRY_DELAY_SECONDS` 调整。随后执行：
 
 1. `judgement=right` 且 `pass_rate >= 0.8`，不接收 `pass_rate=-1`；
 2. 拆分 `r1_generation` 的 reasoning 与最终 C++，并与 `solution` 交叉检查；
