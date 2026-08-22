@@ -97,3 +97,16 @@
   - 固定 100 条人工 audit 完成：无剩余阻塞项；详细记录见 `docs/sft_v1_audit.md`；
   - 最终 SFT-10K SHA-256：`16d25b5ad5780b4b5925a6a504210c11c7d39f35b535e7c783e6f3e9398a3581`；
   - 结论：M5 验收通过，数据协议冻结，可以进入 M6 SFT smoke test。
+
+## Milestone 6
+
+- 2026-08-22，SFT smoke、checkpoint 与 DDP 吞吐云端验收：
+  - Git commit：`47bb4f6`；GPU：NVIDIA A100-PCIE-40GB；训练方式：full-parameter bf16、FlashAttention 2、response-only loss、gradient checkpointing；
+  - overfit：从 Base 在 64 条最短 SFT-1K 样本上训练 100 steps（global batch 8），loss 从约 1.25--1.40 降至 0.57 左右，整体 train loss 0.730369；无 NaN、OOM 或梯度爆炸；
+  - checkpoint：`checkpoint-75` 和 `checkpoint-100` 均包含 model、optimizer、scheduler、RNG 与 Trainer state；final checkpoint 可重新加载并生成 reasoning + C++ code block；
+  - resume：成功从 checkpoint-75 恢复并完成 step 76--100，续跑 loss 与原始轨迹一致；
+  - 固定 global batch 16 的 30-step 吞吐测试：1 GPU 326.017s / 8,725 tokens/s，2 GPU 201.753s / 约 14,100 tokens/s，4 GPU 127.858s / 约 22,250 tokens/s；对应相对单卡加速 1.00x / 1.62x / 2.55x；
+  - 峰值训练显存约 29GB/卡，A100 40GB 满足 16,384-token 上限；
+  - 正式训练冻结为 2-GPU DDP：相对单卡约 1.62x 加速、约 81% 并行效率，在墙钟时间与 GPU 总成本间更均衡；
+  - 产物：`outputs/training/m6-sft-overfit-smoke-20260822-153152/` 及三组 `m6-sft-throughput-*`；
+  - 结论：M6 验收通过，可以从原始 Base 独立开始 M7 SFT-1K。

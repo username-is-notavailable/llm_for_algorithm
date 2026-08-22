@@ -51,3 +51,6 @@ state/checkpoints when enabled, and `final/` under `outputs/training/`. Record l
 runtime, steps/tokens per second, peak GPU memory, GPU model/count, git commit, and
 the artifact path. M7 formal SFT-1K starts only after M6 passes and the card count is
 chosen from these measurements.
+
+M6 selected 2-GPU DDP for formal SFT: it delivered about 1.62x single-GPU speedup
+and 81% parallel efficiency while 4 GPUs delivered 2.55x speedup and 64% efficiency.
