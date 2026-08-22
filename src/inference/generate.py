@@ -80,6 +80,10 @@ class VLLMGenerator:
         # inheriting an initialized CUDA runtime, which cannot safely be reused
         # by vLLM's EngineCore after fork.
         os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
+        # Cloud GPU images commonly provide the CUDA runtime without nvcc.
+        # FlashInfer's sampler may JIT-compile during warmup even for greedy
+        # decoding, so use vLLM's built-in torch sampler by default.
+        os.environ.setdefault("VLLM_USE_FLASHINFER_SAMPLER", "0")
         from vllm import LLM
 
         model_name = model_config["name_or_path"]
