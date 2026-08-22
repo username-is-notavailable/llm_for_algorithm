@@ -1,0 +1,37 @@
+experiment:
+  name: diagnostic-qwen3-official-0.6b-smoke
+  output_dir: outputs/eval
+  seed: 42
+model:
+  backend: vllm
+  name_or_path: Qwen/Qwen3-0.6B
+  revision: c1899de289a04d12100db370d81485cdf75e47ca
+  trust_remote_code: false
+  dtype: bfloat16
+inference:
+  max_model_len: 32768
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 2
+  request_batch_size: 2
+  tensor_parallel_size: 1
+  seed: 42
+  enforce_eager: true
+prompt:
+  template: qwen3_chat_output_protocol_v1
+  enable_thinking: true
+dataset:
+  path: data/processed/livecodebench_v1/smoke_10.jsonl
+  manifest: data/splits/eval_v1_problem_ids.json
+  manifest_split: smoke
+generation:
+  num_samples: 1
+  max_new_tokens: 4096
+  temperature: 0.6
+  top_p: 0.95
+  top_k: 20
+  seed: 42
+verifier:
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576

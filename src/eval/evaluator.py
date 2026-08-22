@@ -12,7 +12,7 @@ import yaml
 
 from src.eval.metrics import compute_metrics
 from src.inference.generate import TextGenerator, create_generator
-from src.inference.prompts import build_code_prompt
+from src.inference.prompts import create_prompt_builder
 from src.utils.config import load_config, require_sections
 from src.utils.experiment import collect_environment
 from src.utils.reproducibility import set_seed
@@ -138,9 +138,8 @@ def evaluate(
     config: dict[str, Any], generator: TextGenerator, *, resume: str | Path | None = None
 ) -> tuple[Path, dict[str, Any]]:
     require_sections(config, "experiment", "model", "prompt", "dataset", "generation", "verifier")
-    if config["prompt"].get("template") != "output_protocol_v1":
-        raise ValueError("Unsupported prompt template")
     set_seed(int(config["experiment"]["seed"]))
+    build_prompt = create_prompt_builder(config["prompt"], config["model"])
     problems = load_problems(config["dataset"]["path"])
     manifest_path = config["dataset"].get("manifest")
     if manifest_path:
@@ -188,7 +187,7 @@ def evaluate(
                 f"Generating batch of {len(batch)} problems",
                 flush=True,
             )
-            prompts = [build_code_prompt(problem["problem"]) for problem in batch]
+            prompts = [build_prompt(problem["problem"]) for problem in batch]
             batch_responses = generator.generate_batch(
                 prompts,
                 num_samples=num_samples,

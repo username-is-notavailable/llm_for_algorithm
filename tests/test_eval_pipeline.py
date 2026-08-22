@@ -9,7 +9,7 @@ import yaml
 
 from src.eval.evaluator import configure_shard, evaluate, load_problems, validate_split_manifest
 from src.inference.generate import GeneratedText
-from src.inference.prompts import build_code_prompt
+from src.inference.prompts import build_code_prompt, create_prompt_builder
 from src.eval.merge_shards import main as merge_shards
 
 
@@ -64,6 +64,11 @@ def test_prompt_uses_output_protocol_v1() -> None:
     assert "```cpp" in prompt
     assert "<answer>" not in prompt
     assert "Do not put fenced code blocks" not in prompt
+
+
+def test_plain_prompt_builder_does_not_load_chat_tokenizer() -> None:
+    builder = create_prompt_builder({"template": "output_protocol_v1"}, {"name_or_path": "unused"})
+    assert builder("Add two integers.") == build_code_prompt("Add two integers.")
 
 
 def test_default_toy_dataset_has_seven_unique_problems() -> None:

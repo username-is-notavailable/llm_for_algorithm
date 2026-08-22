@@ -173,3 +173,22 @@ CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
 Evaluate every checkpoint with the same greedy smoke; do not select an epoch from
 training loss alone. This run remains a diagnostic and does not authorize a formal
 399-problem evaluation.
+
+## Official Qwen3-0.6B capacity diagnostic
+
+To separate model-size limitations from failures in this project's SFT recipe, run
+the official post-trained `Qwen/Qwen3-0.6B` revision
+`c1899de289a04d12100db370d81485cdf75e47ca` on the fixed smoke set. This is not a
+Base/SFT score comparison: the diagnostic correctly uses the official model's chat
+template and thinking mode, plus sampled decoding (temperature 0.6, top-p 0.95,
+top-k 20) with a 4,096-token cap.
+
+```bash
+bash scripts/local_eval_official_qwen3.sh \
+  2>&1 | tee /tmp/qwen3-official-0.6b-smoke.log
+```
+
+If the official model produces stable code at the same parameter count, capacity
+alone does not explain our collapse. Its metrics must not be placed in the frozen
+M4/M7 greedy comparison table because both post-training and decoding protocol
+differ.
