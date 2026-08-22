@@ -158,3 +158,18 @@ The deterministic compact output SHA-256 is
 response P50/P90/max are 1,308/1,885/2,048 tokens and total max is 2,875.
 Only one hard-labeled sample survives in the first 1K, so this is strictly a
 stopping/format diagnostic, not a candidate final difficulty-balanced dataset.
+
+The one-epoch compact pilot collapses on both one and two GPUs, while the original
+M6 model recovers much of its format behavior after about 12.5 epochs. Measure the
+recovery curve with a fresh four-epoch compact-256 run. It has about 16 optimizer
+steps per epoch and retains checkpoints 16/32/48/64:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh compact-4epoch \
+  2>&1 | tee /tmp/qwen3-m7-compact-4epoch.log
+```
+
+Evaluate every checkpoint with the same greedy smoke; do not select an epoch from
+training loss alone. This run remains a diagnostic and does not authorize a formal
+399-problem evaluation.

@@ -125,3 +125,6 @@
   - M7-v2 4,096-token response pilot（256 samples，1 epoch）greedy smoke：6/10 length、4/10 stop，extraction 0.5、compile 0.3、pass@1 0、平均 10,028.3 tokens；比 v1 改善但未通过 gate；
   - 同一 pilot 的 temperature 0.7 / top-p 0.95 诊断：4/10 length、6/10 stop，extraction 0.7、compile 0.4、pass@1 0、平均 7,150.6 tokens；采样能偶尔逃离循环但仍不稳定，不修改冻结的 greedy 正式协议；
   - 下一控制变量：保持训练与 greedy eval 设置不变，将完整样本 response cap 降至 2,048 tokens 后重新运行 256-sample pilot。
+  - 2,048-token compact pilot 的 1-epoch greedy smoke：双卡 9/10 length、extraction 0.1、compile/pass@1 0；单卡 8/10 length、extraction 0.1、compile/pass@1 0。Base 同环境回归正常（extraction 1.0、compile 0.5、pass@1 0.2），因此排除评测环境与 DDP 为主因；
+  - 补充评测原 M6 final（最短 64 samples，100 steps，约 12.5 epochs）：固定 dev smoke 得到 6/10 stop、4/10 length、extraction 0.8、compile 0.4、pass@1 0.1。多次接触完整 target 能从首 epoch collapse 中恢复格式，但仍弱于 Base；
+  - 下一控制实验：compact 256 从 Base 训练 4 epochs，每个 epoch 保存并使用相同 greedy smoke，测量格式恢复与能力变化曲线，而不是继续缩短 response。

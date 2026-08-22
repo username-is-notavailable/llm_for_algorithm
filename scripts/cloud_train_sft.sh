@@ -14,8 +14,9 @@ case "${MODE}" in
   sft1k) CONFIG="configs/training/m7_sft_1k.yaml" ;;
   sft1k-short-pilot) CONFIG="configs/training/m7_sft_1k_short_pilot.yaml" ;;
   sft1k-compact-pilot) CONFIG="configs/training/m7_sft_1k_compact_pilot.yaml" ;;
+  compact-4epoch) CONFIG="configs/training/m7_sft_compact_4epoch.yaml" ;;
   *)
-    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot} [--resume CHECKPOINT]" >&2
+    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot|compact-4epoch} [--resume CHECKPOINT]" >&2
     exit 2
     ;;
 esac
@@ -31,7 +32,7 @@ if [[ ! -x "${VERL_PYTHON}" ]]; then
 fi
 if [[ "${MODE}" == "sft1k-short-pilot" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_short_v1.jsonl"
-elif [[ "${MODE}" == "sft1k-compact-pilot" ]]; then
+elif [[ "${MODE}" == "sft1k-compact-pilot" || "${MODE}" == "compact-4epoch" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_compact_v1.jsonl"
 else
   REQUIRED_DATA="data/processed/sft_1k.jsonl"
