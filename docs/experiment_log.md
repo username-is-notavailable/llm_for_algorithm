@@ -70,10 +70,18 @@
   - 产物：`outputs/eval/m3-livecodebench-smoke-v1-20260821-193449/`；
   - 结论：M3 验收通过，固定 split、难度分层、manifest 校验、数据隔离和 10 题完整 Eval 链路均正常。
 
-## M4 Base Baseline 协议
+## Milestone 4
 
-- 模型：`Qwen/Qwen3-0.6B-Base` revision `da87bfb608c14b7cf20ba1ce41287e8de496c0cd`；
-- 原生 context：32,768 tokens；generation cap：16,384 tokens；greedy decoding；
-- 数据：固定 `eval_v1` 399 题，smoke 使用固定 10 题；
-- 后端：vLLM 0.24 continuous batching，HF backend 仅保留作兼容与开发测试；
-- A100 smoke 通过前不记录正式 baseline；正式运行支持按批落盘及 `--resume`。
+- 2026-08-22，Qwen3-0.6B Base baseline 云端正式评测：
+  - Experiment ID：`m4-base-eval-v1-20260822-105643`；Git commit：`074615d`；
+  - 模型：`Qwen/Qwen3-0.6B-Base` revision `da87bfb608c14b7cf20ba1ce41287e8de496c0cd`；
+  - 协议：原生 32,768-token context、16,384-token generation cap、greedy decoding、pass@1；
+  - 数据：固定 `eval_v1` 399 题；399 generations 和 399 unique problems 均完整；
+  - 后端：vLLM 0.24 continuous batching；PyTorch 2.11.0+cu130；NVIDIA A100-PCIE-40GB；
+  - overall：extraction rate 0.8521303258、compile rate 0.4937343358、test pass rate 0.1344578783、pass@1 0.0576441103（23/399）；
+  - 分难度 pass@1：easy 0.1885245902（23/122）、medium 0.0（0/115）、hard 0.0（0/162）；
+  - 错误分布：23 pass、146 wrong answer、143 compile error、59 extraction failure、16 runtime error、12 timeout；
+  - 输出：平均 5,317.08 tokens；共 2,121,513 output tokens；273 stop、126 length；31.58% 的生成触及 16K cap；
+  - 耗时：109m47.242s，平均聚合吞吐约 322.06 output tokens/s；
+  - 产物：`outputs/eval/m4-base-eval-v1-20260822-105643/`；
+  - 结论：M4 验收通过并冻结为后续 SFT/GRPO 的 Base baseline。16K 截断主要反映 Base 模型在失败题上的长生成或退化，不继续扩大评测上限；后续模型仍使用完全相同协议比较。

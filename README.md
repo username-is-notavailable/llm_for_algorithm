@@ -147,5 +147,5 @@ bash scripts/cloud_prepare_sft.sh
 - M2：Evaluation Pipeline（已完成）
 - M3：Fixed Eval Set（已完成）
 - M5：SFT Data Pipeline（提前完成数据准备）
-- M4：Base Baseline（32K context / 16K generation 协议已冻结，当前）
+- M4：Base Baseline（已完成；pass@1 0.0576）
 - 后续阶段见项目方案文档
