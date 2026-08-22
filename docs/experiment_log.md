@@ -110,3 +110,15 @@
   - 正式训练冻结为 2-GPU DDP：相对单卡约 1.62x 加速、约 81% 并行效率，在墙钟时间与 GPU 总成本间更均衡；
   - 产物：`outputs/training/m6-sft-overfit-smoke-20260822-153152/` 及三组 `m6-sft-throughput-*`；
   - 结论：M6 验收通过，可以从原始 Base 独立开始 M7 SFT-1K。
+
+## Milestone 7
+
+- 2026-08-22，M7-v1 SFT-1K 首次正式训练判定失败：
+  - Git commit：`b719d45`（训练准备），后续使用 `baacbe5` 启用 expandable CUDA allocator segments 后完成训练；
+  - 配方：固定 Base → 原始 SFT-1K，full-parameter bf16，2-GPU DDP，global batch 16，3 epochs，peak LR 2e-5；
+  - 原始 SFT-1K response 长度：P50 4,469、P90 10,940、max 15,670、mean 5,339.9 tokens；
+  - final smoke：10 题中 9 条触及 16,384-token generation cap，平均 14,939.7 tokens，extraction rate 0.1、compile rate 0.1、pass@1 0；
+  - checkpoint-63（首 epoch）smoke：10/10 全部触及 16,384-token cap，extraction/compile/pass@1 均为 0；说明退化从首 epoch 已发生，不能通过 early stopping 修复；
+  - 诊断：训练/评测 prompt 一致，response target 包含 EOS，tokenizer/model/generation EOS 均为 151643；问题不是停止符遗漏或评测后端，而是超长 reasoning token 主导 0.6B 模型的 SFT，导致 `<think>` 重复循环且无法稳定闭合到最终代码；
+  - 对照：M6 使用最短 64 条样本时能正常停止并输出 C++，进一步支持长度配方是主要变量；
+  - 结论：M7-v1 checkpoint 全部拒绝进入正式 399 题评测，产物保留为失败实验。下一步从 Base 独立运行仅改变 response 长度上限的 M7-v2 pilot。
