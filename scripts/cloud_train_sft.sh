@@ -36,6 +36,10 @@ cd "${PROJECT_ROOT}"
 source "${PROJECT_ROOT}/scripts/cloud_cache.sh"
 export VERL_ROOT
 export TOKENIZERS_PARALLELISM=false
+# Long, variable-length SFT samples can leave large inactive CUDA allocator
+# segments between steps. Expandable segments let PyTorch reuse that reserved
+# memory instead of failing a later long-sequence backward allocation.
+export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 export SFT_RUN_TIMESTAMP="${SFT_RUN_TIMESTAMP:-$(date +%Y%m%d-%H%M%S)}"
 
 if ((GPU_COUNT == 1)); then

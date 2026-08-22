@@ -10,7 +10,10 @@ the configured 16,384-token total-length limit is rejected.
 The cloud entry point is `scripts/cloud_train_sft.sh`. It uses the verl virtual
 environment and the project-local uv/Hugging Face caches. `SFT_GPU_COUNT` controls
 the number of local processes. Multi-GPU runs use PyTorch DDP; the script gives all
-ranks one shared timestamp and therefore one artifact directory.
+ranks one shared timestamp and therefore one artifact directory. The entry point
+also enables PyTorch expandable CUDA allocator segments because the variable-length
+16K SFT workload otherwise can accumulate enough reserved fragmentation to fail a
+later long-sequence backward pass even when total VRAM is sufficient.
 
 Run the correctness/overfit smoke test on one GPU:
 
