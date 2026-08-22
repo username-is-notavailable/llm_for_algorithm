@@ -13,8 +13,9 @@ case "${MODE}" in
   throughput) CONFIG="configs/training/m6_sft_throughput.yaml" ;;
   sft1k) CONFIG="configs/training/m7_sft_1k.yaml" ;;
   sft1k-short-pilot) CONFIG="configs/training/m7_sft_1k_short_pilot.yaml" ;;
+  sft1k-compact-pilot) CONFIG="configs/training/m7_sft_1k_compact_pilot.yaml" ;;
   *)
-    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot} [--resume CHECKPOINT]" >&2
+    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot} [--resume CHECKPOINT]" >&2
     exit 2
     ;;
 esac
@@ -30,6 +31,8 @@ if [[ ! -x "${VERL_PYTHON}" ]]; then
 fi
 if [[ "${MODE}" == "sft1k-short-pilot" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_short_v1.jsonl"
+elif [[ "${MODE}" == "sft1k-compact-pilot" ]]; then
+  REQUIRED_DATA="data/processed/sft_1k_compact_v1.jsonl"
 else
   REQUIRED_DATA="data/processed/sft_1k.jsonl"
 fi

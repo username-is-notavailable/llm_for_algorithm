@@ -137,3 +137,24 @@ CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
 Run `verify_sft_checkpoint.py` and the fixed 10-problem smoke on the pilot final.
 Only if responses close normally and code extraction recovers should a full bounded
 SFT-1K configuration be created.
+
+The 4,096-token pilot improved but failed the gate under both greedy and sampled
+diagnostics. Derive the next controlled 2,048-token variant (still without
+truncation), then run its 256-row one-epoch pilot:
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_sft_short.py \
+  --response-max-tokens 2048 \
+  --output data/processed/sft_1k_compact_v1.jsonl \
+  --stats data/processed/sft_1k_compact_v1_stats.json
+
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh sft1k-compact-pilot \
+  2>&1 | tee /tmp/qwen3-m7-compact-pilot.log
+```
+
+The deterministic compact output SHA-256 is
+`ab1755fa5540b5e4f1873ee7bb7f4bb445f7573258772d1997386daa17e25e74`;
+response P50/P90/max are 1,308/1,885/2,048 tokens and total max is 2,875.
+Only one hard-labeled sample survives in the first 1K, so this is strictly a
+stopping/format diagnostic, not a candidate final difficulty-balanced dataset.

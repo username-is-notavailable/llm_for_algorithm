@@ -122,3 +122,6 @@
   - 诊断：训练/评测 prompt 一致，response target 包含 EOS，tokenizer/model/generation EOS 均为 151643；问题不是停止符遗漏或评测后端，而是超长 reasoning token 主导 0.6B 模型的 SFT，导致 `<think>` 重复循环且无法稳定闭合到最终代码；
   - 对照：M6 使用最短 64 条样本时能正常停止并输出 C++，进一步支持长度配方是主要变量；
   - 结论：M7-v1 checkpoint 全部拒绝进入正式 399 题评测，产物保留为失败实验。下一步从 Base 独立运行仅改变 response 长度上限的 M7-v2 pilot。
+  - M7-v2 4,096-token response pilot（256 samples，1 epoch）greedy smoke：6/10 length、4/10 stop，extraction 0.5、compile 0.3、pass@1 0、平均 10,028.3 tokens；比 v1 改善但未通过 gate；
+  - 同一 pilot 的 temperature 0.7 / top-p 0.95 诊断：4/10 length、6/10 stop，extraction 0.7、compile 0.4、pass@1 0、平均 7,150.6 tokens；采样能偶尔逃离循环但仍不稳定，不修改冻结的 greedy 正式协议；
+  - 下一控制变量：保持训练与 greedy eval 设置不变，将完整样本 response cap 降至 2,048 tokens 后重新运行 256-sample pilot。
