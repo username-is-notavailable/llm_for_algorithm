@@ -227,7 +227,8 @@ def main() -> int:
     args = parse_args()
     config = load_config(args.config)
     require_sections(config, "experiment", "model")
-    set_seed(int(config["experiment"]["seed"]))
+    # vLLM must start its worker before any host-side seed helper initializes CUDA.
+    # evaluate() seeds the host process before the first generation call.
     generator = create_generator(config)
     output_dir, metrics = evaluate(config, generator, resume=args.resume)
     print(json.dumps(metrics, indent=2, ensure_ascii=False))

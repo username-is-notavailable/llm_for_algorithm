@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -75,6 +76,10 @@ class HuggingFaceGenerator:
 
 class VLLMGenerator:
     def __init__(self, model_config: dict[str, Any], inference_config: dict[str, Any]) -> None:
+        # CUDA may already have been inspected by the host process. Spawn avoids
+        # inheriting an initialized CUDA runtime, which cannot safely be reused
+        # by vLLM's EngineCore after fork.
+        os.environ.setdefault("VLLM_WORKER_MULTIPROC_METHOD", "spawn")
         from vllm import LLM
 
         model_name = model_config["name_or_path"]
