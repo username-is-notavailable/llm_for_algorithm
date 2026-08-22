@@ -94,5 +94,20 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_m7.sh \
   full outputs/training/<m7-run>/final
 ```
 
+For the 0.6B model, use problem-level sharding to occupy both GPUs rather than
+tensor parallelism. Each GPU runs an independent single-GPU vLLM over alternating
+problem IDs. The launcher validates both shard configs, rejects missing or duplicate
+problem/sample records, restores frozen manifest order, and computes metrics over
+the merged 399 records:
+
+```bash
+bash scripts/cloud_eval_m7.sh \
+  sharded-full outputs/training/<m7-run>/final \
+  2>&1 | tee /tmp/qwen3-m7-eval-sharded-full.log
+```
+
+Shard logs are `/tmp/qwen3-m7-eval-shard-{0,1}.log`; shard directories and the
+merged formal directory are all retained under `outputs/eval/`.
+
 The full evaluation protocol is identical to M4: the same frozen 399 problems,
 greedy pass@1, 32,768-token context, and 16,384-token generation cap.

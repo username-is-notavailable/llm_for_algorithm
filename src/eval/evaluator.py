@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import argparse
+import copy
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -62,10 +64,21 @@ def validate_split_manifest(problems: list[dict[str, Any]], path: str | Path, sp
 
 def _create_output_dir(config: dict[str, Any]) -> Path:
     experiment = config["experiment"]
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    timestamp = os.environ.get("EVAL_RUN_TIMESTAMP") or datetime.now().strftime("%Y%m%d-%H%M%S")
     output_dir = Path(experiment["output_dir"]) / f"{experiment['name']}-{timestamp}"
     output_dir.mkdir(parents=True, exist_ok=False)
     return output_dir
+
+
+def configure_shard(config: dict[str, Any], shard_index: int, num_shards: int) -> dict[str, Any]:
+    if num_shards < 1:
+        raise ValueError("num_shards must be at least 1")
+    if not 0 <= shard_index < num_shards:
+        raise ValueError("shard_index must satisfy 0 <= shard_index < num_shards")
+    sharded = copy.deepcopy(config)
+    sharded["experiment"]["name"] += f"-shard-{shard_index + 1:02d}-of-{num_shards:02d}"
+    sharded["dataset"]["shard"] = {"index": shard_index, "count": num_shards}
+    return sharded
 
 
 def _load_existing_records(
@@ -140,6 +153,15 @@ def evaluate(
         if not isinstance(limit, int) or limit < 1:
             raise ValueError("dataset.limit must be a positive integer")
         problems = problems[:limit]
+    shard = config["dataset"].get("shard")
+    if shard is not None:
+        shard_index = int(shard["index"])
+        num_shards = int(shard["count"])
+        if num_shards < 1 or not 0 <= shard_index < num_shards:
+            raise ValueError("Invalid dataset.shard index/count")
+        problems = problems[shard_index::num_shards]
+        if not problems:
+            raise ValueError("Evaluation shard is empty")
 
     num_samples = int(config["generation"].get("num_samples", 1))
     if num_samples < 1:
@@ -220,6 +242,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the code-generation evaluation pipeline")
     parser.add_argument("--config", default="configs/eval/default.yaml")
     parser.add_argument("--model-path", help="Override model.name_or_path with a local checkpoint")
+    parser.add_argument("--shard-index", type=int, help="Zero-based deterministic problem shard")
+    parser.add_argument("--num-shards", type=int, help="Total number of deterministic problem shards")
     parser.add_argument("--resume", help="Resume an existing experiment output directory")
     return parser.parse_args()
 
@@ -234,6 +258,10 @@ def main() -> int:
             raise ValueError(f"Model checkpoint directory does not exist: {model_path}")
         config["model"]["name_or_path"] = str(model_path)
         config["model"].pop("revision", None)
+    if (args.shard_index is None) != (args.num_shards is None):
+        raise ValueError("--shard-index and --num-shards must be provided together")
+    if args.shard_index is not None:
+        config = configure_shard(config, args.shard_index, args.num_shards)
     # vLLM must start its worker before any host-side seed helper initializes CUDA.
     # evaluate() seeds the host process before the first generation call.
     generator = create_generator(config)

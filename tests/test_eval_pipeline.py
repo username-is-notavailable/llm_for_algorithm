@@ -7,9 +7,10 @@ from typing import Any
 import pytest
 import yaml
 
-from src.eval.evaluator import evaluate, load_problems, validate_split_manifest
+from src.eval.evaluator import configure_shard, evaluate, load_problems, validate_split_manifest
 from src.inference.generate import GeneratedText
 from src.inference.prompts import build_code_prompt
+from src.eval.merge_shards import main as merge_shards
 
 
 ADD_CODE = """```cpp
@@ -128,6 +129,79 @@ def test_evaluator_resumes_completed_problems(tmp_path: Path) -> None:
 
     assert metrics["pass@1"] == 1.0
     assert len(generations.read_text(encoding="utf-8").splitlines()) == 2
+
+
+def test_evaluator_deterministically_shards_problems(tmp_path: Path) -> None:
+    dataset_path = tmp_path / "toy.jsonl"
+    _write_dataset(dataset_path)
+    base = {
+        "experiment": {"name": "shard-eval", "output_dir": str(tmp_path / "outputs"), "seed": 42},
+        "model": {"name_or_path": "fake"},
+        "inference": {"request_batch_size": 1},
+        "prompt": {"template": "output_protocol_v1"},
+        "dataset": {"path": str(dataset_path)},
+        "generation": {"num_samples": 1, "max_new_tokens": 64, "do_sample": False},
+        "verifier": {
+            "compile_timeout_seconds": 5,
+            "execution_timeout_seconds": 1,
+            "memory_limit_mb": 256,
+            "output_limit_bytes": 65536,
+        },
+    }
+    first_dir, _ = evaluate(configure_shard(base, 0, 2), FakeGenerator([[ADD_CODE]]))
+    second_dir, _ = evaluate(configure_shard(base, 1, 2), FakeGenerator([[PARITY_CODE]]))
+    first = json.loads((first_dir / "generations.jsonl").read_text())
+    second = json.loads((second_dir / "generations.jsonl").read_text())
+    assert first["problem_id"] == "toy:add"
+    assert second["problem_id"] == "toy:parity"
+    assert configure_shard(base, 0, 2)["experiment"]["name"].endswith("shard-01-of-02")
+    assert "shard" not in base["dataset"]
+
+
+def test_merge_eval_shards_validates_and_restores_manifest_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    dataset_path = tmp_path / "toy.jsonl"
+    _write_dataset(dataset_path)
+    model_path = tmp_path / "model"
+    model_path.mkdir()
+    base = {
+        "experiment": {"name": "merge-eval", "output_dir": str(tmp_path / "outputs"), "seed": 42},
+        "model": {"name_or_path": str(model_path.resolve())},
+        "inference": {"request_batch_size": 1},
+        "prompt": {"template": "output_protocol_v1"},
+        "dataset": {"path": str(dataset_path)},
+        "generation": {"num_samples": 1, "max_new_tokens": 64, "do_sample": False},
+        "verifier": {
+            "compile_timeout_seconds": 5,
+            "execution_timeout_seconds": 1,
+            "memory_limit_mb": 256,
+            "output_limit_bytes": 65536,
+        },
+    }
+    first_dir, _ = evaluate(configure_shard(base, 0, 2), FakeGenerator([[ADD_CODE]]))
+    second_dir, _ = evaluate(configure_shard(base, 1, 2), FakeGenerator([[PARITY_CODE]]))
+    config_path = tmp_path / "config.yaml"
+    config_path.write_text(yaml.safe_dump(base), encoding="utf-8")
+    merged = tmp_path / "merged"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "merge_eval_shards.py",
+            "--config",
+            str(config_path),
+            "--model-path",
+            str(model_path),
+            "--output-dir",
+            str(merged),
+            str(first_dir),
+            str(second_dir),
+        ],
+    )
+    assert merge_shards() == 0
+    rows = [json.loads(line) for line in (merged / "generations.jsonl").read_text().splitlines()]
+    assert [row["problem_id"] for row in rows] == ["toy:add", "toy:parity"]
+    assert json.loads((merged / "metrics.json").read_text())["pass@1"] == 1.0
 
 
 def test_dataset_rejects_duplicate_problem_ids(tmp_path: Path) -> None:
