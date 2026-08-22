@@ -1,0 +1,32 @@
+experiment:
+  name: m7-sft1k-eval-v1
+  output_dir: outputs/eval
+  seed: 42
+model:
+  backend: vllm
+  name_or_path: outputs/training/REPLACE_WITH_M7_RUN/final
+  trust_remote_code: false
+  dtype: bfloat16
+inference:
+  max_model_len: 32768
+  gpu_memory_utilization: 0.9
+  max_num_seqs: 16
+  request_batch_size: 32
+  tensor_parallel_size: 1
+  seed: 42
+prompt:
+  template: output_protocol_v1
+dataset:
+  path: data/processed/livecodebench_v1/eval_v1.jsonl
+  manifest: data/splits/eval_v1_problem_ids.json
+  manifest_split: eval
+generation:
+  num_samples: 1
+  max_new_tokens: 16384
+  temperature: 0.0
+  seed: 42
+verifier:
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576

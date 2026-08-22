@@ -54,3 +54,42 @@ chosen from these measurements.
 
 M6 selected 2-GPU DDP for formal SFT: it delivered about 1.62x single-GPU speedup
 and 81% parallel efficiency while 4 GPUs delivered 2.55x speedup and 64% efficiency.
+
+## M7 SFT-1K
+
+M7 is an independent run from the pinned Base checkpoint, not a continuation of
+the M6 overfit model. The frozen recipe uses all 1,000 ordered SFT samples, 3 epochs,
+global batch 16, cosine learning-rate decay from 2e-5 with 3% warmup, and 2-GPU DDP.
+The 3% warmup is frozen as 6 steps for the expected 189 optimizer steps. It saves
+one checkpoint per epoch.
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh sft1k \
+  2>&1 | tee /tmp/qwen3-m7-sft1k.log
+```
+
+If interrupted, resume from the newest checkpoint with the same mode and GPU count:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh sft1k \
+  --resume outputs/training/<m7-run>/checkpoint-<step>
+```
+
+Reload the final checkpoint, then run the fixed 10-problem smoke before the full
+399-problem evaluation:
+
+```bash
+.third_party/verl/.venv/bin/python scripts/verify_sft_checkpoint.py \
+  outputs/training/<m7-run>/final
+
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_m7.sh \
+  smoke outputs/training/<m7-run>/final
+
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_m7.sh \
+  full outputs/training/<m7-run>/final
+```
+
+The full evaluation protocol is identical to M4: the same frozen 399 problems,
+greedy pass@1, 32,768-token context, and 16,384-token generation cap.

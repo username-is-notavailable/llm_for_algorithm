@@ -11,8 +11,9 @@ case "${MODE}" in
   local-smoke) CONFIG="configs/training/m6_sft_local_smoke.yaml" ;;
   smoke) CONFIG="configs/training/m6_sft_smoke.yaml" ;;
   throughput) CONFIG="configs/training/m6_sft_throughput.yaml" ;;
+  sft1k) CONFIG="configs/training/m7_sft_1k.yaml" ;;
   *)
-    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput} [--resume CHECKPOINT]" >&2
+    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k} [--resume CHECKPOINT]" >&2
     exit 2
     ;;
 esac

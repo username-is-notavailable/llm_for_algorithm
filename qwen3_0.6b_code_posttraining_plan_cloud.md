@@ -750,6 +750,10 @@ SFT-1K → Eval
 
 完成后停止并报告结果。
 
+当前冻结的 M7 recipe 为双卡 DDP、full-parameter bf16、global batch 16、3
+epochs、cosine decay、2e-5 peak learning rate 和 3% warmup；从固定 Base revision
+独立启动。训练、恢复、重载和固定评测命令见 `docs/training.md`。
+
 ------------------------------------------------------------------------
 
 # 14. Milestone 8 --- SFT-5K

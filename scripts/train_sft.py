@@ -89,12 +89,18 @@ def main() -> int:
     )
     model.config.use_cache = False
 
+    max_steps = int(training.get("max_steps", -1))
+    num_train_epochs = float(training.get("num_train_epochs", 3.0))
+    if max_steps <= 0 and num_train_epochs <= 0:
+        raise ValueError("Set a positive max_steps or num_train_epochs")
+
     trainer_args = TrainingArguments(
         output_dir=str(run_dir),
         do_train=True,
         per_device_train_batch_size=micro_batch,
         gradient_accumulation_steps=gradient_accumulation,
-        max_steps=int(training["max_steps"]),
+        max_steps=max_steps,
+        num_train_epochs=num_train_epochs,
         learning_rate=float(training["learning_rate"]),
         lr_scheduler_type=training.get("lr_scheduler_type", "linear"),
         warmup_steps=int(training.get("warmup_steps", 0)),
@@ -157,6 +163,8 @@ def main() -> int:
         )
         print(json.dumps(metrics, indent=2, ensure_ascii=False))
         print(f"Artifacts: {run_dir}")
+    trainer.accelerator.wait_for_everyone()
+    trainer.accelerator.end_training()
     return 0
 
 

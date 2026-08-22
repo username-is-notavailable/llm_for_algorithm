@@ -219,6 +219,7 @@ def evaluate(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run the code-generation evaluation pipeline")
     parser.add_argument("--config", default="configs/eval/default.yaml")
+    parser.add_argument("--model-path", help="Override model.name_or_path with a local checkpoint")
     parser.add_argument("--resume", help="Resume an existing experiment output directory")
     return parser.parse_args()
 
@@ -227,6 +228,12 @@ def main() -> int:
     args = parse_args()
     config = load_config(args.config)
     require_sections(config, "experiment", "model")
+    if args.model_path:
+        model_path = Path(args.model_path).resolve()
+        if not model_path.is_dir():
+            raise ValueError(f"Model checkpoint directory does not exist: {model_path}")
+        config["model"]["name_or_path"] = str(model_path)
+        config["model"].pop("revision", None)
     # vLLM must start its worker before any host-side seed helper initializes CUDA.
     # evaluate() seeds the host process before the first generation call.
     generator = create_generator(config)
