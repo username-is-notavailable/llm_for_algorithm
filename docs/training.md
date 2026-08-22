@@ -111,3 +111,29 @@ merged formal directory are all retained under `outputs/eval/`.
 
 The full evaluation protocol is identical to M4: the same frozen 399 problems,
 greedy pass@1, 32,768-token context, and 16,384-token generation cap.
+
+### M7-v2 bounded-response pilot
+
+M7-v1 failed its gate: even checkpoint-63 produced 10/10 length-capped smoke
+responses with zero extraction. Do not formally evaluate any M7-v1 checkpoint.
+M7-v2 changes only the response-length data recipe before the pilot: derive 1,000
+ordered samples with `response <= 4096` from the frozen SFT-10K, without truncation.
+The preparation command verifies the frozen input SHA-256 and deterministically
+writes the same output (`32383cd65d4fc74ec9ec8c8a055665db786622173f404cdc5c5ba695ae5d7ff6`):
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_sft_short.py
+```
+
+The derived set has response P50 2,044, P90 3,607, max 4,088 and total-token max
+5,039. The first gate trains only its first 256 rows for one epoch from Base:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh sft1k-short-pilot \
+  2>&1 | tee /tmp/qwen3-m7-short-pilot.log
+```
+
+Run `verify_sft_checkpoint.py` and the fixed 10-problem smoke on the pilot final.
+Only if responses close normally and code extraction recovers should a full bounded
+SFT-1K configuration be created.

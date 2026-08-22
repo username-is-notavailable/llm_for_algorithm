@@ -750,9 +750,13 @@ SFT-1K → Eval
 
 完成后停止并报告结果。
 
-当前冻结的 M7 recipe 为双卡 DDP、full-parameter bf16、global batch 16、3
-epochs、cosine decay、2e-5 peak learning rate 和 3% warmup；从固定 Base revision
-独立启动。训练、恢复、重载和固定评测命令见 `docs/training.md`。
+M7-v1 recipe 为双卡 DDP、full-parameter bf16、global batch 16、3 epochs、
+cosine decay、2e-5 peak learning rate 和 3% warmup，并从固定 Base revision 独立
+启动。训练、恢复、重载和固定评测命令见 `docs/training.md`。
+
+M7-v1 已因首 epoch 出现 10/10 长度上限循环而拒绝。后续不得沿用其 checkpoint；
+按 `docs/training.md` 先执行不截断样本的 4,096-token bounded-response M7-v2
+pilot，通过停止与代码抽取 gate 后再冻结新的正式 recipe。
 
 ------------------------------------------------------------------------
 
