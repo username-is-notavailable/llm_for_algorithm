@@ -694,6 +694,11 @@ SFT overfit
 
 但必须记录最终采用的训练方式。
 
+当前 M6 实现采用 full-parameter bf16、FlashAttention 2、response-only loss、
+gradient checkpointing 和 PyTorch DDP。单卡 overfit、checkpoint 恢复以及
+1/2/4 卡等 global batch 吞吐测试的固定命令见 `docs/training.md`。M6 仅验证训练
+链路和选定并行方案；正式 SFT-1K 仍在 M7 从 Base 独立启动。
+
 ## Acceptance Criteria
 
 模型能明显 overfit 小数据集，训练和 checkpoint pipeline 正常。
