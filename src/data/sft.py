@@ -173,3 +173,24 @@ def balanced_order(rows: Iterable[dict[str, Any]], seed: int) -> list[dict[str, 
                 next_keys.append(key)
         keys = next_keys
     return result
+_UNSUPPORTED_PROBLEM_PATTERNS = (
+    (
+        "interactive_problem",
+        re.compile(r"\b(?:interactive\s+(?:problem|task)|problem\s+is\s+interactive)\b", re.IGNORECASE),
+    ),
+    (
+        "missing_problem_statement",
+        re.compile(
+            r"(?:problem statement.{0,60}(?:eaten|missing|lost|stolen)|"
+            r"without (?:the )?(?:problem )?statement)",
+            re.IGNORECASE,
+        ),
+    ),
+)
+
+
+def unsupported_problem_reason(problem: str) -> str | None:
+    for reason, pattern in _UNSUPPORTED_PROBLEM_PATTERNS:
+        if pattern.search(problem):
+            return reason
+    return None

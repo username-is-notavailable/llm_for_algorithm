@@ -85,3 +85,15 @@
   - 耗时：109m47.242s，平均聚合吞吐约 322.06 output tokens/s；
   - 产物：`outputs/eval/m4-base-eval-v1-20260822-105643/`；
   - 结论：M4 验收通过并冻结为后续 SFT/GRPO 的 Base baseline。16K 截断主要反映 Base 模型在失败题上的长生成或退化，不继续扩大评测上限；后续模型仍使用完全相同协议比较。
+
+## Milestone 5
+
+- 2026-08-22，OpenCodeReasoning-2 C++ SFT Data v1 准备与 audit 完成：
+  - 固定 OCR2 revision：`eadf535931451525f3e5621d0f960c240bc62fd9`；完整扫描 1,174,475 rows；
+  - 10K：10,000 unique problems，全部 verified，严格嵌套生成 1K/5K/10K；
+  - 质量过滤新增 25 条总长超过 16,384 tokens、14 条 interactive task、1 条缺失题面；禁止截断末尾代码；
+  - 长度：total p50 5,333、p90 12,093、p95 13,319、p99 14,953、max 16,369；
+  - 数据隔离：拒绝 11 条 Eval near-duplicate，最终 retained Eval matches 为 0；
+  - 固定 100 条人工 audit 完成：无剩余阻塞项；详细记录见 `docs/sft_v1_audit.md`；
+  - 最终 SFT-10K SHA-256：`16d25b5ad5780b4b5925a6a504210c11c7d39f35b535e7c783e6f3e9398a3581`；
+  - 结论：M5 验收通过，数据协议冻结，可以进入 M6 SFT smoke test。

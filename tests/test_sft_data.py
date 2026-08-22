@@ -8,7 +8,9 @@ from src.data.sft import (
     normalize_difficulty,
     render_response,
     split_generation,
+    unsupported_problem_reason,
 )
+from scripts.prepare_sft import _select_by_token_length
 
 CODE = "#include <iostream>\nint main() { return 0; }"
 
@@ -96,3 +98,38 @@ def test_eval_leakage_exact_and_near_duplicate() -> None:
     }]
     assert is_eval_leak(problem.upper(), fingerprints) == "eval_exact"
     assert is_eval_leak(problem + "The time limit is two seconds.", fingerprints) == "eval_near_duplicate"
+
+
+def test_token_length_filter_rejects_whole_sample_and_refills() -> None:
+    class CharacterTokenizer:
+        @staticmethod
+        def encode(value: str, *, add_special_tokens: bool) -> list[str]:
+            assert add_special_tokens is False
+            return list(value)
+
+    rows = [
+        adapt_ocr2(_row(f"q{index}", f"s{index}"), "A sufficiently detailed problem statement.")
+        for index in range(3)
+    ]
+    rows[0]["reasoning"] = "x" * 1000
+    rows[0]["response"] = render_response(rows[0]["reasoning"], rows[0]["code"])
+    from collections import Counter
+
+    rejected = Counter()
+    selected = _select_by_token_length(
+        rows,
+        CharacterTokenizer(),
+        target_size=2,
+        maximum_total_tokens=600,
+        rejected=rejected,
+    )
+
+    assert [row["problem_id"] for row in selected] == ["ocr2:q1", "ocr2:q2"]
+    assert rejected["total_tokens"] == 1
+    assert all(row["token_counts"]["total"] <= 600 for row in selected)
+
+
+def test_rejects_interactive_and_missing_statement_tasks() -> None:
+    assert unsupported_problem_reason("This is an interactive problem. Ask queries and flush output.") == "interactive_problem"
+    assert unsupported_problem_reason("Unfortunately someone ate the problem statement. Solve without the statement.") == "missing_problem_statement"
+    assert unsupported_problem_reason("Solve a complete stdin and stdout programming problem.") is None

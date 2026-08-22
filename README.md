@@ -146,6 +146,6 @@ bash scripts/cloud_prepare_sft.sh
 - M1：Code Verifier（已完成）
 - M2：Evaluation Pipeline（已完成）
 - M3：Fixed Eval Set（已完成）
-- M5：SFT Data Pipeline（提前完成数据准备）
+- M5：SFT Data Pipeline（已完成并通过 100 条 audit）
 - M4：Base Baseline（已完成；pass@1 0.0576）
 - 后续阶段见项目方案文档

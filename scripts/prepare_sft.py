@@ -12,7 +12,13 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from src.data.livecodebench import write_jsonl
-from src.data.sft import adapt_ocr2, balanced_order, deduplicate_candidates, is_eval_leak
+from src.data.sft import (
+    adapt_ocr2,
+    balanced_order,
+    deduplicate_candidates,
+    is_eval_leak,
+    unsupported_problem_reason,
+)
 from src.inference.prompts import build_code_prompt
 from src.utils.config import load_config, require_sections
 from src.verifier.compiler import compile_code
@@ -185,6 +191,39 @@ def _statistics(rows: list[dict[str, Any]], reports: dict[str, Any]) -> dict[str
     }
 
 
+def _select_by_token_length(
+    rows: Iterable[dict[str, Any]],
+    tokenizer: Any,
+    *,
+    target_size: int,
+    maximum_total_tokens: int,
+    rejected: Counter,
+) -> list[dict[str, Any]]:
+    selected = []
+    for index, row in enumerate(rows, start=1):
+        row["prompt"] = build_code_prompt(row["problem"])
+        counts = {
+            field: len(tokenizer.encode(row[field], add_special_tokens=False))
+            for field in ("problem", "prompt", "reasoning", "code", "response")
+        }
+        counts["total"] = len(
+            tokenizer.encode(row["prompt"] + row["response"], add_special_tokens=False)
+        )
+        if counts["total"] > maximum_total_tokens:
+            rejected["total_tokens"] += 1
+            continue
+        row["token_counts"] = counts
+        selected.append(row)
+        if len(selected) % 1000 == 0:
+            print(f"Selected {len(selected)}/{target_size} after tokenizing {index}", flush=True)
+        if len(selected) == target_size:
+            return selected
+    raise RuntimeError(
+        f"Only {len(selected)} samples survived the {maximum_total_tokens}-token limit; "
+        f"need {target_size}"
+    )
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Prepare nested OpenCodeReasoning-2 C++ SFT datasets")
     parser.add_argument("--config", default="configs/data/sft_v1.yaml")
@@ -294,6 +333,10 @@ def main() -> int:
         except ValueError as error:
             rejected[str(error)] += 1
             continue
+        unsupported_reason = unsupported_problem_reason(sample["problem"])
+        if unsupported_reason:
+            rejected[unsupported_reason] += 1
+            continue
         leak = is_eval_leak(sample["problem"], fingerprints)
         if leak:
             rejected[leak] += 1
@@ -316,24 +359,17 @@ def main() -> int:
                     print(f"Compile checked {index}/{len(compile_pool)}", flush=True)
     else:
         compiled = compile_pool
-    selected = compiled[:target_size]
-    if len(selected) < target_size:
-        raise RuntimeError(f"Only {len(selected)} samples survived; need {target_size}")
-
     from transformers import AutoTokenizer
 
     tokenizer_config = config["tokenizer"]
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_config["name_or_path"], revision=tokenizer_config["revision"])
-    for index, row in enumerate(selected, start=1):
-        row["prompt"] = build_code_prompt(row["problem"])
-        counts = {
-            field: len(tokenizer.encode(row[field], add_special_tokens=False))
-            for field in ("problem", "prompt", "reasoning", "code", "response")
-        }
-        counts["total"] = len(tokenizer.encode(row["prompt"] + row["response"], add_special_tokens=False))
-        row["token_counts"] = counts
-        if index % 1000 == 0:
-            print(f"Tokenized {index}/{len(selected)}", flush=True)
+    selected = _select_by_token_length(
+        compiled,
+        tokenizer,
+        target_size=target_size,
+        maximum_total_tokens=int(tokenizer_config["maximum_total_tokens"]),
+        rejected=rejected,
+    )
 
     for size in sorted(int(value) for value in output["sizes"]):
         write_jsonl(output_dir / f"sft_{size // 1000}k.jsonl", selected[:size])

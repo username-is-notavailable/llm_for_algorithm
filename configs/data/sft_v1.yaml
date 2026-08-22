@@ -32,6 +32,7 @@ filter:
 tokenizer:
   name_or_path: Qwen/Qwen3-0.6B-Base
   revision: da87bfb608c14b7cf20ba1ce41287e8de496c0cd
+  maximum_total_tokens: 16384
 output:
   directory: data/processed
   eval_fingerprints: data/splits/eval_v1_fingerprints.json

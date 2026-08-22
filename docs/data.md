@@ -78,7 +78,7 @@ SFT 样本先转换为结构化字段，再由统一 renderer 生成 Output Prot
 
 构造任何 SFT 或 GRPO 数据后，必须在训练前执行 `scripts/check_data_leakage.py`。检查范围包括 problem ID、标准化题面 SHA-256 和长题面的 SimHash 近重复；命中时命令以非零状态退出。Eval 的题面、代码、推理和 tests 都不得作为训练或 reward 调试数据。
 
-## SFT Data v1（准备中）
+## SFT Data v1（已冻结）
 
 第一阶段仅使用 `nvidia/OpenCodeReasoning-2` 的 C++ split。数据源固定到 revision `eadf535931451525f3e5621d0f960c240bc62fd9`；数据集卡许可为 CC BY 4.0，同时每条样本继续保留上游 `license`、`dataset`、`split` 和 `index`，因为原始题面仍受各上游数据源条款约束。
 
@@ -86,10 +86,10 @@ OCR2 的 `question` 字段是 `-` 占位符。准备脚本按照官方方法从�
 
 1. `judgement=right` 且 `pass_rate >= 0.8`，不接收 `pass_rate=-1`；
 2. 拆分 `r1_generation` 的 reasoning 与最终 C++，并与 `solution` 交叉检查；
-3. 过滤损坏、极短或异常长样本；
+3. 过滤损坏、极短、异常长、interactive 及缺失题面的样本；
 4. 使用 Eval v1 的题面 SHA-256 与 SimHash 指纹排除精确和近重复；
 5. 以 GNU C++17 编译检查完整程序；
 6. 按 difficulty/platform 交错排序，生成严格嵌套的 SFT-1K、5K、10K；
-7. 使用固定 Qwen tokenizer 统计 problem、实际 prompt、reasoning、code、response 和 prompt+response 的 P50/P90/P95/P99。
+7. 使用固定 Qwen tokenizer 统计 problem、实际 prompt、reasoning、code、response 和 prompt+response 的 P50/P90/P95/P99；`prompt+response` 超过 16,384 tokens 时整条剔除并从候选池补齐，禁止截断末尾代码。
 
-输出位于 Git 忽略的 `data/processed/`，包括三个训练 JSONL、`sft_stats.json`、contamination/dedup reports 和固定随机抽取的 `sft_audit_100.jsonl`。100 条 audit 必须人工检查后才能进入 M6。
+输出位于 Git 忽略的 `data/processed/`，包括三个训练 JSONL、`sft_stats.json`、contamination/dedup reports 和固定随机抽取的 `sft_audit_100.jsonl`。100 条 audit 已完成，结果、发现、修复和最终文件 SHA-256 见 [sft_v1_audit.md](sft_v1_audit.md)。
