@@ -297,3 +297,29 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_sft_ab.sh \
 
 Do not construct a mixed dataset until this diversity control is inspected. A mix
 would otherwise confound response format with unique-problem coverage.
+
+The equal-token diversity control shows that one exposure to each short-reasoning
+target is insufficient: 9/10 smoke generations reach the 4,096-token cap even
+though optimization is numerically stable. Code-only remains format-stable but has
+zero pass@1, so stop extending that branch. Run a fresh four-epoch short-reasoning
+1K experiment from Base, with cosine decay spanning all 252 optimizer steps:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh ab-short-1k-4epoch \
+  2>&1 | tee /tmp/qwen3-m7-ab-short-1k-4epoch-train.log
+```
+
+Expected epoch checkpoints are 63, 126, 189, and 252. Evaluate all four with the
+same native short-reasoning smoke protocol:
+
+```bash
+for STEP in 63 126 189 252; do
+  CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_sft_ab.sh \
+    short outputs/training/<short-1k-4epoch-run>/checkpoint-${STEP}
+done 2>&1 | tee /tmp/qwen3-m7-ab-short-1k-4epoch-eval.log
+```
+
+This run is deliberately fresh rather than resumed from the one-epoch control: the
+one-epoch scheduler has already decayed its learning rate to zero, whereas this
+experiment must define a reproducible four-epoch schedule from the start.
