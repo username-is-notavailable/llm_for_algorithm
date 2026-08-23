@@ -263,3 +263,37 @@ fixed smoke metrics and response inspection, not training loss. This native-prom
 A/B measures whether each response recipe can learn its intended behavior; it is
 not directly comparable to the frozen M4 Base score until a common-prompt follow-up
 is run.
+
+### Full-1K diversity control
+
+The 256-sample four-epoch pilots show that code-only targets immediately fix
+stopping and compilation but do not solve a complete smoke problem, while short
+reasoning recovers only after repeated exposure and retains mechanical loops. Run
+one epoch over all 1,000 matched IDs before mixing the recipes. This keeps total
+token exposure close to the pilot while increasing unique-problem coverage fourfold:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh ab-short-1k \
+  2>&1 | tee /tmp/qwen3-m7-ab-short-1k-train.log
+
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh ab-code-1k \
+  2>&1 | tee /tmp/qwen3-m7-ab-code-1k-train.log
+```
+
+With global batch 16, each run is expected to end at checkpoint 63. Evaluate the
+saved checkpoint (or the identical final weights) using the matching native prompt:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_sft_ab.sh \
+  short outputs/training/<short-1k-run>/checkpoint-63 \
+  2>&1 | tee /tmp/qwen3-m7-ab-short-1k-eval.log
+
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_sft_ab.sh \
+  code outputs/training/<code-1k-run>/checkpoint-63 \
+  2>&1 | tee /tmp/qwen3-m7-ab-code-1k-eval.log
+```
+
+Do not construct a mixed dataset until this diversity control is inspected. A mix
+would otherwise confound response format with unique-problem coverage.
