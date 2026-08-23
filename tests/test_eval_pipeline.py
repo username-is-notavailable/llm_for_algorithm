@@ -70,6 +70,9 @@ def test_plain_prompt_builder_does_not_load_chat_tokenizer() -> None:
     builder = create_prompt_builder({"template": "output_protocol_v1"}, {"name_or_path": "unused"})
     assert builder("Add two integers.") == build_code_prompt("Add two integers.")
 
+    code_builder = create_prompt_builder({"template": "code_only_v1"}, {"name_or_path": "unused"})
+    assert code_builder("Add two integers.") == build_code_only_prompt("Add two integers.")
+
 
 def test_code_only_prompt_does_not_require_reasoning_wrapper() -> None:
     prompt = build_code_only_prompt("Add two integers.")

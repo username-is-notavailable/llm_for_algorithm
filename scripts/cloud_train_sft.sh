@@ -15,8 +15,10 @@ case "${MODE}" in
   sft1k-short-pilot) CONFIG="configs/training/m7_sft_1k_short_pilot.yaml" ;;
   sft1k-compact-pilot) CONFIG="configs/training/m7_sft_1k_compact_pilot.yaml" ;;
   compact-4epoch) CONFIG="configs/training/m7_sft_compact_4epoch.yaml" ;;
+  ab-short-pilot) CONFIG="configs/training/m7_sft_ab_short_pilot.yaml" ;;
+  ab-code-pilot) CONFIG="configs/training/m7_sft_ab_code_pilot.yaml" ;;
   *)
-    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot|compact-4epoch} [--resume CHECKPOINT]" >&2
+    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot|compact-4epoch|ab-short-pilot|ab-code-pilot} [--resume CHECKPOINT]" >&2
     exit 2
     ;;
 esac
@@ -30,7 +32,11 @@ if [[ ! -x "${VERL_PYTHON}" ]]; then
   echo "Missing verl environment. Run bash scripts/cloud_setup.sh first." >&2
   exit 1
 fi
-if [[ "${MODE}" == "sft1k-short-pilot" ]]; then
+if [[ "${MODE}" == "ab-short-pilot" ]]; then
+  REQUIRED_DATA="data/processed/sft_1k_short_reasoning_v2.jsonl"
+elif [[ "${MODE}" == "ab-code-pilot" ]]; then
+  REQUIRED_DATA="data/processed/sft_1k_code_only_v2.jsonl"
+elif [[ "${MODE}" == "sft1k-short-pilot" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_short_v1.jsonl"
 elif [[ "${MODE}" == "sft1k-compact-pilot" || "${MODE}" == "compact-4epoch" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_compact_v1.jsonl"

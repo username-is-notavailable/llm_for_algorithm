@@ -224,3 +224,37 @@ revision, selection limits, and length/difficulty/platform statistics. Both
 variants must have identical ordered problem IDs before training. These data are
 an A/B diagnostic; their five hard-labeled rows are insufficient for a final
 difficulty-balanced training recipe.
+
+Train the two matched 256-sample pilots independently from the same frozen Base
+checkpoint. Both use two-GPU DDP, global batch 16, learning rate 2e-5, four epochs,
+and retain one checkpoint per epoch (expected steps 16/32/48/64):
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh ab-short-pilot \
+  2>&1 | tee /tmp/qwen3-m7-ab-short-train.log
+
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh ab-code-pilot \
+  2>&1 | tee /tmp/qwen3-m7-ab-code-train.log
+```
+
+Do not compare only final checkpoints. Evaluate checkpoints 16, 32, 48, and 64
+with the matching prompt protocol. The short model receives Output Protocol v1 and
+a 4,096-token generation cap; the code-only model receives the same direct-code
+prompt used in training and a 2,048-token cap. Both use greedy decoding and the
+same frozen 10-problem smoke set:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_sft_ab.sh \
+  short outputs/training/<short-run>/checkpoint-16
+
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_sft_ab.sh \
+  code outputs/training/<code-run>/checkpoint-16
+```
+
+Repeat each command for checkpoints 32, 48, and 64. Select candidates using the
+fixed smoke metrics and response inspection, not training loss. This native-prompt
+A/B measures whether each response recipe can learn its intended behavior; it is
+not directly comparable to the frozen M4 Base score until a common-prompt follow-up
+is run.

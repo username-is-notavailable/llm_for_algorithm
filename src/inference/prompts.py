@@ -40,6 +40,8 @@ def create_prompt_builder(
     template = prompt_config.get("template")
     if template == "output_protocol_v1":
         return build_code_prompt
+    if template == "code_only_v1":
+        return build_code_only_prompt
     if template not in {"qwen3_chat_output_protocol_v1", "chat_code_only_v1"}:
         raise ValueError(f"Unsupported prompt template: {template}")
 
