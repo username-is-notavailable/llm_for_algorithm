@@ -9,7 +9,7 @@ import yaml
 
 from src.eval.evaluator import configure_shard, evaluate, load_problems, validate_split_manifest
 from src.inference.generate import GeneratedText
-from src.inference.prompts import build_code_prompt, create_prompt_builder
+from src.inference.prompts import build_code_only_prompt, build_code_prompt, create_prompt_builder
 from src.eval.merge_shards import main as merge_shards
 
 
@@ -69,6 +69,14 @@ def test_prompt_uses_output_protocol_v1() -> None:
 def test_plain_prompt_builder_does_not_load_chat_tokenizer() -> None:
     builder = create_prompt_builder({"template": "output_protocol_v1"}, {"name_or_path": "unused"})
     assert builder("Add two integers.") == build_code_prompt("Add two integers.")
+
+
+def test_code_only_prompt_does_not_require_reasoning_wrapper() -> None:
+    prompt = build_code_only_prompt("Add two integers.")
+    assert "```cpp" in prompt
+    assert "GNU C++17" in prompt
+    assert "<think>" not in prompt
+    assert "Add two integers." in prompt
 
 
 def test_default_toy_dataset_has_seven_unique_problems() -> None:

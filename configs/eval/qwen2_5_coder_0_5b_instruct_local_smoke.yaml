@@ -1,0 +1,34 @@
+experiment:
+  name: diagnostic-qwen2.5-coder-0.5b-instruct-4k-smoke
+  output_dir: outputs/eval
+  seed: 42
+model:
+  backend: vllm
+  name_or_path: Qwen/Qwen2.5-Coder-0.5B-Instruct
+  revision: ea3f2471cf1b1f0db85067f1ef93848e38e88c25
+  trust_remote_code: false
+  dtype: bfloat16
+inference:
+  max_model_len: 32768
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 2
+  request_batch_size: 2
+  tensor_parallel_size: 1
+  seed: 42
+  enforce_eager: true
+prompt:
+  template: chat_code_only_v1
+dataset:
+  path: data/processed/livecodebench_v1/smoke_10.jsonl
+  manifest: data/splits/eval_v1_problem_ids.json
+  manifest_split: smoke
+generation:
+  num_samples: 1
+  max_new_tokens: 4096
+  temperature: 0.0
+  seed: 42
+verifier:
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576
