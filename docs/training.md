@@ -209,9 +209,14 @@ difficulty/platform-balanced ordering. The command verifies the frozen SFT-10K
 SHA-256 before writing either variant:
 
 ```bash
-.third_party/verl/.venv/bin/python scripts/prepare_sft_ab.py \
+bash scripts/cloud_prepare_sft_ab.sh \
   2>&1 | tee /tmp/qwen3-prepare-sft-ab.log
 ```
+
+This entry point selects `cache/huggingface/` when present and forces offline
+tokenizer loading. It never contacts Hugging Face. If the pinned tokenizer is not
+in either the project or default cache, it exits with an explicit error; network
+access requires deliberately running `prepare_sft_ab.py --allow-tokenizer-download`.
 
 Generated, Git-ignored artifacts are:
 

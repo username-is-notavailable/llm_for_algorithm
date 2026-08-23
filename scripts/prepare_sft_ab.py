@@ -32,6 +32,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--total-max-tokens", type=int, default=8192)
     parser.add_argument("--seed", type=int, default=20260823)
     parser.add_argument("--expected-input-sha256", default=SFT_10K_SHA256)
+    parser.add_argument(
+        "--allow-tokenizer-download",
+        action="store_true",
+        help="Allow Hugging Face network access when the pinned tokenizer is not cached",
+    )
     return parser.parse_args()
 
 
@@ -172,11 +177,21 @@ def main() -> int:
 
     from transformers import AutoTokenizer
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        TOKENIZER_NAME,
-        revision=TOKENIZER_REVISION,
-        trust_remote_code=False,
-    )
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(
+            TOKENIZER_NAME,
+            revision=TOKENIZER_REVISION,
+            trust_remote_code=False,
+            local_files_only=not args.allow_tokenizer_download,
+        )
+    except OSError as error:
+        if args.allow_tokenizer_download:
+            raise
+        raise RuntimeError(
+            "Pinned Qwen3 tokenizer is not available in the active Hugging Face cache. "
+            "Use scripts/cloud_prepare_sft_ab.sh so the project cache is selected, or "
+            "rerun with --allow-tokenizer-download to permit network access."
+        ) from error
     short_rows, code_rows = derive_variants(
         selected, lambda text: len(tokenizer.encode(text, add_special_tokens=False))
     )
