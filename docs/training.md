@@ -192,3 +192,35 @@ If the official model produces stable code at the same parameter count, capacity
 alone does not explain our collapse. Its metrics must not be placed in the frozen
 M4/M7 greedy comparison table because both post-training and decoding protocol
 differ.
+
+## M7-v3 matched response-format data
+
+The long-output diagnostics motivate a matched data experiment rather than another
+epoch or generation-limit change. Derive two variants from the frozen SFT-10K with
+the same 1,000 problem IDs:
+
+- `short_reasoning_v2` retains only complete, naturally short reasoning targets;
+- `code_only_v2` changes both prompt and target to request and emit only fenced C++.
+
+No response is truncated or teacher-rewritten. Eligible source rows must have
+reasoning at most 2,048 tokens, response at most 4,096 tokens, and prompt plus
+response at most 8,192 tokens. Selection uses seed `20260823` and the existing
+difficulty/platform-balanced ordering. The command verifies the frozen SFT-10K
+SHA-256 before writing either variant:
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_sft_ab.py \
+  2>&1 | tee /tmp/qwen3-prepare-sft-ab.log
+```
+
+Generated, Git-ignored artifacts are:
+
+- `data/processed/sft_1k_short_reasoning_v2.jsonl`;
+- `data/processed/sft_1k_code_only_v2.jsonl`;
+- `data/processed/sft_1k_ab_v2_manifest.json`.
+
+The manifest freezes ordered problem IDs, source and output hashes, tokenizer
+revision, selection limits, and length/difficulty/platform statistics. Both
+variants must have identical ordered problem IDs before training. These data are
+an A/B diagnostic; their five hard-labeled rows are insufficient for a final
+difficulty-balanced training recipe.
