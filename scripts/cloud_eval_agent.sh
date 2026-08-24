@@ -8,9 +8,9 @@ MODEL_SIZE="${1:-}"
 SPLIT="${2:-}"
 MODE="${3:-}"
 
-if [[ ! "${MODEL_SIZE}" =~ ^(1\.7b|4b)$ ]] || [[ ! "${SPLIT}" =~ ^(smoke|dev)$ ]] || \
+if [[ ! "${MODEL_SIZE}" =~ ^(1\.7b|1\.7b-post|4b)$ ]] || [[ ! "${SPLIT}" =~ ^(smoke|dev)$ ]] || \
    [[ ! "${MODE}" =~ ^(oneshot|agent|both|agent-sharded)$ ]]; then
-  echo "Usage: bash scripts/cloud_eval_agent.sh {1.7b|4b} {smoke|dev} {oneshot|agent|both|agent-sharded} [--resume OUTPUT_DIR]" >&2
+  echo "Usage: bash scripts/cloud_eval_agent.sh {1.7b|1.7b-post|4b} {smoke|dev} {oneshot|agent|both|agent-sharded} [--resume OUTPUT_DIR]" >&2
   exit 2
 fi
 shift 3
@@ -56,7 +56,11 @@ run_agent_sharded() {
   config="$(render_config agent)"
   timestamp="${AGENT_RUN_TIMESTAMP:-$(date +%Y%m%d-%H%M%S)}"
   export AGENT_RUN_TIMESTAMP="${timestamp}"
-  base="m9-agent-qwen3-${MODEL_SIZE}-base-${SPLIT}-v1"
+  case "${MODEL_SIZE}" in
+    1.7b) base="m9-agent-qwen3-1.7b-base-${SPLIT}-v1" ;;
+    1.7b-post) base="m9-agent-qwen3-1.7b-posttrained-${SPLIT}-v1" ;;
+    4b) base="m9-agent-qwen3-4b-base-${SPLIT}-v1" ;;
+  esac
   shard0="outputs/agent_eval/${base}-shard-01-of-02-${timestamp}"
   shard1="outputs/agent_eval/${base}-shard-02-of-02-${timestamp}"
   CUDA_VISIBLE_DEVICES=0 "${VERL_PYTHON}" -m src.agent.evaluator \

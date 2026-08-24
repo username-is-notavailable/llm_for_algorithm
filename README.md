@@ -51,6 +51,14 @@ CUDA_VISIBLE_DEVICES=0,1 bash scripts/cloud_eval_agent.sh 1.7b dev agent-sharded
 将 `1.7b` 替换为 `4b` 可使用固定 revision 运行主模型 baseline。单 GPU `agent`/`oneshot`
 支持 `--resume OUTPUT_DIR`；sharded 模式保留每个 shard，可分别恢复后再合并。
 
+官方 post-trained 1.7B 作为 Agent protocol reference，使用单独的模型变体名，避免和 Base
+baseline 混淆：
+
+```bash
+bash scripts/cloud_eval_agent.sh 1.7b-post smoke both \
+  2>&1 | tee /tmp/qwen3-m9-1.7b-post-smoke.log
+```
+
 Agent artifacts 位于 `outputs/agent_eval/`，包括 config、environment、逐题完整
 `trajectories.jsonl` 和 `metrics.json`。指标包含 first-attempt/Agent/repair success、hidden testcase
 pass rate、action validity/fallback、主动 final、execution/token efficiency、termination 和难度分层。

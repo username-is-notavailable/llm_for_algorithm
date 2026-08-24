@@ -7,8 +7,21 @@ import yaml
 
 
 MODELS = {
-    "1.7b": ("Qwen/Qwen3-1.7B-Base", "ea980cb0a6c2ae4b936e82123acc929f1cec04c1"),
-    "4b": ("Qwen/Qwen3-4B-Base", "906bfd4b4dc7f14ee4320094d8b41684abff8539"),
+    "1.7b": (
+        "Qwen/Qwen3-1.7B-Base",
+        "ea980cb0a6c2ae4b936e82123acc929f1cec04c1",
+        "qwen3-1.7b-base",
+    ),
+    "1.7b-post": (
+        "Qwen/Qwen3-1.7B",
+        "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+        "qwen3-1.7b-posttrained",
+    ),
+    "4b": (
+        "Qwen/Qwen3-4B-Base",
+        "906bfd4b4dc7f14ee4320094d8b41684abff8539",
+        "qwen3-4b-base",
+    ),
 }
 
 
@@ -19,11 +32,11 @@ def main() -> int:
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
     config = yaml.safe_load(Path(args.input).read_text(encoding="utf-8"))
-    name, revision = MODELS[args.model_size]
+    name, revision, experiment_slug = MODELS[args.model_size]
     config["model"]["name_or_path"] = name
     config["model"]["revision"] = revision
     config["experiment"]["name"] = config["experiment"]["name"].replace(
-        "qwen3-1.7b", f"qwen3-{args.model_size}"
+        "qwen3-1.7b-base", experiment_slug
     )
     Path(args.output).write_text(
         yaml.safe_dump(config, sort_keys=False, allow_unicode=True), encoding="utf-8"
