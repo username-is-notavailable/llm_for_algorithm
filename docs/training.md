@@ -226,6 +226,44 @@ capacity effect (1.7B beats the comparable official 0.6B run), but it does not
 establish that 1.7B is intrinsically better than 4B; compare additional seeds or a
 longer generation limit before choosing between them.
 
+### 4B/8B long-window cloud diagnostic
+
+The local 16GB GPU can cache Qwen3-8B but cannot safely run its BF16 weights with
+a useful KV cache. Download the pinned 4B and 8B official post-trained snapshots
+without loading either model:
+
+```bash
+.third_party/verl/.venv/bin/python scripts/download_official_qwen3_cache.py 4b 8b
+bash scripts/package_official_qwen3_cache.sh
+```
+
+The archive contains only the two model cache directories and preserves the
+snapshot-to-blob symbolic links. Safetensors are already difficult to compress, so
+the `.tar.zst` will remain close to the approximately 23 GiB combined BF16 weight
+size. Upload both the archive and its `.sha256`, then extract at the cloud project
+root:
+
+```bash
+sha256sum -c qwen3-official-4b-8b-cache.tar.zst.sha256
+tar -I zstd -xf qwen3-official-4b-8b-cache.tar.zst
+```
+
+Run both models on one cloud GPU with the same frozen ten problems, seed-42 sampled
+thinking protocol, 16,384-token generation cap, and 24,576-token vLLM context:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_official_qwen3_long.sh 4b \
+  2>&1 | tee /tmp/qwen3-official-4b-16k-smoke.log
+
+CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_official_qwen3_long.sh 8b \
+  2>&1 | tee /tmp/qwen3-official-8b-16k-smoke.log
+```
+
+The launcher forces offline model loading so a missing or incomplete uploaded cache
+fails immediately rather than silently downloading again. A single A100 40GB should
+have sufficient inference memory at batch size one; use an 80GB card if the provider
+reserves material VRAM or vLLM reports insufficient KV-cache capacity.
+
 ## M7-v3 matched response-format data
 
 The long-output diagnostics motivate a matched data experiment rather than another
