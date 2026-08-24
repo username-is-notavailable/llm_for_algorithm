@@ -10,8 +10,9 @@ MODEL_PATH="${2:-}"
 case "${MODE}" in
   short) CONFIG="configs/eval/livecodebench_m7_ab_short_smoke_v2.yaml" ;;
   code) CONFIG="configs/eval/livecodebench_m7_ab_code_smoke_v2.yaml" ;;
+  weighted) CONFIG="configs/eval/livecodebench_m7_weighted_short_smoke_v1.yaml" ;;
   *)
-    echo "Usage: bash scripts/cloud_eval_sft_ab.sh {short|code} OUTPUTS_TRAINING_RUN/{checkpoint-N|final}" >&2
+    echo "Usage: bash scripts/cloud_eval_sft_ab.sh {short|code|weighted} OUTPUTS_TRAINING_RUN/{checkpoint-N|final}" >&2
     exit 2
     ;;
 esac

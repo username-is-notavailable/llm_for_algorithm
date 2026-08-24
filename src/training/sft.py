@@ -4,6 +4,46 @@ import json
 from pathlib import Path
 from typing import Any
 
+
+def _find_span(text: str, value: str, *, field: str) -> tuple[int, int]:
+    value = value.strip()
+    start = text.find(value)
+    if not value or start < 0:
+        raise ValueError(f"Response does not contain its {field} field")
+    return start, start + len(value)
+
+
+def _weighted_response_encoding(
+    row: dict[str, Any], tokenizer: Any, weights: dict[str, Any]
+) -> tuple[list[int], list[float]]:
+    response = row["response"]
+    encoded = tokenizer(
+        response,
+        add_special_tokens=False,
+        return_offsets_mapping=True,
+    )
+    response_ids = list(encoded["input_ids"])
+    offsets = list(encoded["offset_mapping"])
+    if len(response_ids) != len(offsets):
+        raise ValueError("Tokenizer returned inconsistent response offsets")
+    reasoning_span = _find_span(response, row.get("reasoning", ""), field="reasoning")
+    code_span = _find_span(response, row.get("code", ""), field="code")
+    reasoning_weight = float(weights["reasoning"])
+    code_weight = float(weights["code"])
+    boundary_weight = float(weights["boundary"])
+    if min(reasoning_weight, code_weight, boundary_weight) < 0:
+        raise ValueError("Loss weights must be non-negative")
+
+    token_weights = []
+    for start, end in offsets:
+        if start < reasoning_span[1] and end > reasoning_span[0]:
+            token_weights.append(reasoning_weight)
+        elif start < code_span[1] and end > code_span[0]:
+            token_weights.append(code_weight)
+        else:
+            token_weights.append(boundary_weight)
+    return response_ids, token_weights
+
 def load_sft_rows(path: str | Path, *, limit: int | None, selection: str) -> list[dict[str, Any]]:
     with Path(path).open("r", encoding="utf-8") as handle:
         rows = [json.loads(line) for line in handle if line.strip()]
@@ -16,9 +56,18 @@ def load_sft_rows(path: str | Path, *, limit: int | None, selection: str) -> lis
     return selected if limit is None else selected[:limit]
 
 
-def encode_sft_row(row: dict[str, Any], tokenizer: Any, max_length: int) -> dict[str, Any]:
+def encode_sft_row(
+    row: dict[str, Any],
+    tokenizer: Any,
+    max_length: int,
+    loss_weights: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     prompt_ids = tokenizer.encode(row["prompt"], add_special_tokens=False)
-    response_ids = tokenizer.encode(row["response"], add_special_tokens=False)
+    if loss_weights is None:
+        response_ids = tokenizer.encode(row["response"], add_special_tokens=False)
+        response_weights = None
+    else:
+        response_ids, response_weights = _weighted_response_encoding(row, tokenizer, loss_weights)
     eos_token_id = tokenizer.eos_token_id
     if eos_token_id is None:
         raise ValueError("Tokenizer must define eos_token_id")
@@ -27,13 +76,19 @@ def encode_sft_row(row: dict[str, Any], tokenizer: Any, max_length: int) -> dict
         raise ValueError(
             f"{row['problem_id']} has {len(input_ids)} tokens including EOS; max_length={max_length}"
         )
-    return {
+    encoded = {
         "input_ids": input_ids,
         "labels": [-100] * len(prompt_ids) + response_ids + [int(eos_token_id)],
         "attention_mask": [1] * len(input_ids),
         "problem_id": row["problem_id"],
         "length": len(input_ids),
     }
+    if response_weights is not None:
+        eos_weight = float(loss_weights["eos"])
+        if eos_weight < 0:
+            raise ValueError("Loss weights must be non-negative")
+        encoded["loss_weights"] = [0.0] * len(prompt_ids) + response_weights + [eos_weight]
+    return encoded
 
 
 class SFTDataset:
@@ -45,11 +100,14 @@ class SFTDataset:
         max_length: int,
         limit: int | None = None,
         selection: str = "ordered",
+        loss_weights: dict[str, Any] | None = None,
     ) -> None:
         rows = load_sft_rows(path, limit=limit, selection=selection)
         if not rows:
             raise ValueError("SFT dataset is empty")
-        self.examples = [encode_sft_row(row, tokenizer, max_length) for row in rows]
+        self.examples = [
+            encode_sft_row(row, tokenizer, max_length, loss_weights=loss_weights) for row in rows
+        ]
 
     def __len__(self) -> int:
         return len(self.examples)
@@ -72,9 +130,53 @@ class SFTDataCollator:
                 (maximum + self.pad_to_multiple_of - 1) // self.pad_to_multiple_of
             ) * self.pad_to_multiple_of
         batch = {"input_ids": [], "labels": [], "attention_mask": []}
+        weighted = "loss_weights" in features[0]
+        if any(("loss_weights" in feature) != weighted for feature in features):
+            raise ValueError("Cannot mix weighted and unweighted SFT examples")
+        if weighted:
+            batch["loss_weights"] = []
         for feature in features:
             padding = maximum - len(feature["input_ids"])
             batch["input_ids"].append(feature["input_ids"] + [self.pad_token_id] * padding)
             batch["labels"].append(feature["labels"] + [-100] * padding)
             batch["attention_mask"].append(feature["attention_mask"] + [0] * padding)
-        return {key: torch.tensor(value, dtype=torch.long) for key, value in batch.items()}
+            if weighted:
+                batch["loss_weights"].append(feature["loss_weights"] + [0.0] * padding)
+        return {
+            key: torch.tensor(value, dtype=torch.float32 if key == "loss_weights" else torch.long)
+            for key, value in batch.items()
+        }
+
+
+def weighted_causal_lm_loss(logits: Any, labels: Any, loss_weights: Any) -> Any:
+    """Compute globally normalized weighted next-token cross entropy under DDP."""
+
+    import torch
+    import torch.nn.functional as functional
+
+    shift_logits = logits[..., :-1, :].contiguous().float()
+    shift_labels = labels[..., 1:].contiguous()
+    shift_weights = loss_weights[..., 1:].contiguous().float()
+    active = shift_labels.ne(-100)
+    effective_weights = shift_weights * active
+    per_token = functional.cross_entropy(
+        shift_logits.view(-1, shift_logits.shape[-1]),
+        shift_labels.view(-1),
+        reduction="none",
+        ignore_index=-100,
+    ).view_as(shift_labels)
+    local_numerator = (per_token * effective_weights).sum()
+    local_denominator = effective_weights.sum()
+    if local_denominator.item() <= 0:
+        raise ValueError("Weighted SFT batch has no positive-weight target tokens")
+
+    if torch.distributed.is_available() and torch.distributed.is_initialized():
+        global_denominator = local_denominator.detach().clone()
+        global_numerator = local_numerator.detach().clone()
+        torch.distributed.all_reduce(global_denominator)
+        torch.distributed.all_reduce(global_numerator)
+        world_size = torch.distributed.get_world_size()
+        gradient_loss = local_numerator * world_size / global_denominator
+        reported_loss = global_numerator / global_denominator
+        return gradient_loss + (reported_loss - gradient_loss.detach())
+    return local_numerator / local_denominator

@@ -1,0 +1,32 @@
+experiment:
+  name: m7-sft-weighted-short-reasoning-v1-smoke
+  output_dir: outputs/eval
+  seed: 42
+model:
+  backend: vllm
+  name_or_path: outputs/training/REPLACE_WITH_RUN/checkpoint-63
+  trust_remote_code: false
+  dtype: bfloat16
+inference:
+  max_model_len: 8192
+  gpu_memory_utilization: 0.8
+  max_num_seqs: 8
+  request_batch_size: 10
+  tensor_parallel_size: 1
+  seed: 42
+prompt:
+  template: output_protocol_v1
+dataset:
+  path: data/processed/livecodebench_v1/smoke_10.jsonl
+  manifest: data/splits/eval_v1_problem_ids.json
+  manifest_split: smoke
+generation:
+  num_samples: 1
+  max_new_tokens: 4096
+  temperature: 0.0
+  seed: 42
+verifier:
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576

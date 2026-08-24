@@ -323,3 +323,50 @@ done 2>&1 | tee /tmp/qwen3-m7-ab-short-1k-4epoch-eval.log
 This run is deliberately fresh rather than resumed from the one-epoch control: the
 one-epoch scheduler has already decayed its learning rate to zero, whereas this
 experiment must define a reproducible four-epoch schedule from the start.
+
+### Token-weighted short-reasoning SFT
+
+The unweighted short-1K four-epoch curve peaks at checkpoint 189 (epoch 3) with
+6/10 normal stops, extraction 0.7, compile 0.6, and pass@1 0.1, then regresses at
+epoch 4 while teacher-forcing loss continues to fall. Keep the data and schedule
+fixed and change only the response-token objective:
+
+- reasoning tokens: 0.25;
+- C++ code tokens: 1.0;
+- `<think>`/`</think>` and code-fence boundary tokens: 2.0;
+- EOS: 4.0;
+- prompt and padding: 0.0.
+
+The weighted cross entropy uses tokenizer offset mappings rather than approximate
+string/token splitting. Under DDP, each micro-batch denominator is all-reduced and
+the local numerator is scaled so DDP's gradient averaging yields the global
+weighted-token mean.
+
+First run the two-step technical smoke on the intended two GPUs:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh weighted-smoke \
+  2>&1 | tee /tmp/qwen3-m7-weighted-smoke.log
+```
+
+Only after it finishes without NaN, DDP errors, or missing-weight errors, launch a
+fresh full run from Base:
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 SFT_GPU_COUNT=2 \
+  bash scripts/cloud_train_sft.sh weighted-short-1k-4epoch \
+  2>&1 | tee /tmp/qwen3-m7-weighted-short-1k-4epoch-train.log
+```
+
+Expected checkpoints remain 63/126/189/252. Evaluate each with
+`cloud_eval_sft_ab.sh weighted` and the same frozen smoke protocol. Compare the whole
+curve to the unweighted run; do not compare weighted and unweighted scalar loss
+values directly because their token denominators differ.
+
+```bash
+for STEP in 63 126 189 252; do
+  CUDA_VISIBLE_DEVICES=0 bash scripts/cloud_eval_sft_ab.sh \
+    weighted outputs/training/<weighted-run>/checkpoint-${STEP}
+done 2>&1 | tee /tmp/qwen3-m7-weighted-short-1k-4epoch-eval.log
+```

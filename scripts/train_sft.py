@@ -10,7 +10,7 @@ from typing import Any
 
 import yaml
 
-from src.training.sft import SFTDataCollator, SFTDataset
+from src.training.sft import SFTDataCollator, SFTDataset, weighted_causal_lm_loss
 from src.utils.config import load_config, require_sections
 from src.utils.experiment import collect_environment
 
@@ -78,6 +78,7 @@ def main() -> int:
         max_length=int(data_config["max_length"]),
         limit=data_config.get("limit"),
         selection=data_config.get("selection", "ordered"),
+        loss_weights=training.get("loss_weights"),
     )
     dataset_sha256 = hashlib.sha256(Path(data_config["path"]).read_bytes()).hexdigest()
 
@@ -124,7 +125,31 @@ def main() -> int:
         seed=int(config["experiment"]["seed"]),
         data_seed=int(config["experiment"]["seed"]),
     )
-    trainer = Trainer(
+    class WeightedSFTTrainer(Trainer):
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            super().__init__(*args, **kwargs)
+            # The custom objective normalizes by weighted tokens, not by
+            # Trainer's num_items_in_batch. This flag makes Trainer apply its
+            # normal gradient-accumulation scaling and report a per-microbatch
+            # mean instead of summing all microbatch losses.
+            self.model_accepts_loss_kwargs = False
+
+        def compute_loss(
+            self,
+            model: Any,
+            inputs: dict[str, Any],
+            return_outputs: bool = False,
+            num_items_in_batch: Any = None,
+        ) -> Any:
+            del num_items_in_batch
+            weights = inputs.pop("loss_weights")
+            labels = inputs.pop("labels")
+            outputs = model(**inputs)
+            loss = weighted_causal_lm_loss(outputs.logits, labels, weights)
+            return (loss, outputs) if return_outputs else loss
+
+    trainer_class = WeightedSFTTrainer if training.get("loss_weights") else Trainer
+    trainer = trainer_class(
         model=model,
         args=trainer_args,
         train_dataset=dataset,
@@ -145,6 +170,10 @@ def main() -> int:
             "selected_samples": len(dataset),
             "selected_tokens": sum(example["length"] for example in dataset.examples),
             "selected_problem_ids": [example["problem_id"] for example in dataset.examples],
+            "loss_weights": training.get("loss_weights"),
+            "selected_loss_weight_sum": sum(
+                sum(example.get("loss_weights", [])) for example in dataset.examples
+            ),
         }
         (run_dir / "environment.json").write_text(
             json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"

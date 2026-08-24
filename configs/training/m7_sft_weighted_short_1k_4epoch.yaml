@@ -1,0 +1,36 @@
+experiment:
+  name: m7-sft-weighted-short-reasoning-v2-1k-4epoch
+  output_dir: outputs/training
+  seed: 42
+model:
+  name_or_path: Qwen/Qwen3-0.6B-Base
+  revision: da87bfb608c14b7cf20ba1ce41287e8de496c0cd
+  dtype: bfloat16
+  attn_implementation: flash_attention_2
+data:
+  path: data/processed/sft_1k_short_reasoning_v2.jsonl
+  selection: ordered
+  limit: 1000
+  max_length: 4096
+training:
+  num_train_epochs: 4
+  per_device_train_batch_size: 1
+  global_batch_size: 16
+  learning_rate: 0.00002
+  lr_scheduler_type: cosine
+  warmup_steps: 2
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  bf16: true
+  tf32: true
+  gradient_checkpointing: true
+  logging_steps: 1
+  save_strategy: epoch
+  save_steps: 1000
+  save_total_limit: 4
+  dataloader_num_workers: 0
+  loss_weights:
+    reasoning: 0.25
+    code: 1.0
+    boundary: 2.0
+    eos: 4.0
