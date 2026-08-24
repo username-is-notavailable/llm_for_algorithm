@@ -1,8 +1,29 @@
-# Qwen3-0.6B Code Post-Training
+# Execution-Guided Agentic Code Post-Training
 
-以 `Qwen/Qwen3-0.6B-Base` 为起点，使用 `verl` 建立可复现的代码能力后训练实验。
+研究 execution feedback、Agentic SFT 与 Agentic GRPO 能否提升小模型利用环境反馈进行
+代码自我修复的能力。Qwen3-1.7B 用于低成本 pipeline 和训练验证，Qwen3-4B 是正式训练主模型，
+Qwen3-8B 官方后训练模型只作为 inference upper-bound/reference。
 
-当前进度：Milestone 0 至 Milestone 3 均已通过云端验收；为先用真实 SFT token 分布冻结 M4 长度协议，当前提前准备 Milestone 5 SFT Data Pipeline，尚未开始训练。本地 Windows 仅运行 CPU 单元测试；模型、CUDA、vLLM 和 verl 验证在 Linux NVIDIA GPU 实例执行。
+M0–M7 保留为环境、verifier、eval、SFT pipeline 和模型容量诊断历史。当前从 M8 开始构建有限
+horizon 的 execution-guided Code Agent。本地 WSL 负责开发和 CPU 测试；模型 rollout、训练和
+正式评测运行在云端 Linux GPU。
+
+## Code Agent v1
+
+Agent 每轮生成一个动作标签和一份完整 C++17 程序：
+
+```text
+<action>execute_code</action> + complete C++
+<action>final</action>        + complete C++
+```
+
+`execute_code` 最多调用三次，只运行 visible tests 并返回受限的执行反馈；`final` 不返回反馈，
+直接用 hidden tests 判定最终结果。三次执行额度用完后再次请求 `execute_code`，该候选会被明确
+记录为 auto-final。缺失或非法 action 使用预算感知的兼容回退，同时保留 parse status 供分析。
+
+M8 的内部架构位于 `src/agent/`：模型动作协议、trajectory schema、feedback formatter、可替换
+`ExecutionBackend`、同步 controller 和 Agent metrics。`LocalVerifierBackend` 只用于可信代码的
+开发测试，不是强安全沙箱。
 
 ## 本地开发
 

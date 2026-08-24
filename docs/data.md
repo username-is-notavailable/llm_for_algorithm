@@ -1,5 +1,30 @@
 # Data
 
+## Agent Trajectory v1
+
+新方向将 executable problem 的 tests 固定拆成两组：
+
+- `visible_tests`：仅由 `execute_code` 使用，可向模型展示第一个失败输入、expected 和 actual；
+- `hidden_tests`：仅供后台审计和 `final` 判定，任何结果都不得进入后续模型上下文。
+
+模型动作协议只有 `execute_code` 和 `final`。每个动作必须附带完整 C++17；系统不使用“沿用上次
+代码”的隐式 final。单条 trajectory 保存模型原始响应、requested/effective action、action parse
+status、代码与 hash、visible observation、不可见的 hidden audit、token 数和 termination reason。
+
+默认预算为三次 feedback-producing execution 和一次 final candidate。超额 `execute_code` 作为
+final 处理，但同时记录：
+
+```json
+{
+  "requested_action": "execute_code",
+  "effective_action": "final",
+  "termination_reason": "execution_budget_exhausted_auto_final"
+}
+```
+
+M8 开发阶段使用 `LocalVerifierBackend`；它只能执行可信、经过审查的代码。正式 rollout 接入强
+sandbox 前不得将该 backend 用于任意来源的不可信代码。
+
 Milestone 0 不引入数据集。后续数据均按 `problem_id` 做 problem-level 隔离，并在此记录来源、许可、版本、清洗和切分信息。
 
 ## Output Protocol v1

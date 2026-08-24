@@ -30,7 +30,7 @@
 - 从真实模型失败中构造并执行验证的 code-repair SFT 数据；
 - multi-turn executable rollout 与 Agentic GRPO；
 - one-shot、agent prompting、Agent + SFT、Agent + SFT + GRPO 的受控对照实验；
-- repair success、success-vs-tool-call curve、token/tool efficiency 和错误类型迁移分析；
+- repair success、success-vs-execution curve、token/execution efficiency 和错误类型迁移分析；
 - 可复现实验配置、技术报告、失败案例分析和简历量化结果。
 
 ---
@@ -44,7 +44,7 @@
 5. **数据严格隔离。** SFT、RL 和 Eval 按 `problem_id` 隔离，并进行跨数据源去重和 contamination 检查。
 6. **Verifier 逻辑复用。** Eval、数据验证和 RL reward 尽可能复用同一套代码提取、编译、执行与判题逻辑。
 7. **Sandbox 接口解耦。** Agent 不直接依赖某个执行实现，通过统一 `ExecutionTool` 接口调用 backend。
-8. **有限 Agent horizon。** 第一版最多约 3 次 execution/tool call，并设置 token budget、重复和无改善终止条件。
+8. **有限 Agent horizon。** 第一版最多 3 次 feedback-producing execution 和 1 次 final candidate，并设置 token budget 与重复终止条件。
 9. **所有实验配置化、可恢复。** 保存配置、seed、git commit、环境、模型 revision、trajectory、checkpoint 和 metrics。
 10. **先建立简单可靠的 reward。** 第一版以执行正确性和 testcase pass rate 为核心，确认有效后再加入工具成本或 progress shaping。
 11. **正式 GPU 工作放在云端。** 本地 WSL 负责开发、数据处理、CPU 测试和结果分析。
@@ -79,7 +79,7 @@ FlashAttention 和 sandbox 版本。
 
 ## 4. Code Agent v1
 
-### 4.1 Agent loop
+### 4.1 Agent loop 与动作
 
 ```text
 Problem
@@ -94,17 +94,27 @@ Analyze / Fix / Complete Revised Code
   ↓
 Execute again
   ↓
-Success or Termination
+Final or Termination
 ```
 
 第一版实现轻量、任务专用的有限状态循环，不引入通用 Agent 框架。
 
+模型只需要选择两个动作，每个动作都必须附带一份完整 C++17 程序：
+
+- `execute_code`：运行 visible tests 并返回执行反馈；
+- `final`：结束交互，只运行 hidden tests，不返回反馈。
+
+动作使用简单标签 `<action>execute_code</action>` 或 `<action>final</action>`，不要求 Base 模型
+生成嵌套 JSON function call。缺失或非法标签采用预算感知回退，并记录 requested/effective action
+和 parse status。
+
 ### 4.2 Horizon 与预算
 
-- 最多 3 次 execution/tool call，即首次提交加最多两次修复；
+- 最多 3 次会返回反馈的 `execute_code`；
+- 额外保留 1 次 final candidate，总计最多生成 4 份候选代码；
 - 每轮 generation token cap 配置化；
 - 整条 trajectory 有 total token budget；
-- 每轮必须提交一份可提取的完整 C++ 代码；
+- `execute_code` 和 `final` 都必须提交可提取的完整 C++ 代码；
 - 保存全部中间响应、代码、反馈和资源消耗；
 - 支持按 trajectory 断点恢复。
 
@@ -138,16 +148,16 @@ feedback（失败输入、expected、actual）和 weak feedback（仅错误类�
 ### 4.4 Termination Reason v1
 
 - `success`；
-- `max_tool_calls`；
-- `total_token_budget`；
+- `final_incorrect`；
+- `execution_budget_exhausted_auto_final`；
+- `token_budget_exhausted_auto_final`；
 - `code_extraction_failed`；
 - `repeated_code`；
-- `no_improvement`；
 - `sandbox_error`；
 - `model_stop_without_code`。
 
-`no_improvement` 初始定义为连续两次 execution 的 testcase pass rate 没有提升。即使提前终止，
-最后一次响应、代码和判题结果也必须落盘。
+第一版只记录 pass-rate improvement，不据此提前终止，因为相同通过率不代表代码没有实质改善。
+即使提前终止，最后一次响应、代码和判题结果也必须落盘。
 
 ---
 
@@ -284,7 +294,7 @@ repair 提供。
 
 ## 8. Agentic GRPO
 
-RL 样本只要求 problem、hidden reliable tests、executable environment，以及 tool-call/token budget。
+RL 样本只要求 problem、hidden reliable tests、executable environment，以及 execution/token budget。
 训练时在线执行：
 
 ```text
@@ -308,7 +318,7 @@ else:
 reward = correctness - lambda * extra_tool_calls
 ```
 
-后续消融可以加入 invalid action penalty、progress shaping、反馈强弱和不同 tool-call budget。在
+后续消融可以加入 invalid action penalty、progress shaping、反馈强弱和不同 execution budget。在
 correctness 尚未提升前，不加入复杂 style、reasoning 或 efficiency reward。
 
 ---
@@ -428,7 +438,7 @@ Go/no-go：first-attempt success 不显著退化；repair success 明显优于 B
 - group rollout 共用 problem/tests；
 - reward 与 eval verifier 共用判定逻辑；
 - 1.7B、几十题、少量 step 的端到端 smoke；
-- 保存 reward、advantage、KL、tool call 和 trajectory 日志。
+- 保存 reward、advantage、KL、execution/action 和 trajectory 日志。
 
 验收：reward 与离线判题一致；无 eval 泄漏；multi-turn state 不串样本；checkpoint 可恢复；policy
 不能通过非法格式利用 reward 漏洞。
@@ -447,7 +457,7 @@ Debug 32–64 problems
 
 - 固定多难度正式 eval 和完整实验矩阵；
 - 多 seed 结果；
-- success-vs-tool-call curve；
+- success-vs-execution curve；
 - token/tool efficiency；
 - termination 和错误类型迁移分析；
 - 典型修复成功与失败案例；

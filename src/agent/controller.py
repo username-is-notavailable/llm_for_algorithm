@@ -1,0 +1,237 @@
+from __future__ import annotations
+
+import hashlib
+from typing import Any, Protocol
+
+from src.agent.backend import ExecutionBackend
+from src.agent.schemas import (
+    ActionType,
+    AgentConfig,
+    AgentProblem,
+    AgentStep,
+    AgentTrajectory,
+    CandidateSubmission,
+    TerminationReason,
+)
+from src.agent.protocol import parse_submission
+from src.inference.generate import GeneratedText
+
+
+class AgentGenerator(Protocol):
+    def generate(self, messages: list[dict[str, str]], generation: dict[str, Any]) -> GeneratedText: ...
+
+
+def build_initial_messages(problem: AgentProblem, config: AgentConfig) -> list[dict[str, str]]:
+    return [
+        {
+            "role": "system",
+            "content": (
+                "You are a competitive programming agent. Produce complete GNU C++17 programs. "
+                "Choose <action>execute_code</action> to run visible tests and receive feedback, "
+                "or <action>final</action> to submit your final program. "
+                f"You may request execution feedback at most {config.max_execute_calls} times. "
+                "After the action tag, include exactly one complete program in a ```cpp code fence."
+            ),
+        },
+        {"role": "user", "content": problem.problem.strip()},
+    ]
+
+
+def _termination_for_hidden(success: bool, *, auto_final: bool, token_final: bool) -> TerminationReason:
+    if token_final:
+        return TerminationReason.TOKEN_BUDGET_EXHAUSTED_AUTO_FINAL
+    if auto_final:
+        return TerminationReason.EXECUTION_BUDGET_EXHAUSTED_AUTO_FINAL
+    return TerminationReason.SUCCESS if success else TerminationReason.FINAL_INCORRECT
+
+
+def run_agent(
+    *,
+    trajectory_id: str,
+    problem: AgentProblem,
+    model: dict[str, Any],
+    config: AgentConfig,
+    generator: AgentGenerator,
+    backend: ExecutionBackend,
+    generation: dict[str, Any] | None = None,
+) -> AgentTrajectory:
+    trajectory = AgentTrajectory(
+        schema_version="agent-trajectory-v1",
+        trajectory_id=trajectory_id,
+        problem_id=problem.problem_id,
+        difficulty=problem.difficulty,
+        model=dict(model),
+        agent_config=config,
+    )
+    messages = build_initial_messages(problem, config)
+    generation_options = dict(generation or {})
+    code_hashes: set[str] = set()
+    last_visible_pass_rate: float | None = None
+
+    for turn in range(config.max_candidate_submissions):
+        generated = generator.generate(messages, generation_options)
+        parsed = parse_submission(
+            generated.text,
+            execute_calls=trajectory.execute_calls,
+            max_execute_calls=config.max_execute_calls,
+        )
+        if parsed.code is None:
+            trajectory.termination_reason = (
+                TerminationReason.MODEL_STOP_WITHOUT_CODE
+                if generated.finish_reason == "stop"
+                else TerminationReason.CODE_EXTRACTION_FAILED
+            )
+            break
+
+        code_hash = hashlib.sha256(parsed.code.encode("utf-8")).hexdigest()
+        token_total_after = trajectory.total_generation_tokens + generated.token_count
+        token_auto_final = token_total_after >= config.max_total_generation_tokens
+        execution_auto_final = (
+            parsed.action == ActionType.EXECUTE_CODE
+            and trajectory.execute_calls >= config.max_execute_calls
+        )
+        final_slot = turn == config.max_candidate_submissions - 1
+        slot_auto_final = final_slot and parsed.action != ActionType.FINAL
+        effective_action = (
+            ActionType.FINAL
+            if parsed.action == ActionType.FINAL
+            or execution_auto_final
+            or token_auto_final
+            or slot_auto_final
+            else ActionType.EXECUTE_CODE
+        )
+        submission = CandidateSubmission(
+            turn=turn,
+            response=generated.text,
+            code=parsed.code,
+            code_sha256=code_hash,
+            requested_action=parsed.requested_action,
+            effective_action=effective_action,
+            action_parse_status=parsed.parse_status,
+            prompt_tokens=None,
+            generation_tokens=generated.token_count,
+            finish_reason=generated.finish_reason,
+        )
+
+        if (
+            config.stop_on_repeated_code
+            and effective_action == ActionType.EXECUTE_CODE
+            and code_hash in code_hashes
+        ):
+            trajectory.steps.append(
+                AgentStep(
+                    turn=turn,
+                    submission=submission,
+                    observation=None,
+                    hidden_evaluation=None,
+                    previous_visible_pass_rate=last_visible_pass_rate,
+                    current_visible_pass_rate=None,
+                    delta_visible_pass_rate=None,
+                )
+            )
+            try:
+                trajectory.hidden_evaluation = backend.evaluate_hidden(parsed.code, problem)
+            except Exception:
+                trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
+                break
+            trajectory.steps[-1] = AgentStep(
+                turn=trajectory.steps[-1].turn,
+                submission=trajectory.steps[-1].submission,
+                observation=None,
+                hidden_evaluation=trajectory.hidden_evaluation,
+                previous_visible_pass_rate=trajectory.steps[-1].previous_visible_pass_rate,
+                current_visible_pass_rate=None,
+                delta_visible_pass_rate=None,
+            )
+            trajectory.termination_reason = TerminationReason.REPEATED_CODE
+            break
+        code_hashes.add(code_hash)
+
+        if effective_action == ActionType.FINAL:
+            trajectory.steps.append(
+                AgentStep(
+                    turn=turn,
+                    submission=submission,
+                    observation=None,
+                    hidden_evaluation=None,
+                    previous_visible_pass_rate=last_visible_pass_rate,
+                    current_visible_pass_rate=None,
+                    delta_visible_pass_rate=None,
+                )
+            )
+            try:
+                trajectory.hidden_evaluation = backend.evaluate_hidden(parsed.code, problem)
+            except Exception:
+                trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
+                break
+            trajectory.steps[-1] = AgentStep(
+                turn=trajectory.steps[-1].turn,
+                submission=trajectory.steps[-1].submission,
+                observation=None,
+                hidden_evaluation=trajectory.hidden_evaluation,
+                previous_visible_pass_rate=trajectory.steps[-1].previous_visible_pass_rate,
+                current_visible_pass_rate=None,
+                delta_visible_pass_rate=None,
+            )
+            trajectory.termination_reason = _termination_for_hidden(
+                trajectory.hidden_evaluation.success,
+                auto_final=execution_auto_final or slot_auto_final,
+                token_final=token_auto_final,
+            )
+            break
+
+        executions_remaining = config.max_execute_calls - trajectory.execute_calls - 1
+        try:
+            observation = backend.execute_visible(
+                parsed.code,
+                problem,
+                executions_remaining=executions_remaining,
+                max_feedback_bytes=config.max_feedback_bytes,
+            )
+        except Exception:
+            trajectory.steps.append(
+                AgentStep(
+                    turn=turn,
+                    submission=submission,
+                    observation=None,
+                    hidden_evaluation=None,
+                    previous_visible_pass_rate=last_visible_pass_rate,
+                    current_visible_pass_rate=None,
+                    delta_visible_pass_rate=None,
+                )
+            )
+            trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
+            break
+        current_pass_rate = observation.visible_pass_rate
+        hidden_evaluation = None
+        if config.evaluate_hidden_each_submission:
+            try:
+                hidden_evaluation = backend.evaluate_hidden(parsed.code, problem)
+            except Exception:
+                trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
+        trajectory.steps.append(
+            AgentStep(
+                turn=turn,
+                submission=submission,
+                observation=observation,
+                hidden_evaluation=hidden_evaluation,
+                previous_visible_pass_rate=last_visible_pass_rate,
+                current_visible_pass_rate=current_pass_rate,
+                delta_visible_pass_rate=(
+                    None if last_visible_pass_rate is None else current_pass_rate - last_visible_pass_rate
+                ),
+            )
+        )
+        if trajectory.termination_reason == TerminationReason.SANDBOX_ERROR:
+            break
+        last_visible_pass_rate = current_pass_rate
+        messages.extend(
+            [
+                {"role": "assistant", "content": generated.text},
+                {"role": "tool", "content": observation.model_feedback},
+            ]
+        )
+
+    if trajectory.termination_reason is None:
+        raise RuntimeError("Agent loop exhausted without a termination reason")
+    return trajectory

@@ -1,5 +1,15 @@
 # Experiment Log
 
+## M8 — Code Agent v1 protocol
+
+- 冻结两个模型动作：`execute_code` 与 `final`；
+- 最多三次 visible execution feedback，外加一次 final candidate；
+- 超额 execute 明确转换为 auto-final，不静默丢弃候选；
+- hidden tests 在每个候选上只做后台审计，从不进入模型反馈；
+- 新增 action parsing、trajectory schema、feedback formatter、ExecutionBackend、同步 controller 和
+  Agent metrics；
+- `LocalVerifierBackend` 仅用于可信代码的本地开发，不宣称强安全隔离。
+
 每次云端实验记录：experiment ID、Git commit、配置路径、GPU/CUDA/依赖版本、命令、结果与异常。
 
 ## Milestone 0
