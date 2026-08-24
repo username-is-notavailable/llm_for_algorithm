@@ -62,6 +62,7 @@ def run_agent(
         difficulty=problem.difficulty,
         model=dict(model),
         agent_config=config,
+        hidden_tests_total=len(problem.hidden_tests),
     )
     messages = build_initial_messages(problem, config)
     generation_options = dict(generation or {})
@@ -76,6 +77,29 @@ def run_agent(
             max_execute_calls=config.max_execute_calls,
         )
         if parsed.code is None:
+            trajectory.steps.append(
+                AgentStep(
+                    turn=turn,
+                    prompt_messages=[dict(message) for message in messages],
+                    submission=CandidateSubmission(
+                        turn=turn,
+                        response=generated.text,
+                        code=None,
+                        code_sha256=None,
+                        requested_action=parsed.requested_action,
+                        effective_action=parsed.action,
+                        action_parse_status=parsed.parse_status,
+                        prompt_tokens=None,
+                        generation_tokens=generated.token_count,
+                        finish_reason=generated.finish_reason,
+                    ),
+                    observation=None,
+                    hidden_evaluation=None,
+                    previous_visible_pass_rate=last_visible_pass_rate,
+                    current_visible_pass_rate=None,
+                    delta_visible_pass_rate=None,
+                )
+            )
             trajectory.termination_reason = (
                 TerminationReason.MODEL_STOP_WITHOUT_CODE
                 if generated.finish_reason == "stop"

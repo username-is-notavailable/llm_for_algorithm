@@ -30,8 +30,16 @@ render_config() {
   local kind="$1"
   local input="configs/eval/${kind}_qwen3_1_7b_base_${SPLIT}_v1.yaml"
   local output="/tmp/qwen3-m9-${kind}-${MODEL_SIZE}-${SPLIT}.yaml"
+  local -a overrides=()
+  if [[ -n "${M9_MAX_NEW_TOKENS:-}" ]]; then
+    overrides+=(--max-new-tokens "${M9_MAX_NEW_TOKENS}")
+  fi
+  if [[ "${kind}" == "agent" && -n "${M9_MAX_TOTAL_GENERATION_TOKENS:-}" ]]; then
+    overrides+=(--max-total-generation-tokens "${M9_MAX_TOTAL_GENERATION_TOKENS}")
+  fi
   "${VERL_PYTHON}" scripts/render_m9_eval_config.py \
-    --input "${input}" --model-size "${MODEL_SIZE}" --output "${output}" >/dev/null
+    --input "${input}" --model-size "${MODEL_SIZE}" --output "${output}" \
+    "${overrides[@]}" >/dev/null
   echo "${output}"
 }
 

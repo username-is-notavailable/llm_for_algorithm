@@ -237,6 +237,10 @@ def test_no_code_termination_distinguishes_stop_from_length() -> None:
     )
     assert stopped.termination_reason == TerminationReason.MODEL_STOP_WITHOUT_CODE
     assert capped.termination_reason == TerminationReason.CODE_EXTRACTION_FAILED
+    assert stopped.candidate_submissions == 1
+    assert stopped.total_generation_tokens == 3
+    assert stopped.steps[0].submission.code is None
+    assert capped.steps[0].submission.finish_reason == "length"
 
 
 def test_agent_metrics_separate_first_attempt_and_repair_success() -> None:

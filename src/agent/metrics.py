@@ -28,9 +28,7 @@ def _compute(trajectories: list[AgentTrajectory], *, difficulty: bool) -> dict[s
     final_hidden_passed = sum(
         row.hidden_evaluation.judge.passed for row in trajectories if row.hidden_evaluation
     )
-    final_hidden_total = sum(
-        row.hidden_evaluation.judge.total for row in trajectories if row.hidden_evaluation
-    )
+    final_hidden_total = sum(row.hidden_tests_total for row in trajectories)
     successful = [row for row in trajectories if row.final_success]
     max_submissions = max(row.candidate_submissions for row in trajectories)
     cumulative_success = {

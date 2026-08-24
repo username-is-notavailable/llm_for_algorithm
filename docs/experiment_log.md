@@ -21,6 +21,8 @@
 - one-shot 和 Agent final 共享 hidden tests，Agent execution 只使用 visible tests；
 - 新增真实 tokenizer/chat + vLLM 多轮 generator、context-aware generation cap；
 - 新增 trajectory artifacts、resume、两 GPU problem sharding 和严格 shard merge；
+- 无可提取代码或 length 截断的生成同样写入 trajectory；hidden testcase 指标按完整题集计分；
+- 支持用环境变量临时覆盖单轮/累计生成预算，长输出诊断与冻结 baseline 使用不同 experiment ID；
 - 云端能力结果待运行，不在本地实现阶段记录模型结论。
 
 每次云端实验记录：experiment ID、Git commit、配置路径、GPU/CUDA/依赖版本、命令、结果与异常。

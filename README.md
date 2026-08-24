@@ -59,9 +59,23 @@ bash scripts/cloud_eval_agent.sh 1.7b-post smoke both \
   2>&1 | tee /tmp/qwen3-m9-1.7b-post-smoke.log
 ```
 
+诊断模型是否只是被默认 6K 输出上限截断时，可临时覆盖为单轮 8K；Agent 的累计生成预算同时
+提高到 32K，后续轮次仍会按模型 context 动态收紧：
+
+```bash
+M9_MAX_NEW_TOKENS=8192 \
+M9_MAX_TOTAL_GENERATION_TOKENS=32768 \
+bash scripts/cloud_eval_agent.sh 1.7b-post smoke both \
+  2>&1 | tee /tmp/qwen3-m9-1.7b-post-8k-smoke.log
+```
+
+该覆盖只用于诊断，不修改冻结 baseline 配置；产物 experiment ID 带 `long8k` 后缀。
+
 Agent artifacts 位于 `outputs/agent_eval/`，包括 config、environment、逐题完整
 `trajectories.jsonl` 和 `metrics.json`。指标包含 first-attempt/Agent/repair success、hidden testcase
 pass rate、action validity/fallback、主动 final、execution/token efficiency、termination 和难度分层。
+即使某轮被截断或没有可提取代码，原始 response、token 数与 finish reason 也会写入 trajectory，
+并在 hidden testcase 汇总中按失败计入分母。
 
 当前 `LocalVerifierBackend` 延续项目原 verifier 的 resource limit，只能用于固定 benchmark 和受控
 实验。它不提供文件系统或网络强隔离；正式扩大 rollout 前仍需在云平台接入 isolate/nsjail。

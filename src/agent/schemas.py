@@ -88,8 +88,8 @@ class AgentConfig:
 class CandidateSubmission:
     turn: int
     response: str
-    code: str
-    code_sha256: str
+    code: str | None
+    code_sha256: str | None
     requested_action: str | None
     effective_action: ActionType
     action_parse_status: ActionParseStatus
@@ -140,6 +140,7 @@ class AgentTrajectory:
     difficulty: str | None
     model: dict[str, Any]
     agent_config: AgentConfig
+    hidden_tests_total: int
     steps: list[AgentStep] = field(default_factory=list)
     hidden_evaluation: HiddenEvaluation | None = None
     termination_reason: TerminationReason | None = None
@@ -232,6 +233,10 @@ class AgentTrajectory:
             difficulty=value.get("difficulty"),
             model=dict(value.get("model", {})),
             agent_config=AgentConfig(**value["agent_config"]),
+            hidden_tests_total=int(
+                value.get("hidden_tests_total")
+                or (value.get("hidden_evaluation") or {}).get("judge", {}).get("total", 0)
+            ),
             steps=steps,
             hidden_evaluation=load_hidden(value.get("hidden_evaluation")),
             termination_reason=TerminationReason(termination) if termination else None,
