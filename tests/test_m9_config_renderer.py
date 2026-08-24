@@ -32,3 +32,24 @@ def test_renderer_selects_posttrained_reference_without_base_name(
     assert config["experiment"]["name"] == "m9-agent-qwen3-1.7b-posttrained-smoke-v1-long8k"
     assert config["generation"]["max_new_tokens"] == 8192
     assert config["agent"]["max_total_generation_tokens"] == 32768
+
+
+def test_renderer_selects_posttrained_4b_reference(tmp_path: Path, monkeypatch) -> None:
+    output = tmp_path / "rendered.yaml"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "render_m9_eval_config.py",
+            "--input",
+            "configs/eval/oneshot_qwen3_1_7b_base_smoke_v1.yaml",
+            "--model-size",
+            "4b-post",
+            "--output",
+            str(output),
+        ],
+    )
+    assert render_m9_eval_config.main() == 0
+    config = yaml.safe_load(output.read_text(encoding="utf-8"))
+    assert config["model"]["name_or_path"] == "Qwen/Qwen3-4B"
+    assert config["model"]["revision"] == "1cfa9a7208912126459214e8b04321603b3df60c"
+    assert config["experiment"]["name"] == "m9-oneshot-qwen3-4b-posttrained-smoke-v1"

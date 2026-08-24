@@ -22,6 +22,11 @@ MODELS = {
         "906bfd4b4dc7f14ee4320094d8b41684abff8539",
         "qwen3-4b-base",
     ),
+    "4b-post": (
+        "Qwen/Qwen3-4B",
+        "1cfa9a7208912126459214e8b04321603b3df60c",
+        "qwen3-4b-posttrained",
+    ),
 }
 
 

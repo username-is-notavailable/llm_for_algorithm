@@ -59,6 +59,13 @@ bash scripts/cloud_eval_agent.sh 1.7b-post smoke both \
   2>&1 | tee /tmp/qwen3-m9-1.7b-post-smoke.log
 ```
 
+官方 post-trained 4B 使用独立的 `4b-post` 变体：
+
+```bash
+bash scripts/cloud_eval_agent.sh 4b-post smoke both \
+  2>&1 | tee /tmp/qwen3-m9-4b-post-smoke.log
+```
+
 诊断模型是否只是被默认 6K 输出上限截断时，可临时覆盖为单轮 8K；Agent 的累计生成预算同时
 提高到 32K，后续轮次仍会按模型 context 动态收紧：
 

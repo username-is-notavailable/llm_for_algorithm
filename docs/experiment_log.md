@@ -16,6 +16,8 @@
 - 固定 Qwen3-4B-Base revision `906bfd4b4dc7f14ee4320094d8b41684abff8539`；
 - 官方 post-trained Qwen3-1.7B protocol reference 固定 revision
   `70d244cc86ccca08cf5af4e1e306ecf908b1ad5e`；
+- 官方 post-trained Qwen3-4B protocol reference 固定 revision
+  `1cfa9a7208912126459214e8b04321603b3df60c`；
 - 从冻结 LiveCodeBench dev 构造 10 题 smoke / 60 题 agent-dev；
 - 共 221 个 visible tests、1,104 个 hidden tests；
 - one-shot 和 Agent final 共享 hidden tests，Agent execution 只使用 visible tests；
