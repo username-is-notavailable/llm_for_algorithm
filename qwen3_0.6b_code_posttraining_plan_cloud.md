@@ -1,1330 +1,500 @@
-# Qwen3-0.6B Code Post-Training 项目计划
+# Execution-Guided Agentic RL for Code Reasoning / Self-Debugging
 
-> 目标：以 **Qwen3-0.6B-Base** 为起点，在 **云端 Linux + NVIDIA GPU** 环境中完成训练与正式评测，在本地 Windows 环境中完成代码开发、数据处理和不依赖 GPU 的测试，建立一个可复现的代码推理后训练项目。第一阶段优先建立可靠的 **Eval → SFT → Eval → GRPO → Eval** 闭环，而不是追求大规模训练或 SOTA。
+> 项目目标：构建可复现的 execution-guided Code Agent 后训练系统，研究
+> **execution feedback、Agentic SFT 与 Agentic GRPO 能否提升小模型利用环境反馈进行代码自我修复的能力**。
 >
-> 核心研究问题：**SFT 与 execution-verifiable
-> RL（GRPO）分别能在多大程度上提升小型语言模型的算法题求解能力？这种提升与数据规模、题目难度和初始策略能力有什么关系？**
+> 项目不再以“单轮 SFT + GRPO 提升 0.6B 模型算法题 pass@1”为核心。现有 verifier、eval、
+> 数据隔离、实验记录、SFT、verl 和 vLLM 基础设施继续保留，后续围绕 multi-turn Code Agent
+> 重构数据 schema、evaluation metrics、rollout pipeline 和训练目标。
 
-------------------------------------------------------------------------
+---
 
-## 1. 项目原则
+## 1. 项目定位与研究问题
 
-Codex 在执行本项目时应遵循以下原则：
+核心研究问题：
 
-1.  **一次只完成一个 Milestone。** 每完成一个 Milestone
-    后先运行测试、报告结果，再进入下一阶段。
-2.  **先正确，再优化。** 第一版优先保证 pipeline
-    正确、可复现、可测试，不提前做复杂性能优化。
-3.  **Eval 优先。** 在任何训练之前先建立并冻结基础评测协议，并得到 Base
-    Model baseline。
-4.  **数据严格隔离。** SFT、GRPO、Eval 必须按照 `problem_id` 做
-    problem-level 隔离，并尽可能进行跨数据源去重。
-5.  **所有实验配置化。** 模型、数据路径、prompt、generation
-    参数、训练参数等不得散落在代码中。
-6.  **所有实验可复现。** 保存 config、seed、git
-    commit、环境信息、checkpoint 和 metrics。
-7.  **云端训练优先。** 不为了兼容本地 Windows 或 16GB 显存而牺牲训练方案。涉及 Qwen GPU 推理、SFT、verl、vLLM rollout、GRPO 和正式 Eval 时，默认使用云端 Linux NVIDIA GPU。
-8.  **本地与云端职责分离。** 本地负责仓库开发、数据处理、静态检查、单元测试、结果分析；云端负责 GPU 相关训练与评测。
-9.  **不要提前加入非必要功能。** Phase 1 暂不加入洛谷爬虫、LLM
-    Judge、复杂 reasoning reward、大模型训练等。
-10. **训练代码和评测代码解耦。** Eval pipeline 不依赖具体训练框架。
-11. **Verifier 是核心基础设施。** GRPO reward 与 Eval
-    尽可能复用同一套代码提取、编译和执行逻辑。
+> Execution feedback + Agentic SFT/GRPO 能否显著提升小模型利用环境反馈进行
+> self-correction 的能力？
 
-------------------------------------------------------------------------
+项目需要明确区分两种能力：
 
-# 2. 开发与运行环境划分
+1. **One-shot coding capability**：模型第一次生成代码时直接解决问题的能力；
+2. **Feedback utilization capability**：第一次生成失败后，模型能否理解编译、运行和测试反馈并完成修复。
 
-## 本地 Windows
+最终实验不仅追求最高 pass@1，还要测量后训练带来的增益、Agent 行为变化和工具使用效率。
 
-本地机器只承担不依赖正式 GPU 训练环境的工作：
+### 1.1 简历导向的最终成果
 
-- 编写和 review Python / shell / config；
-- 数据下载、清洗、schema 转换、dedup 和 contamination 检查；
-- Verifier 的纯 CPU 单元测试；
-- toy problem 的编译/执行测试；
-- 分析云端产生的 JSONL、metrics 和训练日志；
-- Git 提交和实验文档维护。
+- 有限 horizon、可复现、支持断点恢复的 Code Agent loop；
+- 成熟 sandbox 的适配层，以及结构化 execution feedback；
+- 从真实模型失败中构造并执行验证的 code-repair SFT 数据；
+- multi-turn executable rollout 与 Agentic GRPO；
+- one-shot、agent prompting、Agent + SFT、Agent + SFT + GRPO 的受控对照实验；
+- repair success、success-vs-tool-call curve、token/tool efficiency 和错误类型迁移分析；
+- 可复现实验配置、技术报告、失败案例分析和简历量化结果。
 
-**不要要求 Codex 为 verl、vLLM 或训练框架增加 Windows 兼容层。**
+---
 
-## 云端 Linux GPU
+## 2. 项目原则
 
-以下工作默认只在云端 Linux NVIDIA GPU 实例执行：
+1. **一次完成一个 Milestone。** 每个阶段先测试、记录和验收，再进入下一阶段。
+2. **Eval 与环境优先。** 在训练前冻结 Agent protocol、反馈格式、终止条件和评测指标。
+3. **严格对照。** 同一模型、题集、生成预算下比较 one-shot 与 Agent；同一 Agent 环境下比较 Base、SFT 和 GRPO。
+4. **能力解耦。** 同时报告首次成功率和首次失败后的修复率，不能只报告最终 pass@1。
+5. **数据严格隔离。** SFT、RL 和 Eval 按 `problem_id` 隔离，并进行跨数据源去重和 contamination 检查。
+6. **Verifier 逻辑复用。** Eval、数据验证和 RL reward 尽可能复用同一套代码提取、编译、执行与判题逻辑。
+7. **Sandbox 接口解耦。** Agent 不直接依赖某个执行实现，通过统一 `ExecutionTool` 接口调用 backend。
+8. **有限 Agent horizon。** 第一版最多约 3 次 execution/tool call，并设置 token budget、重复和无改善终止条件。
+9. **所有实验配置化、可恢复。** 保存配置、seed、git commit、环境、模型 revision、trajectory、checkpoint 和 metrics。
+10. **先建立简单可靠的 reward。** 第一版以执行正确性和 testcase pass rate 为核心，确认有效后再加入工具成本或 progress shaping。
+11. **正式 GPU 工作放在云端。** 本地 WSL 负责开发、数据处理、CPU 测试和结果分析。
+12. **控制范围。** 第一阶段固定 C++17，不建设通用 Agent 框架，不同时支持多种语言或复杂 process reward。
 
-- Qwen3-0.6B-Base GPU inference；
-- Base benchmark；
-- SFT smoke test / SFT-1K / SFT-5K / SFT-10K；
-- verl 安装和验证；
-- vLLM / rollout engine；
-- GRPO difficulty filtering；
-- GRPO smoke / pilot / full；
-- 正式 LiveCodeBench evaluation。
+---
 
-## 云端实例原则
+## 3. 模型与运行环境
 
-第一阶段不固定某个云厂商或 GPU 型号。选择实例时优先：
+### 3.1 模型规划
 
-1. Linux + NVIDIA CUDA 环境成熟；
-2. 显存能让当前实验以简单 recipe 运行；
-3. 支持持久磁盘或方便同步 checkpoint / dataset；
-4. 按量计费，先短时 smoke test 再长时间训练；
-5. 不为了省极少费用引入复杂 offload 或 Windows 兼容工作。
+| 模型 | 用途 | 正式训练 |
+| --- | --- | ---: |
+| Qwen3-1.7B-Base | pipeline、SFT/GRPO smoke、低成本实验和消融 | 是 |
+| Qwen3-4B-Base | 正式 SFT、GRPO 和最终主实验 | 是 |
+| Qwen3-8B 官方后训练模型 | inference upper-bound/reference | 否 |
+| Qwen3-4B 官方后训练模型 | Agent prompting reference | 否 |
+| 现有 Qwen3-0.6B 实验 | 容量与训练退化诊断历史 | 不继续训练 |
 
-每次创建新的训练实例后，必须记录：
+Base 模型用于测量本项目后训练增益；官方 post-trained 模型只作为能力参考，不能与 Base/SFT
+结果当作公平训练对比。
+
+### 3.2 本地与云端职责
+
+本地 WSL 负责代码开发、数据处理、CPU 测试、结果分析、Git 和文档。云端 Linux GPU 负责
+1.7B/4B/8B inference、Agent rollout、正式 evaluation、SFT、GRPO、vLLM、verl 和 sandbox。
+
+云端实验继续记录 GPU、显存、驱动、CUDA、Python、PyTorch、Transformers、verl、vLLM、
+FlashAttention 和 sandbox 版本。
+
+---
+
+## 4. Code Agent v1
+
+### 4.1 Agent loop
 
 ```text
-GPU model
-GPU count
-VRAM
-OS
-NVIDIA driver
-CUDA runtime
-Python
-PyTorch
-Transformers
-verl commit/version
-vLLM version
-FlashAttention version（若使用）
-```
-
-并保存到 experiment metadata。
-
-------------------------------------------------------------------------
-
-# 3. 最终实验路线
-
-``` text
-Qwen3-0.6B-Base
-       │
-       ├──────────────→ Eval → Base Baseline
-       │
-       ├─ SFT-1K ─────→ Eval
-       │
-       ├─ SFT-5K ─────→ Eval
-       │
-       └─ SFT-10K ────→ Eval（仅当 5K 尚未明显饱和）
-                              │
-                              ▼
-                      选择 SFT-best
-                              │
-                              ▼
-                  GRPO Candidate Pool
-                              │
-                       rollout 难度估计
-                              │
-                              ▼
-                       GRPO-Debug-100
-                              │
-                              ▼
-                       GRPO-Pilot-500
-                              │
-                              ▼
-                     GRPO-Full-2K~5K
-                              │
-                              ▼
-                         Final Eval
-```
-
-主要对比：
-
-  Model             目的
-  ----------------- -----------------------------
-  Qwen3-0.6B-Base   原始 pretrained baseline
-  Base + SFT-1K     小规模 SFT 效果
-  Base + SFT-5K     SFT data scaling
-  Base + SFT-10K    可选，检查 SFT 是否继续受益
-  SFT-best + GRPO   验证 RLVR 是否进一步提升
-
-------------------------------------------------------------------------
-
-# 4. 推荐项目结构
-
-Codex 首先创建如下目录；后续如有充分理由可以调整，但需要保持职责清晰。
-
-``` text
-qwen3-code-posttraining/
-├── README.md
-├── pyproject.toml
-├── requirements.txt
-├── .gitignore
-│
-├── configs/
-│   ├── eval/
-│   ├── sft/
-│   └── grpo/
-│
-├── src/
-│   ├── data/
-│   │   ├── schemas.py
-│   │   ├── preprocess_sft.py
-│   │   ├── preprocess_rl.py
-│   │   ├── dedup.py
-│   │   └── contamination.py
-│   │
-│   ├── inference/
-│   │   ├── generate.py
-│   │   └── prompts.py
-│   │
-│   ├── verifier/
-│   │   ├── extract_code.py
-│   │   ├── compiler.py
-│   │   ├── executor.py
-│   │   └── judge.py
-│   │
-│   ├── eval/
-│   │   ├── evaluator.py
-│   │   ├── metrics.py
-│   │   └── pass_at_k.py
-│   │
-│   ├── training/
-│   │   ├── sft/
-│   │   └── grpo/
-│   │
-│   └── utils/
-│       ├── logging.py
-│       ├── reproducibility.py
-│       └── experiment.py
-│
-├── scripts/
-│   ├── prepare_eval.sh
-│   ├── eval_base.sh
-│   ├── prepare_sft.sh
-│   ├── train_sft.sh
-│   ├── prepare_grpo.sh
-│   ├── train_grpo.sh
-│   └── cloud_smoke_test.sh
-│
-├── tests/
-│   ├── test_code_extraction.py
-│   ├── test_executor.py
-│   ├── test_metrics.py
-│   └── test_data_pipeline.py
-│
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   └── splits/
-│
-├── outputs/
-│   ├── generations/
-│   ├── eval/
-│   ├── checkpoints/
-│   └── experiments/
-│
-└── docs/
-    ├── experiment_log.md
-    ├── data.md
-    └── findings.md
-```
-
-`data/`、`outputs/` 和模型 checkpoint 默认不提交 Git。
-
-------------------------------------------------------------------------
-
-# 5. 统一数据 Schema
-
-## 5.1 SFT Schema
-
-建议内部统一为 JSONL：
-
-``` json
-{
-  "problem_id": "source:12345",
-  "source": "OpenCodeReasoning2",
-  "problem": "...",
-  "difficulty": "medium",
-  "tags": ["dp"],
-  "reasoning": "...",
-  "code": "...",
-  "language": "cpp",
-  "verified": true,
-  "metadata": {}
-}
-```
-
-训练前再转换成具体框架需要的 message/chat 格式。
-
-------------------------------------------------------------------------
-
-## 5.2 GRPO / Verifiable Problem Schema
-
-``` json
-{
-  "problem_id": "source:12345",
-  "source": "TACO-Verified",
-  "problem": "...",
-  "difficulty": "medium",
-  "tags": ["greedy"],
-  "language": "cpp",
-  "tests": [
-    {
-      "input": "...",
-      "output": "..."
-    }
-  ],
-  "metadata": {}
-}
-```
-
-GRPO 数据**不要求标准 reasoning response**。
-
-核心是：
-
-``` text
-Problem + Reliable Tests
-```
-
-------------------------------------------------------------------------
-
-## 5.3 Generation Result Schema
-
-所有 Eval 和 rollout 都保存原始结果：
-
-``` json
-{
-  "experiment_id": "...",
-  "problem_id": "...",
-  "sample_id": 0,
-  "prompt": "...",
-  "raw_response": "...",
-  "extracted_code": "...",
-  "compiled": true,
-  "passed_tests": 7,
-  "total_tests": 10,
-  "reward": 0.7,
-  "error_type": null,
-  "response_tokens": 1024
-}
-```
-
-禁止只保存最终 aggregate metric。
-
-------------------------------------------------------------------------
-
-# 6. Milestone 0 --- Repository & Cloud Environment
-
-## Codex 任务
-
--   [ ] 初始化项目目录。
--   [ ] 创建 Python 环境配置。
--   [ ] 安装 PyTorch、Transformers、Datasets 等基础依赖。
--   [ ] 安装/配置 verl，但不要立即写复杂 GRPO 代码。
--   [ ] 验证 CUDA 可用。
--   [ ] 验证 Qwen3-0.6B-Base 可以加载。
--   [ ] 完成一次简单 inference。
--   [ ] 输出当前 GPU、CUDA、PyTorch、Transformers、verl 版本。
--   [ ] 创建统一 config 读取机制。
--   [ ] 设置随机种子。
--   [ ] 建立基础日志系统。
-
-## Acceptance Criteria
-
-``` text
-python scripts/smoke_test_model.py
-```
-
-可以：
-
-1.  在云端 Linux GPU 上加载 Qwen3-0.6B-Base；
-2.  成功生成文本；
-3.  打印 GPU 型号、显存占用和关键软件版本；
-4.  verl/vLLM 的最小环境检查通过；
-5.  无异常退出。
-
-完成后**停止并报告**，不要自动进入下一个 Milestone。
-
-------------------------------------------------------------------------
-
-# 7. Milestone 1 --- Code Verifier
-
-这是项目最重要的基础设施之一。
-
-## 6.1 Code Extraction
-
-实现：
-
-``` text
-model response
-      ↓
-extract_code()
-      ↓
-C++ source code
-```
-
-需要处理：
-
--   Markdown `cpp` code block；
--   `c++` code block；
--   普通 code block；
--   `<answer>` 等目标格式；
--   response 中没有 code block；
--   多个 code block；
--   malformed response。
-
-## 6.2 Compiler
-
-实现 C++17 编译：
-
-``` text
-source.cpp
-   ↓
-g++ -std=c++17
-   ↓
-binary / compilation error
-```
-
-记录：
-
--   compile success；
--   compiler stderr；
--   compilation timeout。
-
-## 6.3 Executor
-
-执行 binary：
-
--   输入 stdin；
--   捕获 stdout/stderr；
--   timeout；
--   runtime error；
--   non-zero exit code；
--   输出长度限制；
--   临时目录清理。
-
-安全方面第一阶段至少保证：
-
--   独立临时目录；
--   timeout；
--   process kill；
--   resource limit；
--   不直接信任模型输出。
-
-后续再考虑 Docker/nsjail 等更严格 sandbox。
-
-## 6.4 Judge
-
-统一接口：
-
-``` python
-result = judge(code, test_cases)
-```
-
-输出至少包括：
-
-``` json
-{
-  "compiled": true,
-  "passed": 7,
-  "total": 10,
-  "pass_rate": 0.7,
-  "runtime_error": false,
-  "timeout": false,
-  "error_type": null
-}
-```
-
-## Acceptance Criteria
-
-建立单元测试覆盖：
-
--   [ ] 正确代码；
--   [ ] Compile Error；
--   [ ] Wrong Answer；
--   [ ] Runtime Error；
--   [ ] Infinite Loop / TLE；
--   [ ] 多 testcase；
--   [ ] code extraction failure。
-
-所有测试通过后停止并报告。
-
-------------------------------------------------------------------------
-
-# 8. Milestone 2 --- Evaluation Pipeline
-
-## Codex 任务
-
-实现统一：
-
-``` text
-Dataset
-   ↓
-Prompt Builder
-   ↓
-Model Generation
-   ↓
-Code Extraction
-   ↓
-Verifier
-   ↓
-Metrics
-   ↓
-JSONL Results + Summary
-```
-
-## 第一版 Metrics
-
-必须包含：
-
--   Compile Rate
--   Code Extraction Success Rate
--   Test Pass Rate
--   pass@1
--   Average Response Length
-
-支持多 sample 后增加：
-
--   pass@k
--   pass@5
-
-## Evaluation Protocol
-
-所有实验尽量固定：
-
--   prompt template；
--   max generation tokens；
--   sampling 参数；
--   compiler flags；
--   timeout；
--   test comparison 方法；
--   eval subset；
--   random seed。
-
-保存为：
-
-``` text
-configs/eval/default.yaml
-```
-
-后续修改 eval protocol 必须形成新版本，不得静默修改。
-
-## Acceptance Criteria
-
-使用 5～10 个手工 toy problems：
-
-``` text
-python -m src.eval.evaluator ...
-```
-
-能够完成：
-
-``` text
-generate → compile → execute → judge → metrics
-```
-
-并生成：
-
-``` text
-outputs/eval/<experiment_id>/
-├── config.yaml
-├── generations.jsonl
-└── metrics.json
-```
-
-完成后停止并报告。
-
-------------------------------------------------------------------------
-
-# 9. Milestone 3 --- Fixed Eval Set
-
-目标测试集优先使用 **LiveCodeBench**。
-
-## Codex 任务
-
--   [ ] 获取/适配 LiveCodeBench coding problems。
--   [ ] 选择固定开发评测 subset，建议约 300～500 题。
--   [ ] 保留原始 problem ID 和发布日期等 metadata。
--   [ ] 将选中的 problem ID 固化到 split 文件。
--   [ ] 检查 verifier 是否兼容。
--   [ ] 不允许 Eval problem 进入后续 SFT/GRPO。
-
-建议：
-
-``` text
-data/splits/eval_v1_problem_ids.json
-```
-
-从此所有主要实验都使用该固定 subset。
-
-## Acceptance Criteria
-
-可以在固定 subset 中随机取 10 题，完整跑通 Eval pipeline。
-
-完成后停止并报告。
-
-------------------------------------------------------------------------
-
-# 10. Milestone 4 --- Base Baseline
-
-在任何训练之前评测：
-
-``` text
-Qwen3-0.6B-Base
-```
-
-## Codex 任务
-
--   [ ] 使用固定 Eval config。
--   [ ] 首先跑 pass@1。
--   [ ] 保存全部 generation。
--   [ ] 保存 execution result。
--   [ ] 保存 aggregate metrics。
--   [ ] 统计错误类型。
--   [ ] 记录推理速度和显存峰值。
-
-如果完整 300～500 题的云端评测成本暂时过高，可以先运行固定的小型 dev subset，但必须明确标注，正式对比时使用完全一致的固定 subset。
-
-## 输出
-
-至少得到：
-
-``` text
-Qwen3-0.6B-Base
-
-pass@1 = ?
-compile_rate = ?
-extraction_rate = ?
-test_pass_rate = ?
-```
-
-这是后续所有实验的 baseline。
-
-完成后停止并报告。
-
-------------------------------------------------------------------------
-
-# 11. Milestone 5 --- SFT Data Pipeline
-
-第一阶段主要使用：
-
-``` text
-OpenCodeReasoning-2
-C++ subset
-```
-
-暂时**不要爬洛谷，不要生成 synthetic data**。
-
-## 数据处理
-
--   [ ] 下载/读取数据；
--   [ ] 保留 C++；
--   [ ] 标准化字段；
--   [ ] 去除损坏样本；
--   [ ] 去除异常长度样本；
--   [ ] 去除无法解析的代码；
--   [ ] problem-level dedup；
--   [ ] 尽可能验证代码；
--   [ ] 与 Eval Set 做 contamination 检查；
--   [ ] 保存 source/original ID；
--   [ ] 输出数据统计。
-
-人工检查：
-
--   [ ] 随机抽取至少 100 条；
--   [ ] 检查 problem；
--   [ ] 检查 reasoning；
--   [ ] 检查 code；
--   [ ] 检查格式；
--   [ ] 记录主要质量问题。
-
-## Nested Dataset
-
-构造：
-
-``` text
-SFT-1K ⊂ SFT-5K ⊂ SFT-10K
-```
-
-即 5K 必须包含 1K，10K 必须包含 5K。
-
-尽量平衡：
-
--   difficulty；
--   tags；
--   source；
--   response length。
-
-## Acceptance Criteria
-
-生成：
-
-``` text
-data/processed/sft_1k.jsonl
-data/processed/sft_5k.jsonl
-data/processed/sft_10k.jsonl
-data/processed/sft_stats.json
-```
-
-并生成 contamination/dedup report。
-
-完成后停止并报告，不开始训练。
-
-------------------------------------------------------------------------
-
-# 12. Milestone 6 --- SFT Smoke Test
-
-正式训练前必须先做极小规模 overfit。
-
-## Codex 任务
-
-从 Base 开始：
-
-``` text
-Qwen3-0.6B-Base
-        ↓
-32~100 samples
-        ↓
-SFT overfit
-```
-
-检查：
-
--   loss 是否明显下降；
--   输出格式是否开始匹配训练数据；
--   checkpoint 是否可保存；
--   checkpoint 是否可重新加载；
--   训练是否能在当前租用 GPU 上稳定运行，并记录峰值显存。
-
-必要时使用：
-
--   bf16/fp16；
--   gradient checkpointing；
--   gradient accumulation；
--   LoRA（仅当 full fine-tuning 在当前云端资源上明显不经济或不可行时）。
-
-但必须记录最终采用的训练方式。
-
-当前 M6 实现采用 full-parameter bf16、FlashAttention 2、response-only loss、
-gradient checkpointing 和 PyTorch DDP。单卡 overfit、checkpoint 恢复以及
-1/2/4 卡等 global batch 吞吐测试的固定命令见 `docs/training.md`。M6 仅验证训练
-链路和选定并行方案；正式 SFT-1K 仍在 M7 从 Base 独立启动。
-
-## Acceptance Criteria
-
-模型能明显 overfit 小数据集，训练和 checkpoint pipeline 正常。
-
-完成后停止并报告。
-
-------------------------------------------------------------------------
-
-# 13. Milestone 7 --- SFT-1K
-
-必须从：
-
-``` text
-Qwen3-0.6B-Base
-```
-
-开始。
-
-训练：
-
-``` text
-Base → SFT-1K
-```
-
-保存：
-
--   config；
--   loss curve；
--   learning rate；
--   checkpoint；
--   peak VRAM；
--   wall-clock time；
--   tokens/s。
-
-训练结束立即使用固定 Eval protocol：
-
-``` text
-SFT-1K → Eval
-```
-
-比较：
-
-  Model      pass@1   Compile Rate   Test Pass Rate
-  -------- -------- -------------- ----------------
-  Base            ?              ?                ?
-  SFT-1K          ?              ?                ?
-
-另外随机检查失败案例。
-
-完成后停止并报告结果。
-
-M7-v1 recipe 为双卡 DDP、full-parameter bf16、global batch 16、3 epochs、
-cosine decay、2e-5 peak learning rate 和 3% warmup，并从固定 Base revision 独立
-启动。训练、恢复、重载和固定评测命令见 `docs/training.md`。
-
-M7-v1 已因首 epoch 出现 10/10 长度上限循环而拒绝。后续不得沿用其 checkpoint；
-按 `docs/training.md` 先执行不截断样本的 4,096-token bounded-response M7-v2
-pilot，通过停止与代码抽取 gate 后再冻结新的正式 recipe。
-
-------------------------------------------------------------------------
-
-# 14. Milestone 8 --- SFT-5K
-
-**重新从 Base checkpoint 开始。**
-
-不要：
-
-``` text
-Base → 1K → 再追加 4K
-```
-
-而是：
-
-``` text
-Base → SFT-1K
-Base → SFT-5K
-```
-
-这样才能形成较干净的数据规模对比。
-
-保持训练设置尽量可比。
-
-训练完成：
-
-``` text
-SFT-5K → Fixed Eval
-```
-
-比较：
-
-  Model      SFT Samples   pass@1
-  -------- ------------- --------
-  Base                 0        ?
-  SFT-1K              1K        ?
-  SFT-5K              5K        ?
-
-完成后停止并报告。
-
-------------------------------------------------------------------------
-
-# 15. Milestone 9 --- 是否训练 SFT-10K
-
-根据结果决定。
-
-如果：
-
-``` text
-Base << SFT-1K < SFT-5K
-```
-
-且 1K → 5K 仍有明显收益，则运行：
-
-``` text
-Base → SFT-10K → Eval
-```
-
-如果：
-
-``` text
-SFT-1K ≈ SFT-5K
-```
-
-则先不要增加数据，优先分析：
-
--   benchmark 是否过难；
--   数据质量；
--   模型容量；
--   training hyperparameters；
--   output format；
--   是否只提升了 instruction following 而非算法能力。
-
-最终选择：
-
-``` text
-SFT-best
-```
-
-作为 GRPO initial policy。
-
-------------------------------------------------------------------------
-
-# 16. Milestone 10 --- GRPO Candidate Data
-
-第一阶段优先考虑：
-
-``` text
-TACO-Verified
-+
-DeepCoder / 其他带可靠 testcase 的 coding dataset
-```
-
-目标不是立即得到最终 GRPO 数据，而是先建立：
-
-``` text
-10K~20K candidate problems
-```
-
-## Codex 任务
-
--   [ ] 转换统一 RL schema；
--   [ ] 验证 tests；
--   [ ] 删除 malformed tests；
--   [ ] problem-level dedup；
--   [ ] 与 SFT dataset dedup；
--   [ ] 与 Eval dataset contamination check；
--   [ ] 保存 source metadata；
--   [ ] 输出数据统计。
-
-**特别注意 LiveCodeBench contamination。**
-
-任何来源中若包含 Eval 使用的 LiveCodeBench 题目，必须剔除。
-
-完成后停止并报告。
-
-------------------------------------------------------------------------
-
-# 17. Milestone 11 --- Offline Difficulty Filtering
-
-使用：
-
-``` text
-SFT-best
-```
-
-对 GRPO candidate pool 进行 rollout。
-
-第一版：
-
-``` text
-每题 4 rollouts
-```
-
-算力允许后：
-
-``` text
-每题 8 rollouts
-```
-
-计算：
-
-``` text
-empirical_pass_rate =
-successful_rollouts / total_rollouts
-```
-
-例如：
-
-``` text
-Problem A → 0/8 = 0.000
-Problem B → 1/8 = 0.125
-Problem C → 3/8 = 0.375
-Problem D → 6/8 = 0.750
-Problem E → 8/8 = 1.000
-```
-
-重点保留存在探索和学习空间的问题，例如：
-
-``` text
-0 < pass_rate < 1
-```
-
-后续可以进一步尝试：
-
-``` text
-0.1 <= pass_rate <= 0.8
-```
-
-构造：
-
-``` text
-GRPO-Debug: 100 problems
-GRPO-Pilot: 500 problems
-GRPO-Full: 2K~5K problems
-```
-
-保存每道题的 rollout 和 empirical difficulty。
-
-------------------------------------------------------------------------
-
-# 18. Milestone 12 --- GRPO Reward
-
-第一版 reward 必须简单。
-
-核心：
-
-``` text
-execution correctness
-```
-
-推荐：
-
-``` text
-testcase_reward = passed_tests / total_tests
-```
-
-可加入非常轻量的：
-
-``` text
-format_reward
-compile_reward
-```
-
-但不能让辅助 reward 压过 execution correctness。
-
-暂时不要加入：
-
--   LLM-as-a-Judge；
--   reasoning quality judge；
--   复杂 style reward；
--   人工 reward model。
-
-需要记录：
-
--   total reward；
--   testcase reward；
--   compile reward；
--   format reward；
--   reward variance。
-
-------------------------------------------------------------------------
-
-# 19. Milestone 13 --- GRPO Smoke Test
-
-使用：
-
-``` text
-GRPO-Debug
-100 problems
-4 rollouts/problem
-```
-
-目标不是提升 benchmark，而是验证：
-
-``` text
-Prompt
+Problem
   ↓
-Rollout
-  ↓
-Code Extraction
-  ↓
-Compile
+Reasoning / Candidate Code
   ↓
 Execute
   ↓
-Reward
+Observation
   ↓
-Group Advantage
+Analyze / Fix / Complete Revised Code
   ↓
-Policy Update
+Execute again
+  ↓
+Success or Termination
 ```
 
-检查：
+第一版实现轻量、任务专用的有限状态循环，不引入通用 Agent 框架。
 
--   [ ] verl pipeline 正常；
--   [ ] reward 正常；
--   [ ] group reward variance 非零；
--   [ ] loss 正常；
--   [ ] gradient 正常；
--   [ ] KL 正常；
--   [ ] entropy 可记录；
--   [ ] response length 可记录；
--   [ ] checkpoint 可保存；
--   [ ] 当前云端 GPU 配置下不 OOM，并记录峰值显存。
+### 4.2 Horizon 与预算
 
-完成后停止并报告。
+- 最多 3 次 execution/tool call，即首次提交加最多两次修复；
+- 每轮 generation token cap 配置化；
+- 整条 trajectory 有 total token budget；
+- 每轮必须提交一份可提取的完整 C++ 代码；
+- 保存全部中间响应、代码、反馈和资源消耗；
+- 支持按 trajectory 断点恢复。
 
-------------------------------------------------------------------------
+### 4.3 Observation Protocol v1
 
-# 20. Milestone 14 --- GRPO Pilot
+模型可见反馈包含：
 
-运行：
+- compile success/failure；
+- 有长度限制的 compiler stderr；
+- passed tests / total tests；
+- 第一个失败测试的 input、expected output 和 actual output；
+- runtime error、timeout 或 output limit；
+- 剩余 execution budget。
 
-``` text
-SFT-best
+```text
+Execution result:
+- Status: WRONG_ANSWER
+- Tests passed: 3/8
+- First failing input:
+...
+- Expected output:
+...
+- Actual output:
+...
+- Executions remaining: 1
+```
+
+内部保存完整判题结果，模型可见 feedback 是经过裁剪和格式化的独立字段。后续可对比 detailed
+feedback（失败输入、expected、actual）和 weak feedback（仅错误类型与通过率）。
+
+### 4.4 Termination Reason v1
+
+- `success`；
+- `max_tool_calls`；
+- `total_token_budget`；
+- `code_extraction_failed`；
+- `repeated_code`；
+- `no_improvement`；
+- `sandbox_error`；
+- `model_stop_without_code`。
+
+`no_improvement` 初始定义为连续两次 execution 的 testcase pass rate 没有提升。即使提前终止，
+最后一次响应、代码和判题结果也必须落盘。
+
+---
+
+## 5. Sandbox 与 Tool Adapter
+
+不从零实现底层安全沙箱。现有 verifier 继续承担代码提取、C++17 编译、testcase 判定、timeout、
+output limit 和统一 `JudgeResult`，其上增加稳定接口：
+
+```python
+class ExecutionTool:
+    def execute(
+        self,
+        code: str,
+        tests: list[TestCase],
+    ) -> ExecutionObservation:
+        ...
+```
+
+```text
+CodeAgent
    ↓
-500 GRPO problems
-   ↓
-GRPO-Pilot
+ExecutionTool
+   ├── LocalVerifierBackend：开发、测试和可信数据
+   └── Isolate/Nsjail/Judge0Backend：云端 rollout
 ```
 
-重点记录：
+优先调查 `isolate`，其次 `nsjail`，最后是服务化更方便但批量 rollout 开销可能更高的 Judge0。
+当前 subprocess + resource limit 只能作为本地和可信数据 backend，不能描述为强安全隔离，也不能
+在高权限主机上直接执行来源不明的任意代码。
 
--   training reward；
--   validation reward；
--   KL；
--   entropy；
--   response length；
--   compile rate；
--   rollout success rate；
--   zero-variance group ratio；
--   peak VRAM；
--   training throughput。
+---
 
-训练结束：
+## 6. 数据 Schema
 
-``` text
-GRPO-Pilot → Fixed Eval
+### 6.1 Executable Problem
+
+```json
+{
+  "problem_id": "source:id",
+  "source": "taco",
+  "problem": "...",
+  "difficulty": "medium",
+  "language": "cpp",
+  "tests": [],
+  "environment_id": "cpp17-v1",
+  "split": "train",
+  "metadata": {}
+}
 ```
 
-比较：
+### 6.2 Agent Trajectory
 
-  Model                     pass@1
-  ----------------------- --------
-  Base                           ?
-  SFT-1K                         ?
-  SFT-5K                         ?
-  SFT-best                       ?
-  SFT-best + GRPO-Pilot          ?
-
-如果 reward 上升但 benchmark 不上升，**停止扩规模并先做 failure
-analysis**。
-
-------------------------------------------------------------------------
-
-# 21. Milestone 15 --- GRPO Full
-
-只有 Pilot 明确证明 pipeline 正常且存在有效学习信号后执行。
-
-目标：
-
-``` text
-2K~5K problems
-×
-4/8 rollouts
+```json
+{
+  "trajectory_id": "...",
+  "problem_id": "...",
+  "model": "...",
+  "policy_version": "...",
+  "initial_prompt": "...",
+  "steps": [
+    {
+      "turn": 0,
+      "response": "...",
+      "reasoning": "...",
+      "code": "...",
+      "generation_tokens": 1234,
+      "tool_call": {"name": "execute_cpp", "arguments": {}},
+      "observation": {
+        "status": "wrong_answer",
+        "compiled": true,
+        "passed": 3,
+        "total": 8,
+        "pass_rate": 0.375,
+        "feedback": "..."
+      }
+    }
+  ],
+  "final_status": "success",
+  "termination_reason": "success",
+  "tool_calls": 2,
+  "total_generation_tokens": 2150
+}
 ```
 
-根据云端 GPU 的实际吞吐、显存和租用成本决定规模。
+数据中必须同时保留原始完整 observation 和实际展示给模型的 feedback，以支持反馈策略消融。
 
-保存多个 checkpoint，并定期在固定 dev eval 上评测。
+---
 
-最终输出：
+## 7. SFT 数据与训练目标
 
-``` text
-Qwen3-0.6B-Base
-        ↓
-      SFT
-        ↓
-      GRPO
-        ↓
-   Final Evaluation
+不再将原始超长 reasoning imitation 作为唯一或主要目标。SFT 数据由三类样本组成。
+
+### 7.1 One-shot code reasoning
+
+```text
+Problem → Concise Reasoning + Complete Code
 ```
 
-------------------------------------------------------------------------
+用于维持首次生成和基本 coding 能力。
 
-# 22. Phase 1 必须产出的实验图
+### 7.2 Single-step repair
 
-最终至少生成以下图表。
-
-## Figure 1 --- SFT Data Scaling
-
-``` text
-SFT Samples
-0 → 1K → 5K → 10K
-
-vs
-
-pass@1
+```text
+Problem + Wrong Code + Execution Feedback
+→ Analysis + Complete Fixed Code
 ```
 
-回答：
+Wrong code 来源优先级：Base 模型真实失败、正确代码的受控 mutation、开源错误提交、后续 Agent
+rollout 失败。所有 repair target 必须通过可靠 tests，错误代码必须经过实际执行确认失败。
 
-> 增加 SFT 数据是否持续提升 0.6B 模型？
+### 7.3 Multi-turn trajectory
 
-## Figure 2 --- GRPO Training Dynamics
-
-``` text
-training step
-vs
-reward / KL / entropy
+```text
+Problem
+Assistant: Candidate Code
+Tool: Failure Observation
+Assistant: Analysis + Revised Code
+Tool: ...
+Assistant: Final Code
 ```
 
-## Figure 3 --- GRPO Benchmark Improvement
+第一版仅构造少量高质量 trajectory 来学习交互协议，主要训练量仍由 one-shot 和 single-step
+repair 提供。
 
-``` text
-Base
-SFT
-SFT + GRPO
+### 7.4 初始混合比例
 
-vs
+- 40% one-shot；
+- 50% single-step repair；
+- 10% multi-turn trajectory。
 
-pass@1
+该比例只是 pilot 起点，后续通过消融调整。不能只训练 repair 数据，以免损害 first-attempt 能力。
+
+---
+
+## 8. Agentic GRPO
+
+RL 样本只要求 problem、hidden reliable tests、executable environment，以及 tool-call/token budget。
+训练时在线执行：
+
+```text
+Problem → Code → Execute → Observe → Repair → ... → Terminate
 ```
 
-## Figure 4 --- Difficulty vs RL Gain
+### 8.1 Reward v1
 
-按照题目初始 empirical pass rate 分桶：
-
-``` text
-0~0.1
-0.1~0.3
-0.3~0.5
-0.5~0.8
-0.8~1.0
+```text
+if all_tests_pass:
+    reward = 1.0
+elif valid_execution:
+    reward = 0.5 * final_test_pass_rate
+else:
+    reward = 0.0
 ```
 
-观察不同难度区间的 RL improvement。
+工具次数和 token 数第一版只记录，不进入 reward。确认 correctness 能够学习后，再研究：
 
-## Figure 5 --- Initial Exploration vs RL Gain
-
-研究：
-
-``` text
-initial rollout success rate
-            ↓
-       final improvement
+```text
+reward = correctness - lambda * extra_tool_calls
 ```
 
-这张图与项目核心研究问题直接相关。
+后续消融可以加入 invalid action penalty、progress shaping、反馈强弱和不同 tool-call budget。在
+correctness 尚未提升前，不加入复杂 style、reasoning 或 efficiency reward。
 
-------------------------------------------------------------------------
+---
 
-# 23. Phase 1 最终需要回答的问题
+## 9. Evaluation Protocol 与核心指标
 
-项目结束时 README / report 必须能够回答：
+### 9.1 主实验矩阵
 
-1.  SFT 是否显著提升 Qwen3-0.6B-Base 的 coding 能力？
-2.  1K → 5K → 10K 数据增加是否持续有效？
-3.  SFT 的收益主要来自代码格式改善，还是算法正确率改善？
-4.  GRPO 是否能在 SFT checkpoint 上进一步提升？
-5.  哪些难度的问题最适合 GRPO？
-6.  对于 rollout 全错的问题，GRPO 是否基本无法获得有效信号？
-7.  initial policy exploration capability 与 RL gain 是否相关？
-8.  training reward 上升是否对应 held-out benchmark 提升？
-9.  是否出现 reward hacking？
-10. 是否出现 response length 异常增长？
-11. 是否出现 entropy collapse？
-12. 数据 contamination 是如何控制的？
-13. SFT 与 GRPO 的提升分别来自什么？
+| Policy | Agent loop | Repair SFT | GRPO |
+| --- | ---: | ---: | ---: |
+| Base one-shot | 否 | 否 | 否 |
+| Base agent prompting | 是 | 否 | 否 |
+| SFT one-shot | 否 | 是 | 否 |
+| SFT agent | 是 | 是 | 否 |
+| SFT + GRPO agent | 是 | 是 | 是 |
+| Official post-trained reference | 是 | 官方 | 官方 |
 
-------------------------------------------------------------------------
+关键比较：
 
-# 24. 暂时不要做的事情
+1. Base one-shot vs Base agent：测量 inference-time feedback 收益；
+2. Base agent vs SFT agent：测量 repair SFT 收益；
+3. SFT agent vs SFT + GRPO agent：测量 Agentic RL 额外收益；
+4. 同一 policy 的 first attempt vs final attempt：区分 coding 能力与 repair policy。
 
-在上述主线跑通前，不要主动扩展：
+### 9.2 核心指标
 
--   洛谷爬虫；
--   洛谷题解数据；
--   synthetic problem generation；
--   critique/self-repair 数据；
--   reasoning LLM Judge；
--   reward model；
--   DPO；
--   PPO；
--   多语言代码；
--   多模型 comparison；
--   4B/8B 训练；
--   Web UI；
--   Demo 网站；
--   过度工程化的分布式系统。
+- `first_attempt_success_rate`；
+- `agent_success_rate`；
+- `repair_success_rate`：首次失败题目中最终修复成功的比例；
+- `success_gain`：Agent success 减去 first-attempt success；
+- `test_pass_rate`；
+- `average_tool_calls` 和 `average_tool_calls_on_success`；
+- `average_generation_tokens` 和 `tokens_per_success`；
+- `pass_rate_curve[k]`：最多允许第 k 次提交时的累计成功率；
+- `termination_reason` 分布；
+- 按 difficulty、首轮错误类型和反馈类型分组的修复率；
+- 修改后退化率与重复提交率。
 
-这些属于 Phase 2。
+所有指标同时保存 overall 和 easy/medium/hard 分层结果。最终正式实验尽量使用多个 seed；资源不足
+时主实验至少两个 seed，并明确报告方差限制。
 
-------------------------------------------------------------------------
+---
 
-# 25. Codex 工作协议
+## 10. Milestones
 
-每次给 Codex 一个 Milestone 时，要求它遵循以下流程：
+### 已完成的前期工作：M0–M7
 
-> **执行环境规则：** 如果当前 Milestone 涉及 GPU inference、Qwen 模型加载、SFT、verl、vLLM、GRPO 或正式 benchmark，Codex 应按 Linux 云端环境实现和执行；不要为 Windows 编写训练兼容层。如果当前会话无法直接访问云端机器，则应完成代码/config/脚本准备并明确给出需要在云端执行的命令，而不是退回设计 Windows workaround。
+现有阶段作为项目基础与方向选择证据保留，不重写历史：
 
-``` text
-1. 阅读当前 repository 和已有实现。
-2. 只实现当前指定 Milestone。
-3. 不提前实现后续 Milestone。
-4. 优先复用现有代码，不重复造轮子。
-5. 为关键逻辑补充测试。
-6. 运行测试。
-7. 运行最小 smoke test。
-8. 报告修改了哪些文件。
-9. 报告测试结果。
-10. 报告发现的问题、风险和下一步建议。
-11. 等待确认后再继续。
+- M0：云端环境与可复现依赖；
+- M1：C++ verifier；
+- M2：evaluation pipeline；
+- M3：固定 LiveCodeBench eval split；
+- M4：Qwen3-0.6B-Base baseline；
+- M5：OpenCodeReasoning-2 SFT 数据准备与 audit；
+- M6：多卡 SFT pipeline 和吞吐验证；
+- M7：0.6B SFT 退化诊断、数据格式消融和官方 0.6B/1.7B/4B/8B 容量诊断。
+
+M7 用于说明：单纯模仿超长 reasoning 不能稳定提升 0.6B，模型容量、输出分布和训练目标都会影响
+结果，因此后续转向 1.7B/4B execution-guided self-repair。
+
+### M8：项目重构与协议冻结
+
+产物：
+
+- 更新 README、主计划、数据文档和 findings；
+- 冻结 Action、Observation、Trajectory schema；
+- 定义指标和 termination reason；
+- 将 verifier 抽象为 `ExecutionTool` backend；
+- 实现 Agent state machine 和单元测试。
+
+验收：fake generator 能跑通“失败 → 反馈 → 修复 → 成功”；trajectory 可无损序列化；每种
+termination reason 都有测试；Agent 与 sandbox backend 解耦。
+
+### M9：Agent Evaluation Baseline
+
+- 实现 Qwen3-1.7B/4B Agent loop；
+- one-shot 与 agent prompting 使用相同题集和预算；
+- 支持逐轮 metrics、trajectory artifacts、分片和断点恢复；
+- 固定 50–100 题 `agent-dev`；
+- 先通过固定 10 题 smoke，再得到 Base one-shot 与 Base agent 对照；
+- 人工 audit 至少 30 条 trajectory。
+
+### M10：Repair SFT 数据构造
+
+- 收集 Base 模型真实首次失败并按错误类型分桶；
+- 生成修复候选并重新执行验证；
+- 构造 one-shot、single-step repair 和 multi-turn 混合数据；
+- 完成 problem-level 隔离、去重、数据卡和人工 audit；
+- 先冻结 1K pilot，不提前扩大规模。
+
+验收要求 wrong code 实际失败、repair target 通过全部 tests、feedback 与 JudgeResult 一致且无 eval
+problem 泄漏。
+
+### M11：Qwen3-1.7B Agentic SFT Pilot
+
+- 1.7B LoRA 或全参数 smoke；
+- 1K mixed SFT pilot；
+- one-shot-only SFT 对照；
+- 固定 agent-dev 评测。
+
+Go/no-go：first-attempt success 不显著退化；repair success 明显优于 Base agent；不出现重复循环和
+格式崩溃。失败时先调整数据与 protocol，不直接扩大到 4B。
+
+### M12：Qwen3-4B SFT
+
+- 将验证过的 recipe 移植到 4B；
+- 1K → 5K data scaling；
+- 正式 SFT checkpoint；
+- 完成 one-shot 与 Agent 两种评测。
+
+模型选择依据 first-attempt、repair success 和 agent success，而不是只看 training loss。
+
+### M13：Agentic GRPO Smoke
+
+- 将 Code Agent environment 接入 verl rollout；
+- group rollout 共用 problem/tests；
+- reward 与 eval verifier 共用判定逻辑；
+- 1.7B、几十题、少量 step 的端到端 smoke；
+- 保存 reward、advantage、KL、tool call 和 trajectory 日志。
+
+验收：reward 与离线判题一致；无 eval 泄漏；multi-turn state 不串样本；checkpoint 可恢复；policy
+不能通过非法格式利用 reward 漏洞。
+
+### M14：Qwen3-4B GRPO Pilot / Formal
+
+```text
+Debug 32–64 problems
+→ Pilot 256–500 problems
+→ Formal 1K–2K executable problems
 ```
 
-每个阶段结束时要求 Codex 输出：
+每一级先验证 reward、输出稳定性和 evaluation 增益，再扩大规模。
 
-``` text
-## Completed
-- ...
+### M15：最终评测与项目总结
 
-## Files Changed
-- ...
+- 固定多难度正式 eval 和完整实验矩阵；
+- 多 seed 结果；
+- success-vs-tool-call curve；
+- token/tool efficiency；
+- termination 和错误类型迁移分析；
+- 典型修复成功与失败案例；
+- GPU 时间、训练成本和推理成本；
+- README 展示、技术报告、复现实验命令和简历 bullet。
 
-## Tests
-- ...
+---
 
-## Results
-- ...
+## 11. 当前不做的内容
 
-## Known Issues
-- ...
+- 通用 Agent 框架；
+- 多语言执行；
+- 自建完整容器调度系统；
+- 洛谷爬虫；
+- 无限 horizon；
+- LLM-as-a-judge reward；
+- 复杂 reasoning/process reward；
+- 大规模自动课程学习；
+- Qwen3-8B 正式训练；
+- 同时实现多种 production sandbox backend。
 
-## Next Milestone
-- ...
-```
+第一阶段主线固定为：
 
-------------------------------------------------------------------------
+> C++17 + 最多 3 次 execution + testcase feedback + Qwen3-1.7B 验证 + Qwen3-4B 正式 SFT/GRPO。
 
-# 26. 第一轮实际执行顺序
+---
 
-不要一次把整个计划交给 Codex 让它全部实现。
+## 12. 待确认决策
 
-推荐逐步执行：
+开始实现 M8 不依赖以下答案，但进入云端 Agent rollout 和正式训练前必须确认：
 
-``` text
-M0  Repository & Environment
- ↓
-M1  Code Verifier
- ↓
-M2  Evaluation Pipeline
- ↓
-M3  Fixed Eval Set
- ↓
-M4  Base Baseline
- ↓
-M5  SFT Data Pipeline
- ↓
-M6  SFT Smoke Test
- ↓
-M7  SFT-1K
- ↓
-M8  SFT-5K
- ↓
-M9  Decide SFT-10K
- ↓
-M10 GRPO Candidate Data
- ↓
-M11 Difficulty Filtering
- ↓
-M12 Reward
- ↓
-M13 GRPO Smoke Test
- ↓
-M14 GRPO Pilot
- ↓
-M15 GRPO Full
-```
+1. 云平台是否允许安装或运行 `isolate`/`nsjail`，以及是否具有 root 权限；
+2. 可接受的正式训练 GPU 类型、卡数与总 GPU-hour 预算；
+3. 预计投递实习的时间窗口，以决定优先交付 1.7B 完整闭环还是同时完成 4B GRPO；
+4. sandbox 未部署前，只允许使用可信、经过审查的数据运行 LocalVerifierBackend。
 
-------------------------------------------------------------------------
+---
 
-# 27. 当前最小目标
+## 13. 下一步
 
-现在只关注：
+下一阶段为 **M8：项目重构与协议冻结**：
 
-``` text
-Eval
- ↓
-Base Baseline
- ↓
-SFT Data
- ↓
-SFT-1K
- ↓
-Eval
- ↓
-SFT-5K
- ↓
-Eval
-```
-
-在得到 `Base / SFT-1K / SFT-5K` 三组可靠结果之前，**不需要开始正式
-GRPO**。
-
-第一阶段前半段成功的定义不是模型达到多高的 pass@1，而是：
-
-> **建立了一套可信、可复现、数据隔离明确的实验系统，并能可靠测量 SFT 对
-> Qwen3-0.6B-Base 的影响。**
-
-GRPO 在此基础上继续。
+1. 更新 README 和项目结构说明；
+2. 定义 Agent action、observation、step 与 trajectory 类型；
+3. 抽象 ExecutionTool，并适配现有 verifier；
+4. 实现 feedback formatter 与 termination policy；
+5. 实现同步 Code Agent loop；
+6. 增加 fake generator、fake tool 和 LocalVerifierBackend 测试；
+7. 固定 Agent metrics 与 artifact 格式；
+8. 本地完整测试通过后提交 M8 第一阶段 commit。
