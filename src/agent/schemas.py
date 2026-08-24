@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 from enum import StrEnum
 from typing import Any
 
-from src.verifier.judge import JudgeResult, TestCase
+from src.verifier.judge import CaseResult, JudgeResult, TestCase
 
 
 class ActionType(StrEnum):
@@ -123,6 +123,7 @@ class HiddenEvaluation:
 @dataclass(frozen=True)
 class AgentStep:
     turn: int
+    prompt_messages: list[dict[str, str]]
     submission: CandidateSubmission
     observation: ExecutionObservation | None
     hidden_evaluation: HiddenEvaluation | None
@@ -181,3 +182,57 @@ class AgentTrajectory:
             "termination_reason": self.termination_reason,
         }
         return value
+
+    @classmethod
+    def from_dict(cls, value: dict[str, Any]) -> AgentTrajectory:
+        def load_judge(data: dict[str, Any]) -> JudgeResult:
+            copied = dict(data)
+            copied["cases"] = [CaseResult(**case) for case in copied.get("cases", [])]
+            return JudgeResult(**copied)
+
+        def load_hidden(data: dict[str, Any] | None) -> HiddenEvaluation | None:
+            return HiddenEvaluation(load_judge(data["judge"])) if data else None
+
+        steps = []
+        for raw in value.get("steps", []):
+            submission_data = dict(raw["submission"])
+            submission_data["effective_action"] = ActionType(submission_data["effective_action"])
+            submission_data["action_parse_status"] = ActionParseStatus(
+                submission_data["action_parse_status"]
+            )
+            observation_data = raw.get("observation")
+            observation = None
+            if observation_data:
+                observation = ExecutionObservation(
+                    status=observation_data["status"],
+                    judge=load_judge(observation_data["judge"]),
+                    model_feedback=observation_data["model_feedback"],
+                    executions_remaining=int(observation_data["executions_remaining"]),
+                    cached=bool(observation_data.get("cached", False)),
+                )
+            steps.append(
+                AgentStep(
+                    turn=int(raw["turn"]),
+                    prompt_messages=list(raw.get("prompt_messages", [])),
+                    submission=CandidateSubmission(**submission_data),
+                    observation=observation,
+                    hidden_evaluation=load_hidden(raw.get("hidden_evaluation")),
+                    previous_visible_pass_rate=raw.get("previous_visible_pass_rate"),
+                    current_visible_pass_rate=raw.get("current_visible_pass_rate"),
+                    delta_visible_pass_rate=raw.get("delta_visible_pass_rate"),
+                )
+            )
+        termination = value.get("termination_reason") or value.get("outcome", {}).get(
+            "termination_reason"
+        )
+        return cls(
+            schema_version=value["schema_version"],
+            trajectory_id=value["trajectory_id"],
+            problem_id=value["problem_id"],
+            difficulty=value.get("difficulty"),
+            model=dict(value.get("model", {})),
+            agent_config=AgentConfig(**value["agent_config"]),
+            steps=steps,
+            hidden_evaluation=load_hidden(value.get("hidden_evaluation")),
+            termination_reason=TerminationReason(termination) if termination else None,
+        )

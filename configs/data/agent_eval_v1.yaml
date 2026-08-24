@@ -1,0 +1,12 @@
+source:
+  path: data/processed/livecodebench_v1/dev_v1.jsonl
+  manifest: data/splits/eval_v1_problem_ids.json
+selection:
+  seed: 20260825
+  dev_size: 60
+  visible_fraction: 0.2
+  visible_max: 5
+output:
+  smoke: data/processed/agent_eval_v1/smoke_10.jsonl
+  dev: data/processed/agent_eval_v1/dev_60.jsonl
+  manifest: data/splits/agent_eval_v1_problem_ids.json

@@ -263,4 +263,7 @@ def test_agent_metrics_separate_first_attempt_and_repair_success() -> None:
     assert metrics["agent_success_rate"] == 1.0
     assert metrics["repair_success_rate"] == 1.0
     assert metrics["success_gain"] == 0.5
+    assert metrics["final_hidden_test_pass_rate"] == 1.0
+    assert metrics["valid_action_rate"] == 1.0
+    assert metrics["explicit_final_rate"] == 1.0
     assert metrics["by_difficulty"]["hard"]["repair_success_rate"] == 1.0

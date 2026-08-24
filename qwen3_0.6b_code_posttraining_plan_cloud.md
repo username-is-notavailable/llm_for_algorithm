@@ -402,6 +402,10 @@ termination reason 都有测试；Agent 与 sandbox backend 解耦。
 - 先通过固定 10 题 smoke，再得到 Base one-shot 与 Base agent 对照；
 - 人工 audit 至少 30 条 trajectory。
 
+实现协议固定为 10 题 smoke 和 60 题 agent-dev。one-shot 与 Agent 使用相同 hidden tests；最多三次
+`execute_code` 仅使用 visible tests。支持完整 trajectory 落盘、单 GPU resume 和两 GPU
+problem sharding。Qwen3-1.7B-Base 先完成云端 gate，再运行 4B 对照。
+
 ### M10：Repair SFT 数据构造
 
 - 收集 Base 模型真实首次失败并按错误类型分桶；

@@ -4,6 +4,7 @@ from collections import Counter
 from typing import Any, Iterable
 
 from src.agent.schemas import AgentTrajectory
+from src.agent.schemas import ActionParseStatus, ActionType
 
 
 def _compute(trajectories: list[AgentTrajectory], *, difficulty: bool) -> dict[str, Any]:
@@ -15,6 +16,21 @@ def _compute(trajectories: list[AgentTrajectory], *, difficulty: bool) -> dict[s
     repaired = sum(row.repaired for row in trajectories)
     execute_calls = sum(row.execute_calls for row in trajectories)
     generation_tokens = sum(row.total_generation_tokens for row in trajectories)
+    submissions = [step.submission for row in trajectories for step in row.steps]
+    explicit_actions = sum(
+        submission.action_parse_status == ActionParseStatus.EXPLICIT for submission in submissions
+    )
+    explicit_finals = sum(
+        submission.action_parse_status == ActionParseStatus.EXPLICIT
+        and submission.effective_action == ActionType.FINAL
+        for submission in submissions
+    )
+    final_hidden_passed = sum(
+        row.hidden_evaluation.judge.passed for row in trajectories if row.hidden_evaluation
+    )
+    final_hidden_total = sum(
+        row.hidden_evaluation.judge.total for row in trajectories if row.hidden_evaluation
+    )
     successful = [row for row in trajectories if row.final_success]
     max_submissions = max(row.candidate_submissions for row in trajectories)
     cumulative_success = {
@@ -34,6 +50,14 @@ def _compute(trajectories: list[AgentTrajectory], *, difficulty: bool) -> dict[s
         "agent_success_rate": final_successes / len(trajectories),
         "repair_success_rate": repaired / first_failures if first_failures else 0.0,
         "success_gain": (final_successes - first_successes) / len(trajectories),
+        "final_hidden_test_pass_rate": (
+            final_hidden_passed / final_hidden_total if final_hidden_total else 0.0
+        ),
+        "valid_action_rate": explicit_actions / len(submissions) if submissions else 0.0,
+        "action_fallback_rate": (
+            (len(submissions) - explicit_actions) / len(submissions) if submissions else 0.0
+        ),
+        "explicit_final_rate": explicit_finals / len(trajectories),
         "average_execute_calls": execute_calls / len(trajectories),
         "average_candidate_submissions": sum(row.candidate_submissions for row in trajectories)
         / len(trajectories),

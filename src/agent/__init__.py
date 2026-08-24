@@ -2,6 +2,7 @@
 
 from src.agent.backend import ExecutionBackend, LocalVerifierBackend
 from src.agent.controller import AgentGenerator, run_agent
+from src.agent.generate import ChatAgentGenerator, create_agent_generator
 from src.agent.metrics import compute_agent_metrics
 from src.agent.protocol import ParsedSubmission, parse_submission
 from src.agent.schemas import (
@@ -27,6 +28,7 @@ __all__ = [
     "AgentStep",
     "AgentTrajectory",
     "CandidateSubmission",
+    "ChatAgentGenerator",
     "ExecutionBackend",
     "ExecutionLimits",
     "ExecutionObservation",
@@ -35,6 +37,7 @@ __all__ = [
     "ParsedSubmission",
     "TerminationReason",
     "compute_agent_metrics",
+    "create_agent_generator",
     "parse_submission",
     "run_agent",
 ]

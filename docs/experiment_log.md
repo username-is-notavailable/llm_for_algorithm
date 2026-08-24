@@ -10,6 +10,17 @@
   Agent metrics；
 - `LocalVerifierBackend` 仅用于可信代码的本地开发，不宣称强安全隔离。
 
+## M9 — Agent prompting baseline implementation
+
+- 固定 Qwen3-1.7B-Base revision `ea980cb0a6c2ae4b936e82123acc929f1cec04c1`；
+- 固定 Qwen3-4B-Base revision `906bfd4b4dc7f14ee4320094d8b41684abff8539`；
+- 从冻结 LiveCodeBench dev 构造 10 题 smoke / 60 题 agent-dev；
+- 共 221 个 visible tests、1,104 个 hidden tests；
+- one-shot 和 Agent final 共享 hidden tests，Agent execution 只使用 visible tests；
+- 新增真实 tokenizer/chat + vLLM 多轮 generator、context-aware generation cap；
+- 新增 trajectory artifacts、resume、两 GPU problem sharding 和严格 shard merge；
+- 云端能力结果待运行，不在本地实现阶段记录模型结论。
+
 每次云端实验记录：experiment ID、Git commit、配置路径、GPU/CUDA/依赖版本、命令、结果与异常。
 
 ## Milestone 0

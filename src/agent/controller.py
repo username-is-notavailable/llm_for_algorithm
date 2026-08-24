@@ -121,6 +121,7 @@ def run_agent(
             trajectory.steps.append(
                 AgentStep(
                     turn=turn,
+                    prompt_messages=[dict(message) for message in messages],
                     submission=submission,
                     observation=None,
                     hidden_evaluation=None,
@@ -136,6 +137,7 @@ def run_agent(
                 break
             trajectory.steps[-1] = AgentStep(
                 turn=trajectory.steps[-1].turn,
+                prompt_messages=trajectory.steps[-1].prompt_messages,
                 submission=trajectory.steps[-1].submission,
                 observation=None,
                 hidden_evaluation=trajectory.hidden_evaluation,
@@ -151,6 +153,7 @@ def run_agent(
             trajectory.steps.append(
                 AgentStep(
                     turn=turn,
+                    prompt_messages=[dict(message) for message in messages],
                     submission=submission,
                     observation=None,
                     hidden_evaluation=None,
@@ -166,6 +169,7 @@ def run_agent(
                 break
             trajectory.steps[-1] = AgentStep(
                 turn=trajectory.steps[-1].turn,
+                prompt_messages=trajectory.steps[-1].prompt_messages,
                 submission=trajectory.steps[-1].submission,
                 observation=None,
                 hidden_evaluation=trajectory.hidden_evaluation,
@@ -192,6 +196,7 @@ def run_agent(
             trajectory.steps.append(
                 AgentStep(
                     turn=turn,
+                    prompt_messages=[dict(message) for message in messages],
                     submission=submission,
                     observation=None,
                     hidden_evaluation=None,
@@ -212,6 +217,7 @@ def run_agent(
         trajectory.steps.append(
             AgentStep(
                 turn=turn,
+                prompt_messages=[dict(message) for message in messages],
                 submission=submission,
                 observation=observation,
                 hidden_evaluation=hidden_evaluation,

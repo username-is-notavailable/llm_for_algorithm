@@ -25,6 +25,39 @@ M8 的内部架构位于 `src/agent/`：模型动作协议、trajectory schema�
 `ExecutionBackend`、同步 controller 和 Agent metrics。`LocalVerifierBackend` 只用于可信代码的
 开发测试，不是强安全沙箱。
 
+## M9 Agent baseline
+
+M9 从冻结 LiveCodeBench dev 中确定性选择 60 题，其中原固定 10 题是 smoke 子集。每题按固定
+seed 将 tests 拆为 visible/hidden；one-shot 和 Agent final 使用完全相同的 hidden tests。
+
+云端先生成派生数据，再运行 1.7B smoke 对照：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_agent_eval.py
+bash scripts/cloud_eval_agent.sh 1.7b smoke both \
+  2>&1 | tee /tmp/qwen3-m9-1.7b-smoke.log
+```
+
+smoke 通过后可运行 60 题 dev。Agent rollout 是逐题多轮的，可用两张 GPU 做 problem sharding：
+
+```bash
+bash scripts/cloud_eval_agent.sh 1.7b dev oneshot \
+  2>&1 | tee /tmp/qwen3-m9-1.7b-oneshot-dev.log
+
+CUDA_VISIBLE_DEVICES=0,1 bash scripts/cloud_eval_agent.sh 1.7b dev agent-sharded \
+  2>&1 | tee /tmp/qwen3-m9-1.7b-agent-dev.log
+```
+
+将 `1.7b` 替换为 `4b` 可使用固定 revision 运行主模型 baseline。单 GPU `agent`/`oneshot`
+支持 `--resume OUTPUT_DIR`；sharded 模式保留每个 shard，可分别恢复后再合并。
+
+Agent artifacts 位于 `outputs/agent_eval/`，包括 config、environment、逐题完整
+`trajectories.jsonl` 和 `metrics.json`。指标包含 first-attempt/Agent/repair success、hidden testcase
+pass rate、action validity/fallback、主动 final、execution/token efficiency、termination 和难度分层。
+
+当前 `LocalVerifierBackend` 延续项目原 verifier 的 resource limit，只能用于固定 benchmark 和受控
+实验。它不提供文件系统或网络强隔离；正式扩大 rollout 前仍需在云平台接入 isolate/nsjail。
+
 ## 本地开发
 
 项目使用两个职责不同、互不混用的环境：

@@ -16,6 +16,7 @@ data/splits/
 data/splits/*
 !data/splits/eval_v1_problem_ids.json
 !data/splits/eval_v1_fingerprints.json
+!data/splits/agent_eval_v1_problem_ids.json
 outputs/
 .third_party/
 *.log

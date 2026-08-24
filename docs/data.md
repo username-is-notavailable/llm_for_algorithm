@@ -25,6 +25,22 @@ final 处理，但同时记录：
 M8 开发阶段使用 `LocalVerifierBackend`；它只能执行可信、经过审查的代码。正式 rollout 接入强
 sandbox 前不得将该 backend 用于任意来源的不可信代码。
 
+### Agent Eval v1
+
+M9 从冻结 `livecodebench_v1/dev_v1.jsonl` 选择 60 题；原有 10 题 smoke 保持同序并作为 dev
+子集。其余题目按 difficulty 分桶后以 seed `20260825` 稳定排序、轮流取样。每题至少保留一个
+visible 和一个 hidden testcase；visible 取约 20%，最多 5 个。
+
+派生数据不提交 Git，可由下列命令在本地或云端重建：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_agent_eval.py
+```
+
+提交的 `data/splits/agent_eval_v1_problem_ids.json` 固定 smoke/dev problem IDs、每题 visible/hidden
+内容 hash 和总测试数。派生行中的 `tests` 是 `hidden_tests` 的副本，供现有 one-shot evaluator 使用；
+Agent evaluator 会验证同一 manifest 后分别读取 `visible_tests` 和 `hidden_tests`。
+
 Milestone 0 不引入数据集。后续数据均按 `problem_id` 做 problem-level 隔离，并在此记录来源、许可、版本、清洗和切分信息。
 
 ## Output Protocol v1
