@@ -193,6 +193,39 @@ alone does not explain our collapse. Its metrics must not be placed in the froze
 M4/M7 greedy comparison table because both post-training and decoding protocol
 differ.
 
+Run the same 4K official post-trained capacity diagnostic at 1.7B and 4B to test
+whether the fixed smoke failures are primarily a 0.6B capacity limit. Both use the
+same chat template, thinking mode, sampling parameters, and frozen 10 problems as
+the 0.6B 4K run. The local 16GB GPU uses an 8,192-token context; 4B runs one request
+at a time:
+
+```bash
+bash scripts/local_eval_official_qwen3_sizes.sh 1.7b \
+  2>&1 | tee /tmp/qwen3-official-1.7b-4k-smoke.log
+
+bash scripts/local_eval_official_qwen3_sizes.sh 4b \
+  2>&1 | tee /tmp/qwen3-official-4b-4k-smoke.log
+```
+
+These remain sampled post-trained diagnostics, not entries in the frozen Base/SFT
+greedy comparison table.
+
+The first seed-42 run on 2026-08-24 produced:
+
+| Model | pass@1 | extraction | compile | test pass | stop / length | avg response tokens |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen3-1.7B | 0.30 | 0.60 | 0.40 | 0.346 | 4 / 6 | 3,230 |
+| Qwen3-4B | 0.20 | 0.60 | 0.20 | 0.098 | 3 / 7 | 3,502 |
+
+Both models solved two of three easy problems. The 1.7B model also solved one
+medium problem, while neither model solved a hard problem. Every hard response
+from both sizes reached the 4,096-token limit. Inspection showed predominantly
+unfinished long reasoning rather than the severe repetitive loops observed in the
+failed 0.6B SFT checkpoints. This ten-problem, one-sample result supports a model
+capacity effect (1.7B beats the comparable official 0.6B run), but it does not
+establish that 1.7B is intrinsically better than 4B; compare additional seeds or a
+longer generation limit before choosing between them.
+
 ## M7-v3 matched response-format data
 
 The long-output diagnostics motivate a matched data experiment rather than another
