@@ -406,6 +406,11 @@ termination reason 都有测试；Agent 与 sandbox backend 解耦。
 `execute_code` 仅使用 visible tests。支持完整 trajectory 落盘、单 GPU resume 和两 GPU
 problem sharding。Qwen3-1.7B-Base 先完成云端 gate，再运行 4B 对照。
 
+M9 已于 2026-08-24 验收。官方 post-trained Qwen3-4B 的 60 题能力参考中，Agent 首次/最终成功率
+为 40.0%/53.3%，首次失败后的 repair success 为 25.0%；但 action validity 仅 0.8%，fallback
+为 99.2%。全部 trajectory 完成结构化审计，并人工核验 9 条成功修复与 1 条退化轨迹。该结果确认
+execution feedback 有效，同时为 Agent action、停止决策和修复效率留下明确后训练空间。
+
 ### M10：Repair SFT 数据构造
 
 - 收集 Base 模型真实首次失败并按错误类型分桶；

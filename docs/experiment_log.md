@@ -10,7 +10,7 @@
   Agent metrics；
 - `LocalVerifierBackend` 仅用于可信代码的本地开发，不宣称强安全隔离。
 
-## M9 — Agent prompting baseline implementation
+## M9 — Agent prompting baseline（完成）
 
 - 固定 Qwen3-1.7B-Base revision `ea980cb0a6c2ae4b936e82123acc929f1cec04c1`；
 - 固定 Qwen3-4B-Base revision `906bfd4b4dc7f14ee4320094d8b41684abff8539`；
@@ -25,7 +25,22 @@
 - 新增 trajectory artifacts、resume、两 GPU problem sharding 和严格 shard merge；
 - 无可提取代码或 length 截断的生成同样写入 trajectory；hidden testcase 指标按完整题集计分；
 - 支持用环境变量临时覆盖单轮/累计生成预算，长输出诊断与冻结 baseline 使用不同 experiment ID；
-- 云端能力结果待运行，不在本地实现阶段记录模型结论。
+- 2026-08-24，官方 post-trained Qwen3-4B 在冻结 60 题 agent-dev 上完成 8K 诊断：
+  - Git commit：`979a5fb`；one-shot experiment：
+    `m9-oneshot-qwen3-4b-posttrained-dev-v1-long8k-20260824-211926`；
+  - Agent experiment：`m9-agent-qwen3-4b-posttrained-dev-v1-long8k-20260824-221532`；
+  - one-shot pass@1：28/60（46.7%）；Agent 同轨迹首次成功：24/60（40.0%），最终成功：
+    32/60（53.3%），净增 8 题（+13.3 pp）；
+  - 首次失败 36 题中 9 题修复成功，repair success 25.0%；其中 8 条从 compile error
+    恢复、1 条从 wrong answer 恢复；另有 1 条首次正确后退化；
+  - easy/medium/hard Agent success 分别为 90.0%/52.6%/19.0%，相对首次生成分别提升
+    5.0/21.1/14.3 pp；
+  - action validity 0.8%，fallback 99.2%，explicit final 1.7%；终止原因为 repeated code 31、
+    code extraction failed 20、success 5、final incorrect 3、model stop without code 1；
+  - 对全部 60 条做结构化审计，并人工核验全部 9 条 repair 与 1 条 regression；确认存在真实利用
+    compiler/test feedback 的修复，同时暴露工具协议、停止决策和效率上的明确训练空间；
+  - 结论：M9 验收完成。1.7B 保留为低成本训练 gate，4B 作为正式主模型；M10 优先构造
+    Agent action/termination 与 execution-guided repair 数据。
 
 每次云端实验记录：experiment ID、Git commit、配置路径、GPU/CUDA/依赖版本、命令、结果与异常。
 
