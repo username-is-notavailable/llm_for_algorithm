@@ -414,6 +414,8 @@ execution feedback 有效，同时为 Agent action、停止决策和修复效率
 ### M10：Repair SFT 数据构造
 
 - 收集 Base 模型真实首次失败并按错误类型分桶；
+- executable problem 主线直接使用 TACO 原生 question/tests，并以 native solution full-pass 作为
+  数据可靠性 gate；OCR2 仅作为独立 one-shot 辅助源，不再负责 Agent 环境选题；
 - 用多 GPU problem sharding 运行官方 post-trained 4B；验证通过且无循环的短输出作为 one-shot
   teacher target，带完整错误代码的失败进入 repair pool；
 - SFT 初始化仍先实验 1.7B/4B Base；若固定数据下出现循环、协议或 coding 能力 gate 失败，再用同一

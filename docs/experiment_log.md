@@ -75,6 +75,10 @@
   损坏；OCR2 reference code 仅 217/300 full-pass，83 条不可信（81 WA、2 runtime error）。
   正式 M10 preparation 因此加入 reference full-pass gate，并继续扫描固定 600 候选直至补足
   300 条干净任务；旧 failure rollout 不得与新 manifest 混用。
+- TACO native-solution 对照抽样中，OCR2-pass 组 9/9 有解答样本由 TACO solution full-pass；
+  OCR2-fail 组 0/8 full-pass，且两组题面均 10/10 与 TACO row 精确一致。这否定了简单的本地
+  index 错配假设，并暴露 TACO 部分 tests/solutions 内部不自洽。后续 Agent smoke 不再依赖
+  OCR2，直接扫描 TACO，并要求至少一份 native solution 本地 full-pass；先冻结 200 条。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 

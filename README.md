@@ -94,6 +94,25 @@ teacher 修复层。后续 SFT 初始化仍先实验 Base；这是数据 produce
 失败样本由阿里云百炼 OpenAI-compatible API 的 `qwen3-8b` 并发修复；每轮候选必须经过本地
 verifier，模型只看到 visible feedback，hidden tests 仅用于接收/拒绝数据。
 
+当前小规模 SFT smoke 改为直接从 TACO 构造 executable problems，不依赖 OCR2 选题或代码。
+每题必须是非交互 stdin/stdout、与 eval 隔离、至少两个 testcase，并且最多尝试三份 TACO 原生
+Python solution 后至少一份 full-pass。先在本地冻结 200 条：
+
+```bash
+HF_HOME="$PWD/cache/m10_source_audit" \
+.third_party/verl/.venv/bin/python scripts/prepare_taco_native_sft.py \
+  2>&1 | tee /tmp/qwen3-m10-taco-native-prepare.log
+```
+
+输出是 `data/processed/repair_sft_native_v1/train_agent_smoke_200.jsonl` 和
+`data/splits/repair_train_native_smoke_v1_manifest.json`。上传这两个文件后，在两张 A100 40GB 上运行：
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1 \
+bash scripts/cloud_generate_m10_native_failures.sh \
+  2>&1 | tee /tmp/qwen3-m10-native-4b-rollout.log
+```
+
 先从已有 SFT provenance 解析固定 TACO train pilot。该步骤只补取 testcase，并再次执行 eval
 fingerprint 检查：
 
