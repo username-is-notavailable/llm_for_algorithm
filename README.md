@@ -87,6 +87,42 @@ pass rate、action validity/fallback、主动 final、execution/token efficiency
 当前 `LocalVerifierBackend` 延续项目原 verifier 的 resource limit，只能用于固定 benchmark 和受控
 实验。它不提供文件系统或网络强隔离；正式扩大 rollout 前仍需在云平台接入 isolate/nsjail。
 
+## M10 API repair data pilot
+
+M10 保留 1.7B/4B Base GPU rollout 作为真实 failure producer，不再设置本地 teacher 修复层。失败
+样本由阿里云百炼 OpenAI-compatible API 的 `qwen3-8b` 并发修复；每轮候选必须经过本地 verifier，
+模型只看到 visible feedback，hidden tests 仅用于接收/拒绝数据。
+
+先将 GPU generation artifacts 和对应的、与 eval 隔离的训练题合并为 failure pool：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/build_repair_failure_pool.py \
+  --problems data/processed/repair_sft_v1/train_agent.jsonl \
+  --generations outputs/failure_rollout/SHARD_*/generations.jsonl \
+  --student-model Qwen/Qwen3-4B-Base \
+  --exclude-manifest data/splits/agent_eval_v1_problem_ids.json \
+  --output data/processed/repair_sft_v1/failure_pool_pilot.jsonl
+```
+
+设置密钥并启动 50 条 pilot。密钥只从环境读取，不得写入配置或日志：
+
+```bash
+export DASHSCOPE_API_KEY='...'
+bash scripts/cloud_generate_repair_api.sh \
+  2>&1 | tee /tmp/qwen3-m10-api-repair-pilot.log
+```
+
+任务状态保存在 run 目录的 `tasks.sqlite3`，支持中断恢复：
+
+```bash
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m10_repair_api_pilot.yaml \
+  --resume outputs/data_generation/RUN_DIR
+```
+
+产物分别写入 `accepted.jsonl` 与 `rejected.jsonl`。API 的 reasoning、最终 content、usage 和 request
+ID 分开记录；接收要求 full tests 通过、每轮 action 显式有效且最后主动 `final`。
+
 ## 本地开发
 
 项目使用两个职责不同、互不混用的环境：

@@ -92,6 +92,8 @@ def run_agent(
                         prompt_tokens=None,
                         generation_tokens=generated.token_count,
                         finish_reason=generated.finish_reason,
+                        reasoning_content=generated.reasoning_content,
+                        provider_metadata=dict(generated.provider_metadata),
                     ),
                     observation=None,
                     hidden_evaluation=None,
@@ -135,6 +137,8 @@ def run_agent(
             prompt_tokens=None,
             generation_tokens=generated.token_count,
             finish_reason=generated.finish_reason,
+            reasoning_content=generated.reasoning_content,
+            provider_metadata=dict(generated.provider_metadata),
         )
 
         if (

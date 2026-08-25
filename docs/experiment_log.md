@@ -44,6 +44,17 @@
 
 每次云端实验记录：experiment ID、Git commit、配置路径、GPU/CUDA/依赖版本、命令、结果与异常。
 
+## M10 — API repair data pipeline（进行中）
+
+- 冻结架构为“多 GPU Base failure producer → CPU verifier → 百炼 API repair worker”；取消本地
+  post-trained teacher 修复层；
+- primary teacher 为 `qwen3-8b`，更强模型由固定 failure 子集 bake-off 后选择；
+- 百炼接口使用 OpenAI-compatible streaming API，默认 1M TPM / 600 RPM、16 workers；
+- API key 仅从 `DASHSCOPE_API_KEY` 读取，reasoning/content/usage/request ID 分离保存；
+- 新增 SQLite 持久化任务队列、lease 恢复、幂等 task ID、并发限流和 API 重试；
+- repair 每轮都使用真实 visible execution feedback；hidden evaluation 只用于数据 gate；
+- 50 条 pilot 只接收 full-test success、全部 action explicit 且最终显式 `final` 的 trajectory。
+
 ## Milestone 0
 
 - 2026-08-20，本地 WSL + Docker Desktop 验证（旧环境路径，现已退役）：

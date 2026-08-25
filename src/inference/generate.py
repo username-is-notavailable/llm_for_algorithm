@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Protocol
 
 
@@ -10,6 +10,8 @@ class GeneratedText:
     text: str
     token_count: int
     finish_reason: str | None
+    reasoning_content: str | None = None
+    provider_metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class TextGenerator(Protocol):

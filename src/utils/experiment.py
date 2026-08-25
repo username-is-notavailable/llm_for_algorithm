@@ -34,7 +34,15 @@ def git_commit() -> str | None:
 def collect_environment() -> dict[str, Any]:
     packages = {
         name: package_version(name)
-        for name in ("torch", "transformers", "accelerate", "verl", "vllm", "flash-attn")
+        for name in (
+            "torch",
+            "transformers",
+            "accelerate",
+            "verl",
+            "vllm",
+            "flash-attn",
+            "openai",
+        )
     }
     info: dict[str, Any] = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
@@ -80,4 +88,3 @@ def save_experiment_metadata(path: Path, config: dict[str, Any], metadata: dict[
     (path / "environment.json").write_text(
         json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"
     )
-

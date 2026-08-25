@@ -414,13 +414,16 @@ execution feedback 有效，同时为 Agent action、停止决策和修复效率
 ### M10：Repair SFT 数据构造
 
 - 收集 Base 模型真实首次失败并按错误类型分桶；
-- 生成修复候选并重新执行验证；
+- 用多 GPU problem sharding 并发产生 1.7B/4B Base 真实失败；
+- 不设置本地 teacher 修复层；默认用百炼 `qwen3-8b` API 并发生成修复候选，每轮重新执行验证；
+- 8B 未解决的任务再路由到经固定小样本 bake-off 选出的更强 API 模型；
 - 构造 one-shot、single-step repair 和 multi-turn 混合数据；
 - 完成 problem-level 隔离、去重、数据卡和人工 audit；
-- 先冻结 1K pilot，不提前扩大规模。
+- 先冻结 50 条 pipeline pilot，通过后扩大并冻结 500 条 SFT pilot。
 
 验收要求 wrong code 实际失败、repair target 通过全部 tests、feedback 与 JudgeResult 一致且无 eval
-problem 泄漏。
+problem 泄漏。API key 只从环境变量读取；保存 provider/model、请求 ID、usage、reasoning、content、
+生成参数和时间，hidden tests 及其结果不得进入模型消息。
 
 ### M11：Qwen3-1.7B Agentic SFT Pilot
 

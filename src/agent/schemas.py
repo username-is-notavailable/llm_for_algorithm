@@ -96,6 +96,8 @@ class CandidateSubmission:
     prompt_tokens: int | None
     generation_tokens: int
     finish_reason: str | None
+    reasoning_content: str | None = None
+    provider_metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
