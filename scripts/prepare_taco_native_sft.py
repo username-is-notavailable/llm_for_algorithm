@@ -10,8 +10,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from scripts.audit_taco_native_solutions import judge_python, parse_solutions
-from scripts.prepare_repair_train import parse_taco_tests
+try:
+    from scripts.audit_taco_native_solutions import judge_python, parse_solutions
+    from scripts.prepare_repair_train import parse_taco_tests
+except ModuleNotFoundError:  # Direct execution adds scripts/, not the project root, to sys.path.
+    from audit_taco_native_solutions import judge_python, parse_solutions
+    from prepare_repair_train import parse_taco_tests
 from src.data.agent_eval import row_test_hash, split_visible_hidden_tests, write_jsonl
 from src.data.sft import is_eval_leak, normalize_difficulty
 from src.utils.config import load_config, require_sections
