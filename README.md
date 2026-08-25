@@ -96,7 +96,8 @@ verifier，模型只看到 visible feedback，hidden tests 仅用于接收/拒�
 
 当前小规模 SFT smoke 改为直接从 TACO 构造 executable problems，不依赖 OCR2 选题或代码。
 每题必须是非交互 stdin/stdout、与 eval 隔离、至少两个 testcase，并且最多尝试三份 TACO 原生
-Python solution 后至少一份 full-pass。先在本地冻结 200 条：
+Python solution 后至少一份 full-pass。筛选最多使用 200 个 testcase，而 Agent 每次只看到最多
+5 个 visible tests，其余留作 hidden final gate。先在本地冻结 200 条：
 
 ```bash
 HF_HOME="$PWD/cache/m10_source_audit" \

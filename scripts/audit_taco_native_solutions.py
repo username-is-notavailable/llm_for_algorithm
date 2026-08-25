@@ -40,6 +40,7 @@ def judge_python(
     timeout_seconds: float,
     memory_limit_bytes: int,
     output_limit_bytes: int,
+    stop_on_first_failure: bool = False,
 ) -> dict[str, Any]:
     with tempfile.TemporaryDirectory(prefix="qwen3-taco-python-") as directory:
         workdir = Path(directory)
@@ -71,6 +72,8 @@ def judge_python(
                 passed += 1
             elif first_error is None:
                 first_error = error
+            if error is not None and stop_on_first_failure:
+                break
         return {
             "passed": passed,
             "total": len(tests),
@@ -137,6 +140,7 @@ def main() -> int:
                 timeout_seconds=6,
                 memory_limit_bytes=512 * 1024 * 1024,
                 output_limit_bytes=1024 * 1024,
+                stop_on_first_failure=False,
             )
             attempts.append(result)
             if result["pass_rate"] == 1.0:

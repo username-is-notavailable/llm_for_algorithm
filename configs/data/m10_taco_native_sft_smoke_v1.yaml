@@ -5,10 +5,10 @@ source:
   eval_fingerprints: data/splits/eval_v1_fingerprints.json
 selection:
   seed: 20260825
-  scan_limit: 20000
-  candidate_pool_size: 800
+  scan_limit: 50000
+  candidate_pool_size: 1200
   target_count: 200
-  max_tests: 50
+  max_tests: 200
   max_native_solutions: 3
 native_gate:
   execution_timeout_seconds: 6
@@ -17,7 +17,7 @@ native_gate:
 test_split:
   seed: 20260825
   visible_fraction: 0.4
-  visible_max: 10
+  visible_max: 5
 output:
   dataset: data/processed/repair_sft_native_v1/train_agent_smoke_200.jsonl
   manifest: data/splits/repair_train_native_smoke_v1_manifest.json

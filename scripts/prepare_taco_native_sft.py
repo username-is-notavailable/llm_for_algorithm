@@ -115,6 +115,7 @@ def main() -> int:
                 timeout_seconds=float(gate["execution_timeout_seconds"]),
                 memory_limit_bytes=int(gate["memory_limit_mb"]) * 1024 * 1024,
                 output_limit_bytes=int(gate["output_limit_bytes"]),
+                stop_on_first_failure=True,
             )
             if result["pass_rate"] == 1.0:
                 passing_index, passing_result = solution_index, result
