@@ -5,6 +5,7 @@ import collections
 import hashlib
 import json
 import os
+from decimal import Decimal
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
@@ -21,8 +22,8 @@ def tests_sha256(tests: list[dict[str, str]]) -> str:
 def parse_tests(value: Any, *, max_tests: int) -> list[dict[str, str]] | None:
     if isinstance(value, str):
         try:
-            value = json.loads(value)
-        except json.JSONDecodeError:
+            value = json.loads(value, parse_int=Decimal)
+        except (json.JSONDecodeError, ValueError):
             return None
     if not isinstance(value, dict) or value.get("fn_name"):
         return None
@@ -33,7 +34,7 @@ def parse_tests(value: Any, *, max_tests: int) -> list[dict[str, str]] | None:
     seen: set[tuple[str, str]] = set()
     for input_value, output_value in zip(inputs, outputs):
         if not isinstance(input_value, str) or not isinstance(output_value, str):
-            continue
+            return None
         key = (input_value, output_value)
         if key in seen or len(input_value) > 1_000_000 or len(output_value) > 1_000_000:
             continue

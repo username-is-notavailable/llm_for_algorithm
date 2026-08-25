@@ -14,3 +14,9 @@ def test_parse_taco_stdin_tests() -> None:
 def test_parse_taco_rejects_function_call_and_insufficient_tests() -> None:
     assert parse_taco_tests({"fn_name": "solve", "inputs": [1], "outputs": [1]}, max_tests=10) is None
     assert parse_taco_tests({"inputs": ["1"], "outputs": ["1"]}, max_tests=10) is None
+
+
+def test_parse_taco_rejects_unquoted_huge_numeric_testcase() -> None:
+    huge = "9" * 5000
+    value = '{"inputs": [' + huge + ', "2"], "outputs": ["1", "2"]}'
+    assert parse_taco_tests(value, max_tests=10) is None

@@ -7,6 +7,7 @@ import json
 import os
 import sys
 from collections import Counter
+from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
@@ -19,8 +20,10 @@ from src.verifier import judge
 def parse_taco_tests(value: Any, *, max_tests: int) -> list[dict[str, str]] | None:
     if isinstance(value, str):
         try:
-            value = json.loads(value)
-        except json.JSONDecodeError:
+            # Decimal avoids Python's huge-integer conversion guard without
+            # silently treating a non-string testcase as valid stdin/stdout.
+            value = json.loads(value, parse_int=Decimal)
+        except (json.JSONDecodeError, ValueError):
             return None
     if not isinstance(value, dict) or value.get("fn_name"):
         return None
@@ -31,7 +34,7 @@ def parse_taco_tests(value: Any, *, max_tests: int) -> list[dict[str, str]] | No
     seen = set()
     for input_value, output_value in zip(inputs, outputs):
         if not isinstance(input_value, str) or not isinstance(output_value, str):
-            continue
+            return None
         key = (input_value, output_value)
         if key in seen or len(input_value) > 1_000_000 or len(output_value) > 1_000_000:
             continue

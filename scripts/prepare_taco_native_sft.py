@@ -7,6 +7,7 @@ import hashlib
 import json
 import os
 import sys
+import traceback
 from pathlib import Path
 from typing import Any
 
@@ -204,7 +205,13 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    exit_code = main()
+    try:
+        exit_code = main()
+    except SystemExit as error:
+        exit_code = int(error.code or 0)
+    except BaseException:
+        traceback.print_exc()
+        exit_code = 1
     sys.stdout.flush()
     sys.stderr.flush()
     os._exit(exit_code)
