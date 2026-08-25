@@ -127,6 +127,30 @@ bash scripts/cloud_generate_repair_api.sh \
   2>&1 | tee /tmp/qwen3-m10-native-api-repair.log
 ```
 
+也可以从同一份 200 题 frozen dataset 运行 verifier-gated one-shot 蒸馏。8B 先处理全部题目，
+只有未通过 full tests、无代码、截断、过长或明显重复的响应才进入 32B escalation。API 的私有
+`reasoning_content` 仅作为 provenance 保存，SFT target 只使用简短的 visible response：
+启动 API 请求前会校验 frozen manifest、dataset SHA-256 和逐题 test split hash，避免对错误或被修改
+的数据付费生成。
+
+```bash
+export DASHSCOPE_API_KEY='...'
+bash scripts/local_generate_m10_distillation.sh \
+  2>&1 | tee /tmp/qwen3-m10-native-distillation.log
+```
+
+中断后使用原 run 目录恢复，不会重复请求已完成任务：
+
+```bash
+bash scripts/local_generate_m10_distillation.sh \
+  configs/data/m10_distillation_api_native_smoke.yaml \
+  --resume outputs/data_generation/RUN_DIR
+```
+
+run 目录包含两个独立 SQLite 队列、各阶段 accepted/rejected、合并后的 `accepted.jsonl` 以及
+`metrics.json`。硬生成上限为 8,192 tokens；visible target 估算超过 4,096 tokens 仍会拒绝，
+避免把长推演蒸馏给 student。
+
 先从已有 SFT provenance 解析固定 TACO train pilot。该步骤只补取 testcase，并再次执行 eval
 fingerprint 检查：
 

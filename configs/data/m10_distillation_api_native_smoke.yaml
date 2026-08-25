@@ -1,0 +1,42 @@
+experiment:
+  name: m10-native-distillation-8b-32b-smoke-v1
+  output_dir: outputs/data_generation
+input:
+  dataset: data/processed/repair_sft_native_v1/train_agent_smoke_200.jsonl
+  manifest: data/splits/repair_train_native_smoke_v1_manifest.json
+  manifest_split: train
+api:
+  provider: dashscope
+  base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  api_key_env: DASHSCOPE_API_KEY
+  enable_thinking: true
+  concurrency: 16
+  requests_per_minute: 600
+  tokens_per_minute: 1000000
+  prompt_token_reserve: 8192
+  timeout_seconds: 180
+  max_retries: 5
+  retry_base_seconds: 1
+  retry_max_seconds: 30
+teachers:
+  primary:
+    stage: qwen3-8b
+    model: qwen3-8b
+  escalation:
+    stage: qwen3-32b
+    model: qwen3-32b
+generation:
+  max_new_tokens: 8192
+  temperature: 0.6
+  top_p: 0.95
+acceptance:
+  max_visible_tokens_estimated: 4096
+verifier:
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576
+queue:
+  progress_interval_seconds: 10
+  lease_timeout_seconds: 3600
+  max_task_attempts: 1

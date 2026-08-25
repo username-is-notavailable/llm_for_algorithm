@@ -89,6 +89,11 @@
   28 条不超过 4,096 tokens、正常 stop 且无明显重复的 one-shot，以及 36 条真实 failure。
   全体 pass@1=28.5%；126/200 因 length 结束。该结果表明主要损耗来自过长 thinking，而不是
   分片或 verifier；无代码输出不进入 repair SFT，后续另做短思考 producer 消融。
+- 新增本地两阶段 teacher distillation：`qwen3-8b` 覆盖全部 200 题，任何未满足完整测试与简短
+  target gate 的题自动交给 `qwen3-32b` 独立重做。两阶段均使用 SQLite 断点队列和同一 full-test
+  verifier；私有 reasoning 与 visible target 分离保存，生成硬上限 8K、visible target gate 4K。
+  原有 36 条 4B failure 继续走独立 execution-feedback repair pipeline，避免 one-shot 蒸馏取代
+  self-repair 研究主线。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 
