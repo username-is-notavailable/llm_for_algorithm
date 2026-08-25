@@ -94,6 +94,12 @@
   verifier；私有 reasoning 与 visible target 分离保存，生成硬上限 8K、visible target gate 4K。
   原有 36 条 4B failure 继续走独立 execution-feedback repair pipeline，避免 one-shot 蒸馏取代
   self-repair 研究主线。
+- 2026-08-25，两阶段 one-shot distillation 完成：8B full-pass 36/200（18.0%）；其余 164 条
+  交给 32B 后 full-pass 95/164（57.9%），合计得到 131/200（65.5%）verified one-shot，剩余
+  69 条均为 verification failure。两阶段所有响应均正常 stop、均成功抽取代码；32B 的 164/164
+  响应均含单个标准 C++ fence，可见 target 最大估算 1,562 tokens。因此当前 one-shot 瓶颈是
+  correctness 而非格式，无需切换 native tool calling。32B 私有 thinking 成本仍偏高：completion
+  tokens p50=12,029、p95=21,597；后续单独做 thinking budget/关闭 thinking 消融。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 
