@@ -84,6 +84,11 @@
   full-pass。每题 tests 数量 p50=101、p90=180、p95=200、max=200；difficulty 为 easy 53、
   medium 59、hard 47、unknown 41。数据 SHA-256 为
   `ec04aba7b92ddddedc500362c8d80c5aeddcb0566c7693143e29545218da73e2`。
+- 官方 post-trained Qwen3-4B 在两张 A100 40GB 上完成 200/200 首次生成：57 条 full-pass、
+  36 条生成了可执行但未通过全部测试的代码、107 条在 8,192 tokens 时仍未输出代码。最终冻结
+  28 条不超过 4,096 tokens、正常 stop 且无明显重复的 one-shot，以及 36 条真实 failure。
+  全体 pass@1=28.5%；126/200 因 length 结束。该结果表明主要损耗来自过长 thinking，而不是
+  分片或 verifier；无代码输出不进入 repair SFT，后续另做短思考 producer 消融。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 

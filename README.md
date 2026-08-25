@@ -117,6 +117,16 @@ bash scripts/cloud_generate_m10_native_failures.sh \
   2>&1 | tee /tmp/qwen3-m10-native-4b-rollout.log
 ```
 
+将生成的 `failure_pool_smoke.jsonl` 与 `one_shot_candidates_smoke.jsonl` 下载回本地后，不需要
+GPU 即可对 native-validated failure 运行 8B API repair：
+
+```bash
+export DASHSCOPE_API_KEY='...'
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m10_repair_api_native_smoke.yaml \
+  2>&1 | tee /tmp/qwen3-m10-native-api-repair.log
+```
+
 先从已有 SFT provenance 解析固定 TACO train pilot。该步骤只补取 testcase，并再次执行 eval
 fingerprint 检查：
 
