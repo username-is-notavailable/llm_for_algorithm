@@ -9,6 +9,12 @@ selection:
   candidate_count: 600
   target_count: 300
   max_tests: 50
+reference_gate:
+  require_full_pass: true
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576
 test_split:
   seed: 20260825
   visible_fraction: 0.4

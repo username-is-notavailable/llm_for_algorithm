@@ -13,6 +13,7 @@ from typing import Any
 from src.data.agent_eval import row_test_hash, split_visible_hidden_tests, write_jsonl
 from src.data.sft import is_eval_leak, stable_order
 from src.utils.config import load_config, require_sections
+from src.verifier import judge
 
 
 def parse_taco_tests(value: Any, *, max_tests: int) -> list[dict[str, str]] | None:
@@ -56,7 +57,7 @@ def main() -> int:
     parser.add_argument("--config", default="configs/data/m10_repair_train_v1.yaml")
     args = parser.parse_args()
     config = load_config(args.config)
-    require_sections(config, "source", "selection", "test_split", "output")
+    require_sections(config, "source", "selection", "reference_gate", "test_split", "output")
     cache = Path(__file__).resolve().parents[1] / "cache" / "huggingface"
     if cache.is_dir():
         os.environ.setdefault("HF_HOME", str(cache))
@@ -84,6 +85,7 @@ def main() -> int:
         "fingerprints"
     ]
     remaining = set(wanted)
+    reference_checked = 0
     try:
         for index, taco in enumerate(iterator):
             if index not in remaining:
@@ -99,6 +101,25 @@ def main() -> int:
             if tests is None:
                 rejected["unsupported_or_insufficient_tests"] += 1
                 continue
+            gate = config["reference_gate"]
+            reference = judge(
+                selected["code"],
+                tests,
+                compile_timeout_seconds=float(gate["compile_timeout_seconds"]),
+                execution_timeout_seconds=float(gate["execution_timeout_seconds"]),
+                memory_limit_bytes=int(gate["memory_limit_mb"]) * 1024 * 1024,
+                output_limit_bytes=int(gate["output_limit_bytes"]),
+            )
+            reference_checked += 1
+            if reference_checked % 25 == 0:
+                print(
+                    f"Reference checked {reference_checked}; accepted {len(resolved)}/"
+                    f"{selection['target_count']}",
+                    flush=True,
+                )
+            if bool(gate["require_full_pass"]) and reference.pass_rate != 1.0:
+                rejected[f"reference_{reference.error_type or 'not_full_pass'}"] += 1
+                continue
             row = {
                 "problem_id": selected["problem_id"],
                 "source": "BAAI/TACO",
@@ -111,6 +132,14 @@ def main() -> int:
                     "test_source_dataset": source["dataset"],
                     "test_source_revision": source["revision"],
                     "test_source_index": index,
+                    "reference_verification": {
+                        "code_source": "nvidia/OpenCodeReasoning-2",
+                        "compiled": reference.compiled,
+                        "passed": reference.passed,
+                        "total": reference.total,
+                        "pass_rate": reference.pass_rate,
+                        "error_type": reference.error_type,
+                    },
                 },
             }
             adapted = split_visible_hidden_tests(
@@ -149,6 +178,7 @@ def main() -> int:
         "schema_version": "repair-train-v1",
         "source": source,
         "selection": selection,
+        "reference_gate": config["reference_gate"],
         "test_split": config["test_split"],
         "problem_ids": {"train": [row["problem_id"] for row in rows]},
         "test_sha256": {row["problem_id"]: row_test_hash(row) for row in rows},
@@ -159,6 +189,7 @@ def main() -> int:
             "hidden_tests": sum(len(row["hidden_tests"]) for row in rows),
             "difficulty": dict(Counter(row["difficulty"] for row in rows)),
             "rejected": dict(rejected),
+            "reference_checked": reference_checked,
         },
         "dataset_sha256": hashlib.sha256(Path(output["dataset"]).read_bytes()).hexdigest(),
     }

@@ -97,9 +97,17 @@ verifier，模型只看到 visible feedback，hidden tests 仅用于接收/拒�
 先从已有 SFT provenance 解析固定 TACO train pilot。该步骤只补取 testcase，并再次执行 eval
 fingerprint 检查：
 
+候选必须同时通过 eval fingerprint gate 和 OCR2 reference code 的本地 full-test gate。若已运行
+source audit，直接复用其隔离下载缓存继续扫描 600 个候选，直到补足 300 条：
+
 ```bash
-.third_party/verl/.venv/bin/python scripts/prepare_repair_train.py
+HF_HOME="$PWD/cache/m10_source_audit" \
+.third_party/verl/.venv/bin/python scripts/prepare_repair_train.py \
+  2>&1 | tee /tmp/qwen3-m10-prepare-clean-300.log
 ```
+
+该命令会覆盖 `train_agent_pilot.jsonl` 和对应 manifest；旧 rollout artifacts 保持不变，但不得与
+新 manifest 混用。manifest 会记录 reference gate、检查数量及各拒绝原因。
 
 在四张 GPU 上按 problem 分片运行官方 post-trained 4B：
 
