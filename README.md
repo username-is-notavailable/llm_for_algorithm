@@ -149,6 +149,20 @@ bash scripts/cloud_generate_repair_api.sh \
 产物分别写入 `accepted.jsonl` 与 `rejected.jsonl`。API 的 reasoning、最终 content、usage 和 request
 ID 分开记录；接收要求 full tests 通过、每轮 action 显式有效且最后主动 `final`。
 
+若怀疑 OCR2/TACO 本地缓存或 source testcase 损坏，先停止 API 调用。以下命令只删除 OCR2、
+TACO 的 hub 缓存入口和专用审计缓存，不删除模型或其他数据集；随后在全新隔离缓存中重新下载固定
+TACO revision、逐题比较 fresh/frozen testcase，并执行 OCR2 teacher code：
+
+```bash
+bash scripts/redownload_audit_m10_sources.sh --purge \
+  2>&1 | tee /tmp/qwen3-m10-source-audit.log
+```
+
+审计报告和 reference-full-pass 子集分别写到
+`data/processed/repair_sft_v1/source_audit/audit_report.json` 与
+`train_agent_reference_full_pass.jsonl`。只有 fresh testcase 与 frozen 完全一致、且 reference code
+本地 full-pass 的题目才允许进入后续 failure rollout。
+
 8B pilot 完成后，将通过 full tests 但缺失 action 的输出确定性规范化；规范化只补齐 pipeline
 实际采用的 action，不修改代码、reasoning 或执行结果，并显式记录 provenance。真正失败的轨迹以
 可见测试表现最好的 8B 候选为起点交给 32B 接力：
