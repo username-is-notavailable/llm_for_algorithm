@@ -58,6 +58,8 @@
 - 新增 SQLite 持久化任务队列、lease 恢复、幂等 task ID、并发限流和 API 重试；
 - repair 每轮都使用真实 visible execution feedback；hidden evaluation 只用于数据 gate；
 - 50 条 pilot 只接收 full-test success、全部 action explicit 且最终显式 `final` 的 trajectory。
+- M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
+  `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 
 ## Milestone 0
 

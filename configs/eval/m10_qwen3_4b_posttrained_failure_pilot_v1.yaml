@@ -9,10 +9,10 @@ model:
   trust_remote_code: false
   dtype: bfloat16
 inference:
-  max_model_len: 32768
-  gpu_memory_utilization: 0.9
-  max_num_seqs: 4
-  request_batch_size: 4
+  max_model_len: 16384
+  gpu_memory_utilization: 0.92
+  max_num_seqs: 2
+  request_batch_size: 2
   tensor_parallel_size: 1
   seed: 20260825
   enforce_eager: true
