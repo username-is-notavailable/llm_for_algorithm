@@ -38,5 +38,6 @@ verifier:
   output_limit_bytes: 1048576
 queue:
   target_accepted: 50
+  progress_interval_seconds: 10
   lease_timeout_seconds: 3600
   max_task_attempts: 1

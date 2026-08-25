@@ -146,6 +146,23 @@ def run_workers(
     if generator_factory is None:
         generator_factory = lambda: DashScopeAgentGenerator(api, limiter=limiter)
     max_task_attempts = int(config["queue"].get("max_task_attempts", 1))
+    progress_interval = float(config["queue"].get("progress_interval_seconds", 10))
+    progress_stop = threading.Event()
+
+    def report_progress() -> None:
+        while not progress_stop.wait(progress_interval):
+            counts = queue.counts()
+            total = sum(counts.values())
+            finished = sum(counts.get(status, 0) for status in ("accepted", "rejected", "failed"))
+            accepted = counts.get("accepted", 0)
+            accept_rate = accepted / finished if finished else 0.0
+            print(
+                f"Progress: {finished}/{total} finished | accepted={accepted} "
+                f"rejected={counts.get('rejected', 0)} failed={counts.get('failed', 0)} "
+                f"running={counts.get('running', 0)} pending={counts.get('pending', 0)} "
+                f"accept_rate={accept_rate:.1%}",
+                flush=True,
+            )
 
     def worker(index: int) -> None:
         generator = generator_factory()
@@ -166,10 +183,16 @@ def run_workers(
                 # reruns the full trajectory and is intentionally conservative.
                 queue.fail(task_id, f"{type(error).__name__}: {error}", retry=attempts < max_task_attempts)
 
-    with ThreadPoolExecutor(max_workers=int(api["concurrency"])) as executor:
-        futures = [executor.submit(worker, index) for index in range(int(api["concurrency"]))]
-        for future in futures:
-            future.result()
+    progress_thread = threading.Thread(target=report_progress, name="repair-progress", daemon=True)
+    progress_thread.start()
+    try:
+        with ThreadPoolExecutor(max_workers=int(api["concurrency"])) as executor:
+            futures = [executor.submit(worker, index) for index in range(int(api["concurrency"]))]
+            for future in futures:
+                future.result()
+    finally:
+        progress_stop.set()
+        progress_thread.join()
     return queue.counts()
 
 

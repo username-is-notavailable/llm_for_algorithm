@@ -4,6 +4,7 @@ from typing import Any
 
 from src.data.repair_api import process_task
 from src.data.repair_api import repair_prompt
+from src.data.repair_api import run_workers
 from src.inference.generate import GeneratedText
 
 
@@ -75,3 +76,22 @@ def test_process_task_accepts_verified_explicit_repair() -> None:
     first = result["repair_trajectory"]["steps"][0]["submission"]
     assert first["reasoning_content"] == "fix addition"
     assert first["provider_metadata"]["request_id"] == "r-1"
+
+
+def test_workers_emit_progress(tmp_path, capsys) -> None:
+    import time
+
+    from src.data.repair_queue import RepairQueue
+
+    queue = RepairQueue(tmp_path / "tasks.sqlite3")
+    config = {
+        "api": {"concurrency": 1, "requests_per_minute": 600, "tokens_per_minute": 1_000_000},
+        "queue": {"progress_interval_seconds": 0.01, "max_task_attempts": 1},
+    }
+
+    def factory():
+        time.sleep(0.03)
+        return object()
+
+    assert run_workers(queue, config, generator_factory=factory) == {}
+    assert "Progress: 0/0 finished" in capsys.readouterr().out
