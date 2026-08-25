@@ -89,9 +89,25 @@ pass rate、action validity/fallback、主动 final、execution/token efficiency
 
 ## M10 API repair data pilot
 
-M10 保留 1.7B/4B Base GPU rollout 作为真实 failure producer，不再设置本地 teacher 修复层。失败
-样本由阿里云百炼 OpenAI-compatible API 的 `qwen3-8b` 并发修复；每轮候选必须经过本地 verifier，
-模型只看到 visible feedback，hidden tests 仅用于接收/拒绝数据。
+M10 使用官方 post-trained 4B GPU rollout 生成干净的 one-shot 与真实 failure，不再设置本地
+teacher 修复层。后续 SFT 初始化仍先实验 Base；这是数据 producer 与训练 student 两个独立字段。
+失败样本由阿里云百炼 OpenAI-compatible API 的 `qwen3-8b` 并发修复；每轮候选必须经过本地
+verifier，模型只看到 visible feedback，hidden tests 仅用于接收/拒绝数据。
+
+先从已有 SFT provenance 解析固定 TACO train pilot。该步骤只补取 testcase，并再次执行 eval
+fingerprint 检查：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_repair_train.py
+```
+
+在四张 GPU 上按 problem 分片运行官方 post-trained 4B：
+
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3 \
+bash scripts/cloud_generate_m10_failures.sh \
+  2>&1 | tee /tmp/qwen3-m10-4b-rollout.log
+```
 
 先将 GPU generation artifacts 和对应的、与 eval 隔离的训练题合并为 failure pool：
 
@@ -99,9 +115,10 @@ M10 保留 1.7B/4B Base GPU rollout 作为真实 failure producer，不再设置
 .third_party/verl/.venv/bin/python scripts/build_repair_failure_pool.py \
   --problems data/processed/repair_sft_v1/train_agent.jsonl \
   --generations outputs/failure_rollout/SHARD_*/generations.jsonl \
-  --student-model Qwen/Qwen3-4B-Base \
+  --producer-model Qwen/Qwen3-4B \
   --exclude-manifest data/splits/agent_eval_v1_problem_ids.json \
-  --output data/processed/repair_sft_v1/failure_pool_pilot.jsonl
+  --output data/processed/repair_sft_v1/failure_pool_pilot.jsonl \
+  --one-shot-output data/processed/repair_sft_v1/one_shot_candidates_pilot.jsonl
 ```
 
 设置密钥并启动 50 条 pilot。密钥只从环境读取，不得写入配置或日志：

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import collections
 import hashlib
 import json
 from pathlib import Path
@@ -22,11 +23,64 @@ def excluded_ids(paths: list[str]) -> set[str]:
     return values
 
 
+def has_obvious_repetition(text: str) -> bool:
+    lines = [line.strip() for line in text.splitlines() if len(line.strip()) >= 20]
+    return any(count >= 5 for count in collections.Counter(lines).values())
+
+
+def build_one_shot_pool(
+    problems: list[dict[str, Any]],
+    generations: list[dict[str, Any]],
+    *,
+    teacher_model: str,
+    excluded: set[str],
+    max_response_tokens: int,
+) -> list[dict[str, Any]]:
+    by_id = {row["problem_id"]: row for row in problems}
+    output = []
+    seen: set[str] = set()
+    for generation in generations:
+        problem_id = generation.get("problem_id")
+        code = generation.get("code")
+        judge = generation.get("judge") or {}
+        response = generation.get("response")
+        success = judge.get("total", 0) and judge.get("passed") == judge.get("total")
+        if (
+            not success
+            or problem_id in excluded
+            or problem_id not in by_id
+            or problem_id in seen
+            or not isinstance(code, str)
+            or not isinstance(response, str)
+            or generation.get("finish_reason") != "stop"
+            or int(generation.get("response_tokens") or max_response_tokens + 1)
+            > max_response_tokens
+            or has_obvious_repetition(response)
+        ):
+            continue
+        seen.add(problem_id)
+        output.append(
+            {
+                "schema_version": "verified-one-shot-candidate-v1",
+                "problem_id": problem_id,
+                "teacher_model": teacher_model,
+                "problem": by_id[problem_id]["problem"],
+                "difficulty": by_id[problem_id].get("difficulty"),
+                "response": response,
+                "code": code,
+                "generation_tokens": generation.get("response_tokens"),
+                "finish_reason": generation.get("finish_reason"),
+                "judge": judge,
+            }
+        )
+    return output
+
+
 def build_pool(
     problems: list[dict[str, Any]],
     generations: list[dict[str, Any]],
     *,
-    student_model: str,
+    producer_model: str,
     excluded: set[str],
 ) -> list[dict[str, Any]]:
     by_id = {row["problem_id"]: row for row in problems}
@@ -40,7 +94,7 @@ def build_pool(
             continue
         if judge.get("total", 0) and judge.get("passed") == judge.get("total"):
             continue
-        identifier = task_id(problem_id, student_model, code)
+        identifier = task_id(problem_id, producer_model, code)
         if identifier in seen:
             continue
         row = by_id[problem_id]
@@ -52,7 +106,7 @@ def build_pool(
                 "task_id": identifier,
                 "problem": row,
                 "initial_submission": {
-                    "student_model": student_model,
+                    "producer_model": producer_model,
                     "sample_index": generation.get("sample_index", 0),
                     "response": generation.get("response", ""),
                     "code": code,
@@ -69,20 +123,33 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Build a verifier-ready repair failure pool")
     parser.add_argument("--problems", required=True)
     parser.add_argument("--generations", required=True, nargs="+")
-    parser.add_argument("--student-model", required=True)
+    parser.add_argument("--producer-model", required=True)
     parser.add_argument("--exclude-manifest", action="append", default=[])
     parser.add_argument("--output", required=True)
+    parser.add_argument("--one-shot-output")
+    parser.add_argument("--one-shot-max-response-tokens", type=int, default=4096)
     args = parser.parse_args()
     problems = read_jsonl(args.problems)
     generations = [row for path in args.generations for row in read_jsonl(path)]
     rows = build_pool(
         problems,
         generations,
-        student_model=args.student_model,
+        producer_model=args.producer_model,
         excluded=excluded_ids(args.exclude_manifest),
     )
     write_jsonl(args.output, rows)
-    print(json.dumps({"tasks": len(rows), "output": args.output}, indent=2))
+    report = {"repair_tasks": len(rows), "repair_output": args.output}
+    if args.one_shot_output:
+        one_shot = build_one_shot_pool(
+            problems,
+            generations,
+            teacher_model=args.producer_model,
+            excluded=excluded_ids(args.exclude_manifest),
+            max_response_tokens=args.one_shot_max_response_tokens,
+        )
+        write_jsonl(args.one_shot_output, one_shot)
+        report.update({"one_shot_candidates": len(one_shot), "one_shot_output": args.one_shot_output})
+    print(json.dumps(report, indent=2))
     return 0
 
 

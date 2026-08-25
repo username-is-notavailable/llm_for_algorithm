@@ -1,0 +1,18 @@
+source:
+  sft_path: data/processed/sft_10k.jsonl
+  dataset: BAAI/TACO
+  revision: d593ed0a2becbbc952230bb89be09189bf1056dc
+  data_pattern: ALL/{split}-*.parquet
+  eval_fingerprints: data/splits/eval_v1_fingerprints.json
+selection:
+  seed: 20260825
+  candidate_count: 600
+  target_count: 300
+  max_tests: 50
+test_split:
+  seed: 20260825
+  visible_fraction: 0.4
+  visible_max: 10
+output:
+  dataset: data/processed/repair_sft_v1/train_agent_pilot.jsonl
+  manifest: data/splits/repair_train_v1_manifest.json

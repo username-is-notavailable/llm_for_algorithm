@@ -77,7 +77,7 @@ def process_task(
         "problem_id": original.problem_id,
         "difficulty": original.difficulty,
         "source": original.source,
-        "student_model": initial["student_model"],
+        "failure_producer_model": initial["producer_model"],
         "teacher_model": config["api"]["model"],
         "initial_submission": initial,
         "initial_observation": asdict(observation),

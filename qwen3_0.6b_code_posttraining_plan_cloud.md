@@ -414,7 +414,10 @@ execution feedback 有效，同时为 Agent action、停止决策和修复效率
 ### M10：Repair SFT 数据构造
 
 - 收集 Base 模型真实首次失败并按错误类型分桶；
-- 用多 GPU problem sharding 并发产生 1.7B/4B Base 真实失败；
+- 用多 GPU problem sharding 运行官方 post-trained 4B；验证通过且无循环的短输出作为 one-shot
+  teacher target，带完整错误代码的失败进入 repair pool；
+- SFT 初始化仍先实验 1.7B/4B Base；若固定数据下出现循环、协议或 coding 能力 gate 失败，再用同一
+  数据切换到官方 post-trained checkpoint，避免混淆数据 producer 与 student initialization；
 - 不设置本地 teacher 修复层；默认用百炼 `qwen3-8b` API 并发生成修复候选，每轮重新执行验证；
 - 8B 未解决的任务再路由到经固定小样本 bake-off 选出的更强 API 模型；
 - 构造 one-shot、single-step repair 和 multi-turn 混合数据；

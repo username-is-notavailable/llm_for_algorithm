@@ -46,8 +46,12 @@
 
 ## M10 — API repair data pipeline（进行中）
 
-- 冻结架构为“多 GPU Base failure producer → CPU verifier → 百炼 API repair worker”；取消本地
-  post-trained teacher 修复层；
+- 冻结架构为“多 GPU 官方 post-trained 4B data producer → CPU verifier → 百炼 API repair
+  worker”；取消本地 teacher 修复层；
+- producer 的 verified clean/short 输出进入 one-shot pool，完整错误代码进入 repair pool；截断无代码
+  和明显循环输出不作为训练 target；
+- 训练初始化仍先使用 Base，并将 producer/student provenance 分开记录；Base gate 失败时用完全相同
+  数据切换到官方 post-trained initialization；
 - primary teacher 为 `qwen3-8b`，更强模型由固定 failure 子集 bake-off 后选择；
 - 百炼接口使用 OpenAI-compatible streaming API，默认 1M TPM / 600 RPM、16 workers；
 - API key 仅从 `DASHSCOPE_API_KEY` 读取，reasoning/content/usage/request ID 分离保存；

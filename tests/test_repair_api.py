@@ -44,7 +44,7 @@ def test_process_task_accepts_verified_explicit_repair() -> None:
             "hidden_tests": [{"input": "10 20\n", "output": "30\n"}],
         },
         "initial_submission": {
-            "student_model": "fake-base",
+            "producer_model": "fake-posttrained",
             "response": "bad",
             "code": "int main(){BROKEN}",
         },
