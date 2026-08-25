@@ -51,8 +51,11 @@ It received this real execution-environment observation:
 {feedback.strip()}
 
 Analyze the concrete failure, repair the program, and follow the action protocol. Do not invent
-test results. Use execute_code when another execution is needed; after a passed observation, use
-final and return the complete final program."""
+test results. Reason briefly and directly; do not restate the problem or repeat the full derivation.
+In the visible answer, identify the specific cause in at most five short bullet points, then make
+the smallest necessary correction and emit exactly one complete program. Use execute_code when another real
+execution is needed. After a passed observation, do not redesign or regenerate a different
+solution: immediately use final and return the last passing complete program."""
 
 
 def process_task(

@@ -60,6 +60,8 @@
 - 50 条 pilot 只接收 full-test success、全部 action explicit 且最终显式 `final` 的 trajectory。
 - M10 failure producer 提供独立 A100 40GB throughput profile：保留 16K context/8K generation，
   将每卡 `max_num_seqs` 与 request batch 提升到 8；24GB 默认配置保持为并发 2。
+- API repair prompt 要求最多五条短分析、不复述题面、优先最小修改；visible tests 通过后必须直接
+  `final` 并复用最后通过的代码，避免 teacher 产生新的退化候选。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 

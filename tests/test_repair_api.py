@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from src.data.repair_api import process_task
+from src.data.repair_api import repair_prompt
 from src.inference.generate import GeneratedText
 
 
@@ -30,6 +31,14 @@ class FakeTeacher:
             reasoning_content="fix addition",
             provider_metadata={"request_id": f"r-{self.calls}"},
         )
+
+
+def test_repair_prompt_requires_concise_targeted_fix_and_immediate_final() -> None:
+    prompt = " ".join(repair_prompt("Add.", "int main(){}", "Compile error").split())
+    assert "Reason briefly and directly" in prompt
+    assert "at most five short bullet points" in prompt
+    assert "smallest necessary correction" in prompt
+    assert "immediately use final" in prompt
 
 
 def test_process_task_accepts_verified_explicit_repair() -> None:
