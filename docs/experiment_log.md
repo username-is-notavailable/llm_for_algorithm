@@ -68,6 +68,9 @@
 - 数据阶段允许对 full-test verified 输出做可审计的 action canonicalization：只补齐实际执行的
   `execute_code/final` 标签，不修改 reasoning、代码或 JudgeResult。恢复 37 条 8B repair 数据；
   54 条真实失败以可见通过率最好的 8B 候选为起点路由到 `qwen3-32b`。
+- 32B escalation 对 54 条输入新增 7 条 full-test success（严格接收 5、仅协议拒绝 2）；4 条
+  visible-pass/hidden-fail 无反馈，43 条真实失败。失败以算法 WA 为主，且 thinking token 较长，
+  不通过单纯放宽 token 重试；固定抽取 10 条 difficulty-balanced 子集测试 `qwen3-coder-next`。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 

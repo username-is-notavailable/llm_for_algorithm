@@ -165,6 +165,20 @@ bash scripts/cloud_generate_repair_api.sh \
   2>&1 | tee /tmp/qwen3-m10-api-repair-32b.log
 ```
 
+32B 后仍失败的任务先固定抽取 10 条、按 difficulty 轮转平衡，再用 code-specialized teacher
+做小规模 bake-off，禁止直接在完整失败池上试错：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_repair_bakeoff.py \
+  --input data/processed/repair_sft_v1/failure_pool_after_32b.jsonl \
+  --output data/processed/repair_sft_v1/failure_pool_bakeoff_10.jsonl \
+  --size 10
+
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m10_repair_api_bakeoff_coder_next.yaml \
+  2>&1 | tee /tmp/qwen3-m10-coder-next-bakeoff.log
+```
+
 ## 本地开发
 
 项目使用两个职责不同、互不混用的环境：

@@ -4,6 +4,7 @@ from scripts.postprocess_repair_api import canonicalize_success, escalation_payl
 def _row(*, success: bool = True) -> dict:
     return {
         "task_id": "parent",
+        "teacher_model": "qwen3-32b",
         "accepted": False,
         "rejection_reason": "invalid_action_protocol" if success else "repair_failed_full_tests",
         "repair_trajectory": {
@@ -48,5 +49,5 @@ def test_escalation_uses_best_8b_candidate_as_new_initial_submission() -> None:
     )
     assert payload is not None
     assert payload["problem"]["problem_id"] == "p"
-    assert payload["initial_submission"]["producer_model"] == "qwen3-8b"
+    assert payload["initial_submission"]["producer_model"] == "qwen3-32b"
     assert payload["initial_submission"]["parent_task_id"] == "parent"

@@ -68,14 +68,15 @@ def escalation_payload(
         return None
     submission = best["submission"]
     parent_task_id = row["task_id"]
+    producer_model = str(row["teacher_model"])
     identifier = hashlib.sha256(
-        f"{parent_task_id}\0qwen3-8b\0{submission['code']}".encode()
+        f"{parent_task_id}\0{producer_model}\0{submission['code']}".encode()
     ).hexdigest()
     return {
         "task_id": identifier,
         "problem": original["problem"],
         "initial_submission": {
-            "producer_model": "qwen3-8b",
+            "producer_model": producer_model,
             "sample_index": 0,
             "response": submission["response"],
             "code": submission["code"],
