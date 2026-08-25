@@ -1,0 +1,39 @@
+experiment:
+  name: m10-qwen3-4b-posttrained-failure-pilot-v1
+  output_dir: outputs/failure_rollout
+  seed: 20260825
+model:
+  backend: vllm
+  name_or_path: Qwen/Qwen3-4B
+  revision: 1cfa9a7208912126459214e8b04321603b3df60c
+  trust_remote_code: false
+  dtype: bfloat16
+inference:
+  # The longest pilot prompt is <1.5K tokens and generation is capped at 8K;
+  # 16K preserves headroom without reserving unnecessary 32K KV capacity.
+  max_model_len: 16384
+  gpu_memory_utilization: 0.92
+  max_num_seqs: 8
+  request_batch_size: 8
+  tensor_parallel_size: 1
+  seed: 20260825
+  enforce_eager: true
+prompt:
+  template: qwen3_chat_output_protocol_v1
+  enable_thinking: true
+dataset:
+  path: data/processed/repair_sft_v1/train_agent_pilot.jsonl
+  manifest: data/splits/repair_train_v1_manifest.json
+  manifest_split: train
+generation:
+  num_samples: 1
+  max_new_tokens: 8192
+  temperature: 0.6
+  top_p: 0.95
+  top_k: 20
+  seed: 20260825
+verifier:
+  compile_timeout_seconds: 10
+  execution_timeout_seconds: 6
+  memory_limit_mb: 512
+  output_limit_bytes: 1048576

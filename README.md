@@ -109,6 +109,15 @@ bash scripts/cloud_generate_m10_failures.sh \
   2>&1 | tee /tmp/qwen3-m10-4b-rollout.log
 ```
 
+两张 A100 40GB 使用并发 8 的 throughput profile；脚本仍按两路 problem shard 运行：
+
+```bash
+M10_FAILURE_CONFIG=configs/eval/m10_qwen3_4b_posttrained_failure_pilot_40gb_v1.yaml \
+CUDA_VISIBLE_DEVICES=0,1 \
+bash scripts/cloud_generate_m10_failures.sh \
+  2>&1 | tee /tmp/qwen3-m10-4b-rollout.log
+```
+
 先将 GPU generation artifacts 和对应的、与 eval 隔离的训练题合并为 failure pool：
 
 ```bash
