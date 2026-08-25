@@ -420,6 +420,8 @@ execution feedback 有效，同时为 Agent action、停止决策和修复效率
   数据切换到官方 post-trained checkpoint，避免混淆数据 producer 与 student initialization；
 - 不设置本地 teacher 修复层；默认用百炼 `qwen3-8b` API 并发生成修复候选，每轮重新执行验证；
 - 8B 未解决的任务再路由到经固定小样本 bake-off 选出的更强 API 模型；
+- 对代码已通过 full tests、但 teacher 缺失 action 标签的响应允许做确定性协议规范化；必须保留
+  原 run provenance，并记录修改 turn，禁止修改 reasoning、代码或执行结果；
 - 构造 one-shot、single-step repair 和 multi-turn 混合数据；
 - 完成 problem-level 隔离、去重、数据卡和人工 audit；
 - 先冻结 50 条 pipeline pilot，通过后扩大并冻结 500 条 SFT pilot。

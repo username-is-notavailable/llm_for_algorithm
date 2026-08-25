@@ -30,7 +30,9 @@ def build_initial_messages(problem: AgentProblem, config: AgentConfig) -> list[d
                 "Choose <action>execute_code</action> to run visible tests and receive feedback, "
                 "or <action>final</action> to submit your final program. "
                 f"You may request execution feedback at most {config.max_execute_calls} times. "
-                "After the action tag, include exactly one complete program in a ```cpp code fence."
+                "Never omit the action tag. Your visible response must use exactly this shape: "
+                "<action>execute_code</action> (or <action>final</action>), followed by exactly "
+                "one complete program in a ```cpp code fence."
             ),
         },
         {"role": "user", "content": problem.problem.strip()},
@@ -262,7 +264,15 @@ def run_agent(
         messages.extend(
             [
                 {"role": "assistant", "content": generated.text},
-                {"role": "tool", "content": observation.model_feedback},
+                {
+                    "role": "tool",
+                    "content": (
+                        observation.model_feedback
+                        + "\n\nProtocol reminder: begin the next visible response with exactly "
+                        "<action>execute_code</action> to test a correction, or "
+                        "<action>final</action> if the last passing program is final."
+                    ),
+                },
             ]
         )
 

@@ -137,6 +137,8 @@ def test_agent_repairs_after_feedback_and_explicitly_finalizes() -> None:
     assert trajectory.repaired
     assert generator.messages_seen[1][-1]["role"] == "tool"
     assert "feedback" in generator.messages_seen[1][-1]["content"]
+    assert "Protocol reminder" in generator.messages_seen[1][-1]["content"]
+    assert "Never omit the action tag" in generator.messages_seen[0][0]["content"]
     assert all("hidden" not in str(messages).lower() for messages in generator.messages_seen)
     assert json.loads(json.dumps(trajectory.to_dict()))["outcome"]["repaired"] is True
 

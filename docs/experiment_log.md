@@ -62,6 +62,12 @@
   将每卡 `max_num_seqs` 与 request batch 提升到 8；24GB 默认配置保持为并发 2。
 - API repair prompt 要求最多五条短分析、不复述题面、优先最小修改；visible tests 通过后必须直接
   `final` 并复用最后通过的代码，避免 teacher 产生新的退化候选。
+- 2026-08-25，8B pilot 对 98 条 failure 完成 API repair：严格接收 9 条，但实际有 37 条通过
+  full tests；其中 28 条仅因缺少显式 action 被拒。54 条真实修复失败，另有 6 条 visible-pass /
+  hidden-fail 无可用反馈、1 条复验已正确。253 次响应中 explicit action 91 次、fallback 162 次。
+- 数据阶段允许对 full-test verified 输出做可审计的 action canonicalization：只补齐实际执行的
+  `execute_code/final` 标签，不修改 reasoning、代码或 JudgeResult。恢复 37 条 8B repair 数据；
+  54 条真实失败以可见通过率最好的 8B 候选为起点路由到 `qwen3-32b`。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 

@@ -149,6 +149,22 @@ bash scripts/cloud_generate_repair_api.sh \
 产物分别写入 `accepted.jsonl` 与 `rejected.jsonl`。API 的 reasoning、最终 content、usage 和 request
 ID 分开记录；接收要求 full tests 通过、每轮 action 显式有效且最后主动 `final`。
 
+8B pilot 完成后，将通过 full tests 但缺失 action 的输出确定性规范化；规范化只补齐 pipeline
+实际采用的 action，不修改代码、reasoning 或执行结果，并显式记录 provenance。真正失败的轨迹以
+可见测试表现最好的 8B 候选为起点交给 32B 接力：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/postprocess_repair_api.py \
+  --run outputs/data_generation/M10_8B_RUN \
+  --failure-pool data/processed/repair_sft_v1/failure_pool_pilot.jsonl \
+  --canonical-output data/processed/repair_sft_v1/repair_api_8b_canonical.jsonl \
+  --escalation-output data/processed/repair_sft_v1/failure_pool_escalation_32b.jsonl
+
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m10_repair_api_escalation_32b.yaml \
+  2>&1 | tee /tmp/qwen3-m10-api-repair-32b.log
+```
+
 ## 本地开发
 
 项目使用两个职责不同、互不混用的环境：
