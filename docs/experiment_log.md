@@ -79,6 +79,11 @@
   OCR2-fail 组 0/8 full-pass，且两组题面均 10/10 与 TACO row 精确一致。这否定了简单的本地
   index 错配假设，并暴露 TACO 部分 tests/solutions 内部不自洽。后续 Agent smoke 不再依赖
   OCR2，直接扫描 TACO，并要求至少一份 native solution 本地 full-pass；先冻结 200 条。
+- 2026-08-25，首批 native-validated smoke 数据冻结完成：200 个唯一问题、19,396 个 tests，
+  其中 visible 934、hidden 18,462，二者无重叠；全部 200 份用于 gate 的 native solution 均
+  full-pass。每题 tests 数量 p50=101、p90=180、p95=200、max=200；difficulty 为 easy 53、
+  medium 59、hard 47、unknown 41。数据 SHA-256 为
+  `ec04aba7b92ddddedc500362c8d80c5aeddcb0566c7693143e29545218da73e2`。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 

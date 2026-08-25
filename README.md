@@ -106,7 +106,10 @@ HF_HOME="$PWD/cache/m10_source_audit" \
 ```
 
 输出是 `data/processed/repair_sft_native_v1/train_agent_smoke_200.jsonl` 和
-`data/splits/repair_train_native_smoke_v1_manifest.json`。上传这两个文件后，在两张 A100 40GB 上运行：
+`data/splits/repair_train_native_smoke_v1_manifest.json`。当前冻结版本包含 200 个唯一问题和
+19,396 个 tests，数据 SHA-256 为
+`ec04aba7b92ddddedc500362c8d80c5aeddcb0566c7693143e29545218da73e2`。上传这两个文件后，在两张
+A100 40GB 上运行：
 
 ```bash
 CUDA_VISIBLE_DEVICES=0,1 \
