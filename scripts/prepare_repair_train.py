@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import argparse
+import gc
 import hashlib
 import json
 import os
+import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -75,51 +77,64 @@ def main() -> int:
     pattern = source["data_pattern"].format(split="train")
     data_file = f"hf://datasets/{source['dataset']}@{source['revision']}/{pattern}"
     stream = load_dataset("parquet", data_files=data_file, split="train", streaming=True)
+    iterator = iter(stream)
     resolved: dict[int, dict[str, Any]] = {}
     rejected: Counter[str] = Counter()
     fingerprints = json.loads(Path(source["eval_fingerprints"]).read_text(encoding="utf-8"))[
         "fingerprints"
     ]
     remaining = set(wanted)
-    for index, taco in enumerate(stream):
-        if index not in remaining:
-            continue
-        selected = wanted[index]
-        remaining.remove(index)
-        if is_eval_leak(selected["problem"], fingerprints):
-            rejected["eval_leak"] += 1
-            continue
-        tests = parse_taco_tests(taco.get("input_output"), max_tests=int(selection["max_tests"]))
-        if tests is None:
-            rejected["unsupported_or_insufficient_tests"] += 1
-            continue
-        row = {
-            "problem_id": selected["problem_id"],
-            "source": "BAAI/TACO",
-            "problem": selected["problem"],
-            "language": "cpp",
-            "difficulty": selected["difficulty"],
-            "tests": tests,
-            "metadata": {
-                **selected.get("metadata", {}),
-                "test_source_dataset": source["dataset"],
-                "test_source_revision": source["revision"],
-                "test_source_index": index,
-            },
-        }
-        adapted = split_visible_hidden_tests(
-            row,
-            seed=int(config["test_split"]["seed"]),
-            visible_fraction=float(config["test_split"]["visible_fraction"]),
-            visible_max=int(config["test_split"]["visible_max"]),
-        )
-        # Unlike evaluation datasets, the one-shot failure producer is judged
-        # against every training-side test. visible/hidden remain available for
-        # the subsequent repair loop, but neither partition is an eval secret.
-        adapted["tests"] = tests
-        resolved[index] = adapted
-        if len(resolved) >= int(selection["target_count"]):
-            break
+    try:
+        for index, taco in enumerate(iterator):
+            if index not in remaining:
+                continue
+            selected = wanted[index]
+            remaining.remove(index)
+            if is_eval_leak(selected["problem"], fingerprints):
+                rejected["eval_leak"] += 1
+                continue
+            tests = parse_taco_tests(
+                taco.get("input_output"), max_tests=int(selection["max_tests"])
+            )
+            if tests is None:
+                rejected["unsupported_or_insufficient_tests"] += 1
+                continue
+            row = {
+                "problem_id": selected["problem_id"],
+                "source": "BAAI/TACO",
+                "problem": selected["problem"],
+                "language": "cpp",
+                "difficulty": selected["difficulty"],
+                "tests": tests,
+                "metadata": {
+                    **selected.get("metadata", {}),
+                    "test_source_dataset": source["dataset"],
+                    "test_source_revision": source["revision"],
+                    "test_source_index": index,
+                },
+            }
+            adapted = split_visible_hidden_tests(
+                row,
+                seed=int(config["test_split"]["seed"]),
+                visible_fraction=float(config["test_split"]["visible_fraction"]),
+                visible_max=int(config["test_split"]["visible_max"]),
+            )
+            # Unlike evaluation datasets, the one-shot failure producer is judged
+            # against every training-side test. visible/hidden remain available for
+            # the subsequent repair loop, but neither partition is an eval secret.
+            adapted["tests"] = tests
+            resolved[index] = adapted
+            if len(resolved) >= int(selection["target_count"]):
+                break
+    finally:
+        # datasets streaming iterators may own httpx/pyarrow background state.
+        # Closing the generator while Python is still live prevents a known
+        # PyGILState_Release crash during interpreter finalization.
+        close = getattr(iterator, "close", None)
+        if close is not None:
+            close()
+        del iterator, stream
+        gc.collect()
     rows = [resolved[index] for index in wanted if index in resolved][
         : int(selection["target_count"])
     ]
@@ -156,4 +171,11 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    exit_code = main()
+    # Some datasets/pyarrow streaming builds abort in a background HTTP
+    # finalizer after main has completed successfully. All outputs are closed
+    # and hashed above, so bypass only the faulty interpreter finalization in
+    # this dedicated subprocess.
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(exit_code)
