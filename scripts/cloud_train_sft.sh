@@ -39,7 +39,7 @@ if [[ ! -x "${VERL_PYTHON}" ]]; then
   exit 1
 fi
 if [[ "${MODE}" == "agent-smoke" ]]; then
-  REQUIRED_DATA="data/processed/agent_sft_v1/train_34.jsonl"
+  REQUIRED_DATA="data/processed/agent_sft_v1/train_33.jsonl"
 elif [[ "${MODE}" == "ab-short-pilot" || "${MODE}" == "ab-short-1k" || "${MODE}" == "ab-short-1k-4epoch" || "${MODE}" == "weighted-smoke" || "${MODE}" == "weighted-short-1k-4epoch" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_short_reasoning_v2.jsonl"
 elif [[ "${MODE}" == "ab-code-pilot" || "${MODE}" == "ab-code-1k" ]]; then

@@ -52,9 +52,12 @@ Milestone 0 不引入数据集。后续数据均按 `problem_id` 做 problem-lev
 
 M11 pilot 使用 M10 CodeContests+ 两阶段 teacher 生成后经完整 checker 验收的 42 条 repair
 trajectory。按 seed `20260826` 和 problem ID 稳定划分为 34 train / 8 dev，开发集不参与梯度更新。
+训练候选中唯一的 14,850-token 长尾在 A100 40GB full-parameter backward 时 OOM；该样本保留在
+冻结来源及 manifest 的 excluded 记录中，不截断 target。实际 pilot 使用 33 train / 8 dev，训练
+最长 9,837 tokens，上限固定为 10,240。
 数据保存为原生 `system/user/assistant/tool` messages；训练通过 Qwen3 chat template 渲染，并只对
 assistant 内容及其 `<|im_end|>` 终止符计算 loss，system、题面、execution feedback 和模板控制部分
-全部 mask。最长样本 14,850 tokens，故训练上限固定为 16,384，不做截断。
+全部 mask。
 
 派生数据位于 `data/processed/agent_sft_v1/`（不提交 Git），可通过以下命令重建；提交的
 `data/splits/agent_sft_smoke_v1_manifest.json` 固定来源、划分、tokenizer revision 和文件 hash：

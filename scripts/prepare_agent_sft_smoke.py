@@ -43,7 +43,7 @@ def main() -> int:
             "data/processed/codecontests_plus_repair_v1/repair_api_32b_canonical_9.jsonl",
         ],
     )
-    parser.add_argument("--train-output", default="data/processed/agent_sft_v1/train_34.jsonl")
+    parser.add_argument("--train-output", default="data/processed/agent_sft_v1/train_33.jsonl")
     parser.add_argument("--dev-output", default="data/processed/agent_sft_v1/dev_8.jsonl")
     parser.add_argument("--manifest", default="data/splits/agent_sft_smoke_v1_manifest.json")
     parser.add_argument("--dev-size", type=int, default=8)
@@ -51,6 +51,7 @@ def main() -> int:
     parser.add_argument("--tokenizer", default="Qwen/Qwen3-1.7B-Base")
     parser.add_argument("--revision", default="ea980cb0a6c2ae4b936e82123acc929f1cec04c1")
     parser.add_argument("--max-length", type=int, default=32768)
+    parser.add_argument("--max-train-length", type=int, default=10240)
     args = parser.parse_args()
     project_cache = Path(__file__).resolve().parents[1] / "cache" / "huggingface"
     os.environ.setdefault("HF_HOME", str(project_cache))
@@ -88,7 +89,15 @@ def main() -> int:
     ordered = sorted(rows, key=lambda row: stable_key(row["problem_id"], args.seed))
     if not 0 < args.dev_size < len(ordered):
         raise ValueError("dev-size must leave non-empty train and dev splits")
-    dev, train = ordered[: args.dev_size], ordered[args.dev_size :]
+    dev, train_candidates = ordered[: args.dev_size], ordered[args.dev_size :]
+    excluded_train = [
+        row for row in train_candidates if row["token_counts"]["total"] > args.max_train_length
+    ]
+    train = [
+        row for row in train_candidates if row["token_counts"]["total"] <= args.max_train_length
+    ]
+    if not train:
+        raise ValueError("max-train-length removed every training sample")
     write_jsonl(args.train_output, train)
     write_jsonl(args.dev_output, dev)
 
@@ -100,6 +109,7 @@ def main() -> int:
         "source_files": args.inputs,
         "tokenizer": {"name_or_path": args.tokenizer, "revision": args.revision},
         "max_length": args.max_length,
+        "max_train_length": args.max_train_length,
         "seed": args.seed,
         "problem_ids": {
             "train": [row["problem_id"] for row in train],
@@ -108,6 +118,7 @@ def main() -> int:
         "counts": {
             "train": len(train),
             "dev": len(dev),
+            "excluded_train_over_length": len(excluded_train),
             "tokens": {
                 split: {
                     key: sum(row["token_counts"][key] for row in values)
@@ -116,6 +127,14 @@ def main() -> int:
                 for split, values in (("train", train), ("dev", dev))
             },
         },
+        "excluded_train": [
+            {
+                "problem_id": row["problem_id"],
+                "total_tokens": row["token_counts"]["total"],
+                "reason": "training_memory_limit",
+            }
+            for row in excluded_train
+        ],
         "sha256": {"train": digest(args.train_output), "dev": digest(args.dev_output)},
     }
     output = Path(args.manifest)

@@ -91,7 +91,9 @@ pass rate、action validity/fallback、主动 final、execution/token efficiency
 
 ## M11 Agent SFT smoke
 
-将 M10 中通过完整 CodeContests+ checker 的 42 条 repair trajectory 冻结为 34 train / 8 dev：
+将 M10 中通过完整 CodeContests+ checker 的 42 条 repair trajectory 先稳定划分为 34 train / 8 dev。
+其中唯一的 14,850-token 训练长尾在 A100 40GB 的 full-parameter backward 中 OOM，因此保留在
+冻结来源与 manifest 中但不进入该 pilot，实际训练为 33 train / 8 dev，最长 9,837 tokens：
 
 ```bash
 .third_party/verl/.venv/bin/python scripts/prepare_agent_sft_smoke.py
@@ -105,7 +107,8 @@ SFT_GPU_COUNT=2 bash scripts/cloud_train_sft.sh agent-smoke \
 ```
 
 该 pilot 共 4 epochs，每个 epoch 保存 checkpoint 并计算 8 条固定 dev 的 loss。训练数据位于
-`data/processed/agent_sft_v1/`，默认不提交 Git，上传云端时需同时包含 train 与 dev 文件。
+`data/processed/agent_sft_v1/`，默认不提交 Git，上传云端时需同时包含 `train_33.jsonl` 与
+`dev_8.jsonl`。
 
 ## M10 API repair data pilot
 

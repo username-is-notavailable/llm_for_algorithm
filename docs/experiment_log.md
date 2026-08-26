@@ -146,6 +146,10 @@
   min/median/max 为 1,039/2,394/14,850，dev 为 1,365/2,069/6,086，均完整落在 16,384-token
   上限内。训练使用 Qwen3-1.7B-Base、assistant-only loss（含 `<|im_end|>`）、4 epochs，并按 epoch
   保存 checkpoint 和计算 dev loss；这是数据/协议可学性的低成本 pilot，不作为最终能力结论。
+- M11 首次 4x A100-40GB DDP 在 step 6 遇到 14,850-token 样本，rank 0 backward 额外申请
+  8.41 GiB 时 OOM；此前 5 steps 正常，确认是单条长尾而非总显存或 DDP 故障。pilot 不引入 FSDP
+  且不截断 target，改为显式排除该 1 条并记录 provenance；实际训练集 33 条、最长 9,837 tokens、
+  max length 10,240，8 条 dev 不变。
 
 ## Milestone 0
 
