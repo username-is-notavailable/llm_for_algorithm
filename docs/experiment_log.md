@@ -154,6 +154,12 @@
   Transformers 默认 `per_device_eval_batch_size=8`，8 条不同长度序列一起 padding，causal-LM loss
   将 151K-vocabulary logits 转为 FP32 时额外申请 27.57 GiB；不是训练长度仍超限。训练入口现统一
   将 eval batch 默认设为 1，M11 配置显式冻结为 1，无需升级至 80GB。
+- M11 v1 四个 checkpoint smoke 显示 valid action 均为 100%，但 repair success 均为 0%；epoch 2
+  行为最好（explicit final 100%、无 repeated code、full-test case pass 26.5%），epoch 4 退化至
+  agent success 0。数据复审确认初始错误程序位于 user context、原本已 mask；实际缺陷是 native
+  structured action/canonicalization 更新了 step submission，却未同步历史 prompt snapshot，少量
+  规范化前 assistant 文本进入 target。Agent SFT v2 改为从 canonical steps 重建所有 assistant
+  turns，逐消息显式记录 `trainable`，并要求全部 93 个监督 turns 具有文本 action prefix。
 
 ## Milestone 0
 

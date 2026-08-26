@@ -44,6 +44,24 @@ def test_canonicalize_verified_success_marks_final_without_changing_execution() 
     assert value["accepted"] is True
 
 
+def test_canonicalize_adds_text_prefix_for_native_structured_action() -> None:
+    row = _row()
+    submission = row["repair_trajectory"]["steps"][0]["submission"]
+    submission.update(
+        {
+            "response": "```cpp\nint main(){}\n```",
+            "requested_action": "final",
+            "effective_action": "final",
+            "action_parse_status": "explicit",
+        }
+    )
+    value = canonicalize_success(row, source_run="run")
+    assert value["repair_trajectory"]["steps"][0]["submission"]["response"].startswith(
+        "<action>final</action>"
+    )
+    assert value["normalization"]["changed_turns"] == [0]
+
+
 def test_escalation_uses_best_8b_candidate_as_new_initial_submission() -> None:
     row = _row(success=False)
     payload = escalation_payload(

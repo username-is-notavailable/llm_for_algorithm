@@ -110,6 +110,10 @@ def encode_agent_sft_row(
             raise ValueError(f"Unsupported Agent SFT role: {role}")
         if not isinstance(message.get("content"), str) or not message["content"]:
             raise ValueError("Agent SFT messages require non-empty string content")
+        if "trainable" in message and role != "assistant":
+            raise ValueError("Only assistant messages may define trainable")
+        if "trainable" in message and not isinstance(message["trainable"], bool):
+            raise ValueError("Agent SFT trainable must be boolean")
     rendered = tokenizer.apply_chat_template(
         messages,
         tokenize=False,
@@ -125,7 +129,7 @@ def encode_agent_sft_row(
         if start < 0:
             raise ValueError("Chat template output does not contain message content in order")
         end = start + len(message["content"])
-        if message["role"] == "assistant":
+        if message["role"] == "assistant" and message.get("trainable", True):
             # Qwen chat templates terminate every assistant turn with
             # <|im_end|>. Supervise that terminator as well as the textual
             # action so the fine-tuned policy learns to stop each tool call

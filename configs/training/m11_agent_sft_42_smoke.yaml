@@ -1,5 +1,5 @@
 experiment:
-  name: m11-agent-sft-42-smoke
+  name: m11-agent-sft-42-v2-smoke
   output_dir: outputs/training
   seed: 20260826
 model:
@@ -8,8 +8,8 @@ model:
   dtype: bfloat16
   attn_implementation: flash_attention_2
 data:
-  path: data/processed/agent_sft_v1/train_33.jsonl
-  eval_path: data/processed/agent_sft_v1/dev_8.jsonl
+  path: data/processed/agent_sft_v2/train_33.jsonl
+  eval_path: data/processed/agent_sft_v2/dev_8.jsonl
   selection: ordered
   max_length: 10240
 training:

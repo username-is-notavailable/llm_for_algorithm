@@ -92,6 +92,33 @@ def test_agent_encoding_masks_non_assistant_turns() -> None:
             assert labels == [-100] * len(labels)
 
 
+def test_agent_encoding_masks_context_only_assistant_turn() -> None:
+    row = {
+        "problem_id": "agent-context",
+        "messages": [
+            {"role": "user", "content": "problem and prior attempt"},
+            {"role": "assistant", "content": "stale invalid answer", "trainable": False},
+            {"role": "tool", "content": "wrong answer"},
+            {
+                "role": "assistant",
+                "content": "<action>final</action> fixed",
+                "trainable": True,
+            },
+        ],
+    }
+    tokenizer = FakeTokenizer()
+    encoded = encode_sft_row(row, tokenizer, max_length=1000)
+    rendered = tokenizer.apply_chat_template(
+        row["messages"], tokenize=False, add_generation_prompt=False
+    )
+    stale_start = rendered.index("stale invalid answer")
+    stale_end = stale_start + len("stale invalid answer<|im_end|>")
+    final_start = rendered.index("<action>final</action> fixed")
+    final_end = final_start + len("<action>final</action> fixed<|im_end|>")
+    assert encoded["labels"][stale_start:stale_end] == [-100] * (stale_end - stale_start)
+    assert all(label != -100 for label in encoded["labels"][final_start:final_end])
+
+
 def test_dataset_selection_and_collation(tmp_path: Path) -> None:
     import pytest
 

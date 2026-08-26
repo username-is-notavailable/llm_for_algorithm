@@ -1,5 +1,5 @@
 {
-  "schema_version": "agent-sft-smoke-v1",
+  "schema_version": "agent-sft-smoke-v2",
   "source_files": [
     "data/processed/codecontests_plus_repair_v1/repair_api_8b_canonical_33.jsonl",
     "data/processed/codecontests_plus_repair_v1/repair_api_32b_canonical_9.jsonl"
@@ -62,15 +62,17 @@
     "train": 33,
     "dev": 8,
     "excluded_train_over_length": 1,
+    "assistant_turns": 93,
+    "trainable_assistant_turns": 93,
     "tokens": {
       "train": {
-        "total": 107240,
-        "assistant": 24635,
+        "total": 107296,
+        "assistant": 24691,
         "context": 82605
       },
       "dev": {
-        "total": 21384,
-        "assistant": 6451,
+        "total": 21408,
+        "assistant": 6475,
         "context": 14933
       }
     }
@@ -83,7 +85,7 @@
     }
   ],
   "sha256": {
-    "train": "717097f8ec2145018ae18c4c26ce74ace394202758e8b6c72bd09b627c72bcca",
-    "dev": "0610afc43107cdcaeb487aee8a61c9bb9c8b2e8e9fa982c80b876f4da6a510b7"
+    "train": "41d427042a29e6be1f9ece2069a92afee9d939747acbe50183c8e5c0372e0f53",
+    "dev": "1d10c333015548d7ad0374464bac7202d17cf5a696fca5b1feb7b23fb9daa9e8"
   }
 }

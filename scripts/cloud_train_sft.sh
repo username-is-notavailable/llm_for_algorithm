@@ -39,7 +39,7 @@ if [[ ! -x "${VERL_PYTHON}" ]]; then
   exit 1
 fi
 if [[ "${MODE}" == "agent-smoke" ]]; then
-  REQUIRED_DATA="data/processed/agent_sft_v1/train_33.jsonl"
+  REQUIRED_DATA="data/processed/agent_sft_v2/train_33.jsonl"
 elif [[ "${MODE}" == "ab-short-pilot" || "${MODE}" == "ab-short-1k" || "${MODE}" == "ab-short-1k-4epoch" || "${MODE}" == "weighted-smoke" || "${MODE}" == "weighted-short-1k-4epoch" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_short_reasoning_v2.jsonl"
 elif [[ "${MODE}" == "ab-code-pilot" || "${MODE}" == "ab-code-1k" ]]; then
@@ -55,8 +55,8 @@ if [[ ! -f "${PROJECT_ROOT}/${REQUIRED_DATA}" ]]; then
   echo "Missing training data: ${REQUIRED_DATA}" >&2
   exit 1
 fi
-if [[ "${MODE}" == "agent-smoke" && ! -f "${PROJECT_ROOT}/data/processed/agent_sft_v1/dev_8.jsonl" ]]; then
-  echo "Missing evaluation data: data/processed/agent_sft_v1/dev_8.jsonl" >&2
+if [[ "${MODE}" == "agent-smoke" && ! -f "${PROJECT_ROOT}/data/processed/agent_sft_v2/dev_8.jsonl" ]]; then
+  echo "Missing evaluation data: data/processed/agent_sft_v2/dev_8.jsonl" >&2
   exit 1
 fi
 

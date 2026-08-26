@@ -107,7 +107,7 @@ SFT_GPU_COUNT=2 bash scripts/cloud_train_sft.sh agent-smoke \
 ```
 
 该 pilot 共 4 epochs，每个 epoch 保存 checkpoint 并计算 8 条固定 dev 的 loss。训练数据位于
-`data/processed/agent_sft_v1/`，默认不提交 Git，上传云端时需同时包含 `train_33.jsonl` 与
+`data/processed/agent_sft_v2/`，默认不提交 Git，上传云端时需同时包含 `train_33.jsonl` 与
 `dev_8.jsonl`。
 
 ## M10 API repair data pilot

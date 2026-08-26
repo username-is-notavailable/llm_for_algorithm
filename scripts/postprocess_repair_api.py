@@ -15,6 +15,10 @@ def _canonical_response(response: str, action: str) -> str:
     return f"<action>{action}</action>\n{response.strip()}"
 
 
+def _has_text_action_prefix(response: str, action: str) -> bool:
+    return response.lstrip().startswith(f"<action>{action}</action>")
+
+
 def canonicalize_success(row: dict[str, Any], *, source_run: str) -> dict[str, Any]:
     value = json.loads(json.dumps(row))
     trajectory = value["repair_trajectory"]
@@ -23,9 +27,11 @@ def canonicalize_success(row: dict[str, Any], *, source_run: str) -> dict[str, A
     for index, step in enumerate(steps):
         submission = step["submission"]
         action = "final" if index == len(steps) - 1 else submission["effective_action"]
-        if submission["action_parse_status"] != "explicit" or submission.get(
-            "requested_action"
-        ) != action:
+        if (
+            submission["action_parse_status"] != "explicit"
+            or submission.get("requested_action") != action
+            or not _has_text_action_prefix(submission["response"], action)
+        ):
             submission["response"] = _canonical_response(submission["response"], action)
             submission["requested_action"] = action
             submission["effective_action"] = action

@@ -11,15 +11,44 @@ from src.data.agent_eval import read_jsonl, write_jsonl
 from src.training.sft import encode_agent_sft_row
 
 
-def trajectory_messages(row: dict[str, Any]) -> list[dict[str, str]]:
+def canonical_response(submission: dict[str, Any], *, action: str | None = None) -> str:
+    action = action or submission["effective_action"]
+    response = submission["response"].strip()
+    prefix = f"<action>{action}</action>"
+    return response if response.startswith(prefix) else f"{prefix}\n{response}"
+
+
+def trajectory_messages(row: dict[str, Any]) -> list[dict[str, Any]]:
     steps = row["repair_trajectory"]["steps"]
     if not steps:
         raise ValueError(f"{row['task_id']}: trajectory has no steps")
     final = steps[-1]
     if final["submission"]["effective_action"] != "final":
         raise ValueError(f"{row['task_id']}: trajectory does not end in final")
-    messages = [dict(message) for message in final["prompt_messages"]]
-    messages.append({"role": "assistant", "content": final["submission"]["response"]})
+    # Canonicalization updates step.submission.response, but historical
+    # prompt_messages intentionally retain the provider's original response.
+    # Rebuild every assistant turn from the canonical step records while
+    # preserving the exact system/user/tool context seen by the teacher.
+    messages = []
+    previous_step = 0
+    for message in final["prompt_messages"]:
+        copied = dict(message)
+        if copied["role"] == "assistant":
+            if previous_step >= len(steps) - 1:
+                raise ValueError(f"{row['task_id']}: too many assistant messages in final prompt")
+            copied["content"] = canonical_response(steps[previous_step]["submission"])
+            copied["trainable"] = True
+            previous_step += 1
+        messages.append(copied)
+    if previous_step != len(steps) - 1:
+        raise ValueError(f"{row['task_id']}: trajectory/prompt assistant turn mismatch")
+    messages.append(
+        {
+            "role": "assistant",
+            "content": canonical_response(final["submission"], action="final"),
+            "trainable": True,
+        }
+    )
     if any(message["role"] == "tool" and "Private" in message["content"] for message in messages):
         # Revealed counterexamples are allowed, but unrevealed private results must never be serialized.
         if "One failing case has now been revealed" not in "\n".join(
@@ -43,9 +72,9 @@ def main() -> int:
             "data/processed/codecontests_plus_repair_v1/repair_api_32b_canonical_9.jsonl",
         ],
     )
-    parser.add_argument("--train-output", default="data/processed/agent_sft_v1/train_33.jsonl")
-    parser.add_argument("--dev-output", default="data/processed/agent_sft_v1/dev_8.jsonl")
-    parser.add_argument("--manifest", default="data/splits/agent_sft_smoke_v1_manifest.json")
+    parser.add_argument("--train-output", default="data/processed/agent_sft_v2/train_33.jsonl")
+    parser.add_argument("--dev-output", default="data/processed/agent_sft_v2/dev_8.jsonl")
+    parser.add_argument("--manifest", default="data/splits/agent_sft_smoke_v2_manifest.json")
     parser.add_argument("--dev-size", type=int, default=8)
     parser.add_argument("--seed", type=int, default=20260826)
     parser.add_argument("--tokenizer", default="Qwen/Qwen3-1.7B-Base")
@@ -63,7 +92,7 @@ def main() -> int:
     for source in source_rows:
         rows.append(
             {
-                "schema_version": "agent-sft-messages-v1",
+                "schema_version": "agent-sft-messages-v2",
                 "problem_id": source["problem_id"],
                 "task_id": source["task_id"],
                 "source": source["source"],
@@ -75,6 +104,16 @@ def main() -> int:
                 },
             }
         )
+    for row in rows:
+        for message in row["messages"]:
+            if message["role"] != "assistant":
+                continue
+            if message.get("trainable") is not True:
+                raise ValueError(f"{row['task_id']}: assistant turn is not explicitly trainable")
+            if not message["content"].lstrip().startswith(
+                ("<action>execute_code</action>", "<action>final</action>")
+            ):
+                raise ValueError(f"{row['task_id']}: assistant target lacks canonical action")
 
     from transformers import AutoTokenizer
 
@@ -105,7 +144,7 @@ def main() -> int:
         return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
     manifest = {
-        "schema_version": "agent-sft-smoke-v1",
+        "schema_version": "agent-sft-smoke-v2",
         "source_files": args.inputs,
         "tokenizer": {"name_or_path": args.tokenizer, "revision": args.revision},
         "max_length": args.max_length,
@@ -119,6 +158,16 @@ def main() -> int:
             "train": len(train),
             "dev": len(dev),
             "excluded_train_over_length": len(excluded_train),
+            "assistant_turns": sum(
+                message["role"] == "assistant"
+                for row in train + dev
+                for message in row["messages"]
+            ),
+            "trainable_assistant_turns": sum(
+                message["role"] == "assistant" and message.get("trainable") is True
+                for row in train + dev
+                for message in row["messages"]
+            ),
             "tokens": {
                 split: {
                     key: sum(row["token_counts"][key] for row in values)
