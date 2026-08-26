@@ -133,6 +133,7 @@ def main() -> int:
         save_strategy=training.get("save_strategy", "steps"),
         save_steps=int(training.get("save_steps", 25)),
         save_total_limit=int(training.get("save_total_limit", 2)),
+        save_only_model=bool(training.get("save_only_model", False)),
         report_to="none",
         skip_memory_metrics=False,
         remove_unused_columns=False,

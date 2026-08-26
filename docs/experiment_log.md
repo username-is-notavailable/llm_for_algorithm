@@ -160,6 +160,10 @@
   structured action/canonicalization 更新了 step submission，却未同步历史 prompt snapshot，少量
   规范化前 assistant 文本进入 target。Agent SFT v2 改为从 canonical steps 重建所有 assistant
   turns，逐消息显式记录 `trainable`，并要求全部 93 个监督 turns 具有文本 action prefix。
+- M11 v2 首次运行训练与 eval 正常完成 2 epochs（dev loss 0.2578 → 0.2530），但保存
+  checkpoint-18 的 optimizer state 时在约 5.22GB 处发生 filesystem iostream error；这是磁盘空间/
+  配额问题，不是 CUDA OOM。该 pilot 的 epoch checkpoint 仅用于推理比较、不需要 resume，故 M11
+  冻结为 `save_only_model=true`，保留四轮模型权重而不重复保存大体积 optimizer state。
 
 ## Milestone 0
 

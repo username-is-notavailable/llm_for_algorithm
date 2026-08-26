@@ -30,4 +30,5 @@ training:
   save_strategy: epoch
   save_steps: 1000
   save_total_limit: 4
+  save_only_model: true
   dataloader_num_workers: 0
