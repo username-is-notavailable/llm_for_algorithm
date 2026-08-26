@@ -415,9 +415,15 @@ execution feedback 有效，同时为 Agent action、停止决策和修复效率
 
 ### M10：Repair SFT 数据构造
 
-- 收集 Base 模型真实首次失败并按错误类型分桶；
-- executable problem 主线直接使用 TACO 原生 question/tests，并以 native solution full-pass 作为
-  数据可靠性 gate；OCR2 仅作为独立 one-shot 辅助源，不再负责 Agent 环境选题；
+- executable problem 主线迁移到固定 revision 的 CodeContests+：使用题面、1x tests、testlib
+  checker 和真实参赛提交；TACO 降为历史对照和 exact-match 补充源；
+- 先按 published TPR/TNR 筛选，再本地执行 gate：标记 correct 必须 full-pass，标记 incorrect
+  必须至少失败一个 testcase；标签与执行冲突的提交一律跳过；
+- 真实 incorrect submission 只充当 Agent 的初始错误代码，不被当作 SFT target，也不要求它自带
+  reasoning；teacher 根据真实 execution feedback 生成简短 analysis + repair action/code，完整 checker
+  验证通过的 trajectory 才成为训练 target；
+- correct submission 仅用于环境校验和可选 oracle，不伪造 reasoning；one-shot reasoning target 仍由
+  teacher 独立生成并执行验证；
 - 用多 GPU problem sharding 运行官方 post-trained 4B；验证通过且无循环的短输出作为 one-shot
   teacher target，带完整错误代码的失败进入 repair pool；
 - SFT 初始化仍先实验 1.7B/4B Base；若固定数据下出现循环、协议或 coding 能力 gate 失败，再用同一

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import tempfile
+import shutil
+import subprocess
 from dataclasses import asdict, dataclass, field
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -74,6 +76,53 @@ def _outputs_match(actual: str, expected: str) -> bool:
     return True
 
 
+def _compile_output_checker(source: str, workdir: Path, testlib_path: str | Path | None, timeout: float) -> tuple[Path | None, str]:
+    source_path = workdir / "checker.cpp"
+    binary_path = workdir / "checker"
+    source_path.write_text(source, encoding="utf-8")
+    if testlib_path is not None:
+        header = Path(testlib_path)
+        if not header.is_file():
+            raise FileNotFoundError(f"Missing checker dependency: {header}")
+        shutil.copy2(header, workdir / "testlib.h")
+    try:
+        result = subprocess.run(
+            ["g++", "-std=c++17", "-O2", "-pipe", str(source_path), "-o", str(binary_path)],
+            cwd=workdir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return None, "output checker compilation timed out"
+    stderr = result.stderr[: 64 * 1024].decode("utf-8", errors="replace")
+    return (binary_path if result.returncode == 0 else None), stderr
+
+
+def _check_output(
+    checker: Path, test_case: TestCase, actual: str, workdir: Path, index: int, timeout: float
+) -> tuple[bool, str]:
+    input_path = workdir / f"checker-{index}.in"
+    actual_path = workdir / f"checker-{index}.out"
+    answer_path = workdir / f"checker-{index}.ans"
+    input_path.write_text(test_case.input, encoding="utf-8")
+    actual_path.write_text(actual, encoding="utf-8")
+    answer_path.write_text(test_case.output, encoding="utf-8")
+    try:
+        result = subprocess.run(
+            [str(checker), str(input_path), str(actual_path), str(answer_path)],
+            cwd=workdir,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired:
+        return False, "output checker timed out"
+    return result.returncode == 0, result.stderr[: 64 * 1024].decode("utf-8", errors="replace")
+
+
 def judge(
     code: str,
     test_cases: Iterable[TestCase | Mapping[str, str]],
@@ -82,6 +131,9 @@ def judge(
     execution_timeout_seconds: float = 2.0,
     memory_limit_bytes: int = 512 * 1024 * 1024,
     output_limit_bytes: int = 1024 * 1024,
+    output_checker_source: str | None = None,
+    testlib_path: str | Path | None = None,
+    checker_timeout_seconds: float = 4.0,
 ) -> JudgeResult:
     cases = [_coerce_test_case(test_case) for test_case in test_cases]
     if not cases:
@@ -89,6 +141,22 @@ def judge(
 
     with tempfile.TemporaryDirectory(prefix="qwen3-verifier-") as temporary_directory:
         workdir = Path(temporary_directory)
+        checker = None
+        if output_checker_source:
+            checker, checker_stderr = _compile_output_checker(
+                output_checker_source, workdir, testlib_path, compile_timeout_seconds
+            )
+            if checker is None:
+                return JudgeResult(
+                    compiled=False,
+                    passed=0,
+                    total=len(cases),
+                    pass_rate=0.0,
+                    runtime_error=False,
+                    timeout="timed out" in checker_stderr,
+                    error_type="checker_compile_error",
+                    compile_stderr=checker_stderr,
+                )
         compilation = compile_code(code, workdir, timeout_seconds=compile_timeout_seconds)
         if not compilation.success:
             error_type = "compile_timeout" if compilation.timed_out else "compile_error"
@@ -105,7 +173,7 @@ def judge(
 
         assert compilation.binary_path is not None
         case_results: list[CaseResult] = []
-        for test_case in cases:
+        for case_index, test_case in enumerate(cases):
             execution = execute_binary(
                 compilation.binary_path,
                 test_case.input,
@@ -120,17 +188,25 @@ def judge(
                 error_type = "output_limit"
             elif execution.runtime_error:
                 error_type = "runtime_error"
-            elif not _outputs_match(execution.stdout, test_case.output):
-                error_type = "wrong_answer"
+            elif checker is not None:
+                accepted, checker_stderr = _check_output(
+                    checker,
+                    test_case,
+                    execution.stdout,
+                    workdir,
+                    case_index,
+                    checker_timeout_seconds,
+                )
+                error_type = None if accepted else "wrong_answer"
             else:
-                error_type = None
+                error_type = None if _outputs_match(execution.stdout, test_case.output) else "wrong_answer"
             case_results.append(
                 CaseResult(
                     passed=error_type is None,
                     error_type=error_type,
                     expected=test_case.output,
                     actual=execution.stdout,
-                    stderr=execution.stderr,
+                    stderr=execution.stderr or (checker_stderr if checker is not None else ""),
                     return_code=execution.return_code,
                     duration_seconds=execution.duration_seconds,
                 )

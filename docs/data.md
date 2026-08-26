@@ -48,6 +48,21 @@ Agent evaluator 会验证同一 manifest 后分别读取 `visible_tests` 和 `hi
 
 Milestone 0 不引入数据集。后续数据均按 `problem_id` 做 problem-level 隔离，并在此记录来源、许可、版本、清洗和切分信息。
 
+### Agent SFT smoke v1
+
+M11 pilot 使用 M10 CodeContests+ 两阶段 teacher 生成后经完整 checker 验收的 42 条 repair
+trajectory。按 seed `20260826` 和 problem ID 稳定划分为 34 train / 8 dev，开发集不参与梯度更新。
+数据保存为原生 `system/user/assistant/tool` messages；训练通过 Qwen3 chat template 渲染，并只对
+assistant 内容及其 `<|im_end|>` 终止符计算 loss，system、题面、execution feedback 和模板控制部分
+全部 mask。最长样本 14,850 tokens，故训练上限固定为 16,384，不做截断。
+
+派生数据位于 `data/processed/agent_sft_v1/`（不提交 Git），可通过以下命令重建；提交的
+`data/splits/agent_sft_smoke_v1_manifest.json` 固定来源、划分、tokenizer revision 和文件 hash：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_agent_sft_smoke.py
+```
+
 ## Output Protocol v1
 
 第一阶段的 SFT、GRPO rollout 和正式评测统一使用以下 C++ 响应协议：
@@ -96,6 +111,11 @@ SFT 样本先转换为结构化字段，再由统一 renderer 生成 Output Prot
 
 - OpenCodeReasoning-2：原始 `r1_generation` 通常已经是 `<think>...</think>` 加 `cpp` Markdown code block，解析后重新按 v1 渲染；
 - TACO / TACO-verified：原始数据主要提供 problem、solutions 和 tests，不假定存在 reasoning 或 Markdown 包装；优先用于可执行验证、GRPO problem pool 和补充代码数据；
+- CodeContests+：M10 起作为 Agent executable problem 主源，固定数据 revision，并保留题目级
+  testlib checker、1x tests 和真实正误提交。published TPR/TNR 只用于预筛选，不能替代本地执行：
+  correct submission 必须由 checker full-pass，incorrect submission 必须真实失败后才能进入 repair
+  pool。错误提交是初始状态而非训练答案，因此不要求自带 reasoning；repair reasoning/action 由 teacher
+  在真实反馈上生成并再次通过完整 checker gate。
 - 自建数据：必须生成或转换为统一内部表示，并通过同一个 v1 renderer 输出。
 
 ### Verifier 提取优先级

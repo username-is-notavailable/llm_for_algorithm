@@ -1,4 +1,4 @@
-from src.verifier.judge import judge
+from src.verifier.judge import TestCase as JudgeTestCase, judge
 
 
 SUM_CODE = r"""
@@ -80,3 +80,23 @@ def test_output_limit() -> None:
     )
     assert result.compiled
     assert result.error_type == "output_limit"
+
+
+def test_custom_output_checker_accepts_semantically_valid_alternative() -> None:
+    checker = r'''
+#include <fstream>
+#include <string>
+int main(int argc, char** argv) {
+    std::ifstream input(argv[1]), output(argv[2]);
+    int expected_sum, a, b;
+    input >> expected_sum;
+    if (!(output >> a >> b)) return 1;
+    return a + b == expected_sum ? 0 : 1;
+}
+'''
+    result = judge(
+        "#include <iostream>\nint main(){int n;std::cin>>n;std::cout<<2<<' '<<n-2;}",
+        [JudgeTestCase(input="10\n", output="1 9\n")],
+        output_checker_source=checker,
+    )
+    assert result.pass_rate == 1.0

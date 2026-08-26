@@ -1,0 +1,81 @@
+{
+  "schema_version": "agent-sft-smoke-v1",
+  "source_files": [
+    "data/processed/codecontests_plus_repair_v1/repair_api_8b_canonical_33.jsonl",
+    "data/processed/codecontests_plus_repair_v1/repair_api_32b_canonical_9.jsonl"
+  ],
+  "tokenizer": {
+    "name_or_path": "Qwen/Qwen3-1.7B-Base",
+    "revision": "ea980cb0a6c2ae4b936e82123acc929f1cec04c1"
+  },
+  "max_length": 32768,
+  "seed": 20260826,
+  "problem_ids": {
+    "train": [
+      "ccplus:Codeforces:965_C",
+      "ccplus:Codeforces:1538_F",
+      "ccplus:Codeforces:131_A",
+      "ccplus:AtCoder:p02916",
+      "ccplus:Codeforces:898_D",
+      "ccplus:Codeforces:47_B",
+      "ccplus:AtCoder:p02555",
+      "ccplus:Codeforces:985_A",
+      "ccplus:Codeforces:1277_B",
+      "ccplus:Codeforces:369_C",
+      "ccplus:AtCoder:p03994",
+      "ccplus:Codeforces:568_B",
+      "ccplus:Codeforces:1549_A",
+      "ccplus:AIZU:p01600",
+      "ccplus:AtCoder:p02862",
+      "ccplus:Codeforces:938_B",
+      "ccplus:Codeforces:803_B",
+      "ccplus:Codeforces:804_B",
+      "ccplus:Codeforces:271_A",
+      "ccplus:AtCoder:p02856",
+      "ccplus:Codeforces:385_B",
+      "ccplus:Codeforces:219_C",
+      "ccplus:Codeforces:730_G",
+      "ccplus:Codeforces:1428_C",
+      "ccplus:Codeforces:80_A",
+      "ccplus:Codeforces:266_B",
+      "ccplus:AIZU:p02277",
+      "ccplus:Codeforces:1227_C",
+      "ccplus:Codeforces:599_C",
+      "ccplus:Codeforces:794_A",
+      "ccplus:AIZU:p01939",
+      "ccplus:AtCoder:p02926",
+      "ccplus:Codeforces:651_A",
+      "ccplus:AtCoder:p03776"
+    ],
+    "dev": [
+      "ccplus:Codeforces:412_B",
+      "ccplus:Codeforces:932_E",
+      "ccplus:Codeforces:259_B",
+      "ccplus:AtCoder:p02742",
+      "ccplus:AtCoder:p02851",
+      "ccplus:Codeforces:165_B",
+      "ccplus:AtCoder:p03125",
+      "ccplus:AIZU:p00123"
+    ]
+  },
+  "counts": {
+    "train": 34,
+    "dev": 8,
+    "tokens": {
+      "train": {
+        "total": 122090,
+        "assistant": 26159,
+        "context": 95931
+      },
+      "dev": {
+        "total": 21384,
+        "assistant": 6451,
+        "context": 14933
+      }
+    }
+  },
+  "sha256": {
+    "train": "e9fac4419d4eec5c51190cb72402c1d8dce9bb80ebb371da523fff09891dbd1a",
+    "dev": "0610afc43107cdcaeb487aee8a61c9bb9c8b2e8e9fa982c80b876f4da6a510b7"
+  }
+}

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import hashlib
 import json
 import os
 from datetime import datetime
@@ -35,6 +36,10 @@ def load_agent_problems(config: dict[str, Any]) -> list[AgentProblem]:
     dataset = config["dataset"]
     rows = read_jsonl(dataset["path"])
     manifest = json.loads(Path(dataset["manifest"]).read_text(encoding="utf-8"))
+    expected_dataset_hash = manifest.get("dataset_sha256")
+    actual_dataset_hash = hashlib.sha256(Path(dataset["path"]).read_bytes()).hexdigest()
+    if expected_dataset_hash and actual_dataset_hash != expected_dataset_hash:
+        raise ValueError("Agent dataset SHA-256 does not match frozen manifest")
     split = dataset["manifest_split"]
     expected_ids = manifest["problem_ids"][split]
     if [row["problem_id"] for row in rows] != expected_ids:

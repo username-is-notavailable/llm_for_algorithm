@@ -89,6 +89,24 @@ pass rate、action validity/fallback、主动 final、execution/token efficiency
 当前 `LocalVerifierBackend` 延续项目原 verifier 的 resource limit，只能用于固定 benchmark 和受控
 实验。它不提供文件系统或网络强隔离；正式扩大 rollout 前仍需在云平台接入 isolate/nsjail。
 
+## M11 Agent SFT smoke
+
+将 M10 中通过完整 CodeContests+ checker 的 42 条 repair trajectory 冻结为 34 train / 8 dev：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/prepare_agent_sft_smoke.py
+```
+
+训练使用 Qwen3-1.7B-Base、原生多轮 chat template 和 assistant-only loss。两张 A100 40GB 上运行：
+
+```bash
+SFT_GPU_COUNT=2 bash scripts/cloud_train_sft.sh agent-smoke \
+  2>&1 | tee /tmp/qwen3-m11-agent-sft-smoke.log
+```
+
+该 pilot 共 4 epochs，每个 epoch 保存 checkpoint 并计算 8 条固定 dev 的 loss。训练数据位于
+`data/processed/agent_sft_v1/`，默认不提交 Git，上传云端时需同时包含 train 与 dev 文件。
+
 ## M10 API repair data pilot
 
 M10 使用官方 post-trained 4B GPU rollout 生成干净的 one-shot 与真实 failure，不再设置本地
@@ -96,10 +114,17 @@ teacher 修复层。后续 SFT 初始化仍先实验 Base；这是数据 produce
 失败样本由阿里云百炼 OpenAI-compatible API 的 `qwen3-8b` 并发修复；每轮候选必须经过本地
 verifier，模型只看到 feedback cases；private tests 仅用于 gate，除非按策略迁移一条失败反例。
 
-当前小规模 SFT smoke 改为直接从 TACO 构造 executable problems，不依赖 OCR2 选题或代码。
-每题必须是非交互 stdin/stdout、与 eval 隔离、至少两个 testcase，并且最多尝试三份 TACO 原生
-Python solution 后至少一份 full-pass。筛选最多使用 200 个 testcase，而 Agent 每次只看到最多
-5 个初始 visible tests，其余留作 private gate；final 仍验证完整并集。先在本地冻结 200 条：
+M10 executable 主源现已迁移到固定 revision 的 CodeContests+。它提供 1x tests、testlib checker
+和真实正误提交；published TPR/TNR 只做预筛选，正误标签仍必须通过本地 checker gate。真实错误
+提交只作为 repair 起点，teacher 根据 execution feedback 生成 reasoning/action/code target：
+
+```bash
+bash scripts/cloud_prepare_codecontests_plus_repair.sh \
+  2>&1 | tee /tmp/qwen3-codecontests-plus-prepare-smoke.log
+```
+
+当前 smoke 冻结 50 题、1,148 tests 和 50 个真实 failure。旧 TACO-native 200 题实验保留为历史
+对照；其复现入口如下：
 
 ```bash
 HF_HOME="$PWD/cache/m10_source_audit" \

@@ -106,8 +106,46 @@
   private case 迁移为 feedback case、至少保留一条 private test，并在 `final` 对完整测试并集重新
   验证。trajectory schema 升级为 v2，记录 reveal index/count/private remaining；native tool calling
   暂不作为 one-shot 或 repair 的阻塞项。
+- 2026-08-26，开始评估以 CodeContests+ 替换 TACO executable source。主仓库固定 revision
+  `96c850540fade31d384a25766461e0da6b08f5fc`，独立 `Code-Contests-Plus-Verified` 仓库当前
+  无法访问，因此按题内 `true_positive_rate >= 0.9` 且 `true_negative_rate >= 0.9` 本地重建
+  verified 子集。1x 首 shard、首 row group 有 76 条同时具备 checker、tests 和 C++ 正误提交的
+  eligible problems；确定性抽样 8 题后，8/8 checker 使用固定 testlib revision 编译成功，8/8
+  正确提交通过全部 1x tests，8/8 错误提交被拒。仅使用每题前 8 个 tests 时错误提交拒绝率为
+  5/8，说明 rollout 不应任意截断测试集。该 smoke 支持迁移，但正式决定前仍需跨 shard 扩大审计，
+  并将 checker 执行接入隔离 sandbox。
+- 随后扩展到 5 个 shards 各 1 个 row group，共得到 217 个 eligible problems，并确定性抽样 50
+  题使用全部 1x tests。修正本地 judge parity（定义 `ONLINE_JUDGE`，输出上限由 1 MiB 调整为
+  16 MiB）后：checker compile 50/50，已标记正确提交 full-pass 48/50，已标记错误提交被拒
+  49/50。剩余 3 个 label/execution 异常与数据集公布的非完美 TPR/TNR 一致，说明不能直接相信
+  submission label，正式数据仍须执行 gate。结论为迁移 go：CodeContests+ 作为 executable 主源，
+  TACO 降为补充；下一步实现 problem-level split、sandbox checker adapter 与 locally-verified
+  correct/incorrect pools。
+- CodeContests+ 迁移 smoke 已落地：5 shards 中扫描候选并冻结 50 个 checker-backed problems，包含
+  1,148 tests（visible 422、private 726）和 50 个经本地复验的真实错误起点；错误类型为 44 WA、
+  3 runtime、3 compile。筛选过程中拒绝 56 个未达 TPR/TNR 阈值、1 个 incorrect/full-pass 冲突、
+  3 个 correct/non-full-pass 冲突。checker contract 已接入 Agent visible execution、hidden gate 与
+  final gate；数据重新加载后的端到端 backend smoke 正确复现 WA。TACO pipeline 保留但不再是 M10
+  默认主线。
+- CodeContests+ 50-task repair smoke 使用 `qwen3-8b` 完成：严格接收 28/50，真实 full-checker
+  success 30/50；2 条仅首轮缺失显式 action，按既定规则规范化后冻结 30 条 trajectory。其余 20 条
+  为真实失败：12 final incorrect、3 token budget exhausted、3 repeated code、2 execution budget
+  exhausted。失败任务中 17/20 的最佳 visible pass rate 至少 0.5，表明 8B 通常取得部分修复进展。
+  已从每条失败轨迹抽取最佳 visible 候选，导出 20 条 checker-backed `qwen3-32b` escalation tasks；
+  抽样重新执行得到 visible 7/9、private 9/14，确认导出保留真实中间状态而非退回原始错误代码。
+- 后处理规则升级为 success-preserving truncation：若任意 `execute_code` 同时通过全部 visible 与
+  当时剩余 private tests，则截断后续退化 turns，并追加复用完全相同代码的显式 `final`；只合成
+  action wrapper，不修改 reasoning、代码或 JudgeResult，并记录 normalization provenance。回放 8B
+  run 恢复 3 条 success-before-regression，故 8B 冻结数由 30 增至 33、32B escalation 输入由 20
+  降至 17。已完成的 32B run 中另有 9 条 full-checker success（严格 3、协议规范化 6），最终两阶段
+  可用 repair trajectories 为 42/50，剩余真实失败 8 条。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
+- M11 Agent SFT smoke 数据已冻结：M10 checker-backed trajectories 共 42 条，稳定划分为 34 train /
+  8 dev；总计 143,474 chat tokens、32,610 assistant target tokens。样本总长度 train
+  min/median/max 为 1,039/2,394/14,850，dev 为 1,365/2,069/6,086，均完整落在 16,384-token
+  上限内。训练使用 Qwen3-1.7B-Base、assistant-only loss（含 `<|im_end|>`）、4 epochs，并按 epoch
+  保存 checkpoint 和计算 dev loss；这是数据/协议可学性的低成本 pilot，不作为最终能力结论。
 
 ## Milestone 0
 

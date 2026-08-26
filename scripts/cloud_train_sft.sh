@@ -22,8 +22,9 @@ case "${MODE}" in
   ab-short-1k-4epoch) CONFIG="configs/training/m7_sft_ab_short_1k_4epoch.yaml" ;;
   weighted-smoke) CONFIG="configs/training/m7_sft_weighted_smoke.yaml" ;;
   weighted-short-1k-4epoch) CONFIG="configs/training/m7_sft_weighted_short_1k_4epoch.yaml" ;;
+  agent-smoke) CONFIG="configs/training/m11_agent_sft_42_smoke.yaml" ;;
   *)
-    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot|compact-4epoch|ab-short-pilot|ab-code-pilot|ab-short-1k|ab-code-1k|ab-short-1k-4epoch|weighted-smoke|weighted-short-1k-4epoch} [--resume CHECKPOINT]" >&2
+    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot|compact-4epoch|ab-short-pilot|ab-code-pilot|ab-short-1k|ab-code-1k|ab-short-1k-4epoch|weighted-smoke|weighted-short-1k-4epoch|agent-smoke} [--resume CHECKPOINT]" >&2
     exit 2
     ;;
 esac
@@ -37,7 +38,9 @@ if [[ ! -x "${VERL_PYTHON}" ]]; then
   echo "Missing verl environment. Run bash scripts/cloud_setup.sh first." >&2
   exit 1
 fi
-if [[ "${MODE}" == "ab-short-pilot" || "${MODE}" == "ab-short-1k" || "${MODE}" == "ab-short-1k-4epoch" || "${MODE}" == "weighted-smoke" || "${MODE}" == "weighted-short-1k-4epoch" ]]; then
+if [[ "${MODE}" == "agent-smoke" ]]; then
+  REQUIRED_DATA="data/processed/agent_sft_v1/train_34.jsonl"
+elif [[ "${MODE}" == "ab-short-pilot" || "${MODE}" == "ab-short-1k" || "${MODE}" == "ab-short-1k-4epoch" || "${MODE}" == "weighted-smoke" || "${MODE}" == "weighted-short-1k-4epoch" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_short_reasoning_v2.jsonl"
 elif [[ "${MODE}" == "ab-code-pilot" || "${MODE}" == "ab-code-1k" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_code_only_v2.jsonl"
@@ -50,6 +53,10 @@ else
 fi
 if [[ ! -f "${PROJECT_ROOT}/${REQUIRED_DATA}" ]]; then
   echo "Missing training data: ${REQUIRED_DATA}" >&2
+  exit 1
+fi
+if [[ "${MODE}" == "agent-smoke" && ! -f "${PROJECT_ROOT}/data/processed/agent_sft_v1/dev_8.jsonl" ]]; then
+  echo "Missing evaluation data: data/processed/agent_sft_v1/dev_8.jsonl" >&2
   exit 1
 fi
 

@@ -1,0 +1,30 @@
+dataset:
+  name: ByteDance-Seed/Code-Contests-Plus
+  revision: 96c850540fade31d384a25766461e0da6b08f5fc
+  config: 1x
+  shard_glob: ccplus_1x/part-*.parquet
+
+selection:
+  shard_count: 5
+  row_groups_per_shard: 1
+  sample_size: 50
+  seed: 20260826
+  minimum_true_positive_rate: 0.9
+  minimum_true_negative_rate: 0.9
+  tests_per_problem: 100
+  correct_submissions_per_problem: 1
+  incorrect_submissions_per_problem: 1
+  language: cpp
+
+execution:
+  compile_timeout_seconds: 15
+  execution_timeout_seconds: 4
+  checker_timeout_seconds: 4
+  memory_limit_bytes: 536870912
+  output_limit_bytes: 16777216
+
+testlib:
+  revision: 1e4e8a24c79c6bad3becbdb5a332ffc352b7d5dd
+  cache_path: cache/codecontests_plus/testlib.h
+
+output: outputs/data_audit/m10-codecontests-plus-audit-v1

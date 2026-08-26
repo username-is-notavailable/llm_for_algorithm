@@ -62,6 +62,10 @@ def encode_sft_row(
     max_length: int,
     loss_weights: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if row.get("messages") is not None:
+        if loss_weights is not None:
+            raise ValueError("Agent message SFT does not support reasoning/code loss weights")
+        return encode_agent_sft_row(row, tokenizer, max_length)
     prompt_ids = tokenizer.encode(row["prompt"], add_special_tokens=False)
     if loss_weights is None:
         response_ids = tokenizer.encode(row["response"], add_special_tokens=False)
@@ -89,6 +93,67 @@ def encode_sft_row(
             raise ValueError("Loss weights must be non-negative")
         encoded["loss_weights"] = [0.0] * len(prompt_ids) + response_weights + [eos_weight]
     return encoded
+
+
+def encode_agent_sft_row(
+    row: dict[str, Any], tokenizer: Any, max_length: int
+) -> dict[str, Any]:
+    messages = row.get("messages")
+    if not isinstance(messages, list) or not messages:
+        raise ValueError("Agent SFT row requires non-empty messages")
+    if messages[-1].get("role") != "assistant":
+        raise ValueError("Agent SFT conversation must end with an assistant message")
+
+    for message in messages:
+        role = message.get("role")
+        if role not in {"system", "user", "assistant", "tool"}:
+            raise ValueError(f"Unsupported Agent SFT role: {role}")
+        if not isinstance(message.get("content"), str) or not message["content"]:
+            raise ValueError("Agent SFT messages require non-empty string content")
+    rendered = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=False,
+    )
+    encoded = tokenizer(rendered, add_special_tokens=False, return_offsets_mapping=True)
+    input_ids = list(encoded["input_ids"])
+    offsets = list(encoded["offset_mapping"])
+    assistant_spans = []
+    cursor = 0
+    for message in messages:
+        start = rendered.find(message["content"], cursor)
+        if start < 0:
+            raise ValueError("Chat template output does not contain message content in order")
+        end = start + len(message["content"])
+        if message["role"] == "assistant":
+            # Qwen chat templates terminate every assistant turn with
+            # <|im_end|>. Supervise that terminator as well as the textual
+            # action so the fine-tuned policy learns to stop each tool call
+            # and final answer instead of continuing indefinitely.
+            terminator = rendered.find("<|im_end|>", end)
+            if terminator >= 0:
+                end = terminator + len("<|im_end|>")
+            assistant_spans.append((start, end))
+        cursor = end
+    labels = [
+        token
+        if any(start < span_end and end > span_start for span_start, span_end in assistant_spans)
+        else -100
+        for token, (start, end) in zip(input_ids, offsets)
+    ]
+    if len(input_ids) > max_length:
+        raise ValueError(
+            f"{row['problem_id']} has {len(input_ids)} chat tokens; max_length={max_length}"
+        )
+    if not any(label != -100 for label in labels):
+        raise ValueError("Agent SFT conversation has no assistant target tokens")
+    return {
+        "input_ids": input_ids,
+        "labels": labels,
+        "attention_mask": [1] * len(input_ids),
+        "problem_id": row["problem_id"],
+        "length": len(input_ids),
+    }
 
 
 class SFTDataset:

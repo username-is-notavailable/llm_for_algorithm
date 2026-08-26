@@ -81,6 +81,20 @@ def main() -> int:
         loss_weights=training.get("loss_weights"),
     )
     dataset_sha256 = hashlib.sha256(Path(data_config["path"]).read_bytes()).hexdigest()
+    eval_dataset = None
+    eval_dataset_sha256 = None
+    if data_config.get("eval_path"):
+        eval_dataset = SFTDataset(
+            data_config["eval_path"],
+            tokenizer,
+            max_length=int(data_config["max_length"]),
+            limit=data_config.get("eval_limit"),
+            selection=data_config.get("eval_selection", "ordered"),
+            loss_weights=training.get("loss_weights"),
+        )
+        eval_dataset_sha256 = hashlib.sha256(
+            Path(data_config["eval_path"]).read_bytes()
+        ).hexdigest()
 
     model = AutoModelForCausalLM.from_pretrained(
         model_config["name_or_path"],
@@ -98,6 +112,7 @@ def main() -> int:
     trainer_args = TrainingArguments(
         output_dir=str(run_dir),
         do_train=True,
+        do_eval=eval_dataset is not None,
         per_device_train_batch_size=micro_batch,
         gradient_accumulation_steps=gradient_accumulation,
         max_steps=max_steps,
@@ -113,6 +128,7 @@ def main() -> int:
         logging_strategy="steps",
         logging_steps=int(training.get("logging_steps", 1)),
         logging_first_step=True,
+        eval_strategy=training.get("eval_strategy", "epoch") if eval_dataset else "no",
         save_strategy=training.get("save_strategy", "steps"),
         save_steps=int(training.get("save_steps", 25)),
         save_total_limit=int(training.get("save_total_limit", 2)),
@@ -153,6 +169,7 @@ def main() -> int:
         model=model,
         args=trainer_args,
         train_dataset=dataset,
+        eval_dataset=eval_dataset,
         data_collator=SFTDataCollator(int(tokenizer.pad_token_id)),
         processing_class=tokenizer,
     )
@@ -174,16 +191,27 @@ def main() -> int:
             "selected_loss_weight_sum": sum(
                 sum(example.get("loss_weights", [])) for example in dataset.examples
             ),
+            "eval_dataset_sha256": eval_dataset_sha256,
+            "eval_samples": len(eval_dataset) if eval_dataset is not None else 0,
+            "eval_tokens": (
+                sum(example["length"] for example in eval_dataset.examples)
+                if eval_dataset is not None
+                else 0
+            ),
         }
         (run_dir / "environment.json").write_text(
             json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8"
         )
 
     result = trainer.train(resume_from_checkpoint=args.resume or None)
+    final_eval_metrics = (
+        trainer.evaluate(metric_key_prefix="final_eval") if eval_dataset is not None else {}
+    )
     trainer.save_model(str(run_dir / "final"))
     if rank == 0:
         tokenizer.save_pretrained(run_dir / "final")
         metrics = dict(result.metrics)
+        metrics.update(final_eval_metrics)
         metrics["world_size"] = world_size
         metrics["global_batch_size"] = global_batch
         metrics["gradient_accumulation_steps"] = gradient_accumulation

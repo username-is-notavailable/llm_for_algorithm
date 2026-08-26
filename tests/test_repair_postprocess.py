@@ -1,4 +1,8 @@
-from scripts.postprocess_repair_api import canonicalize_success, escalation_payload
+from scripts.postprocess_repair_api import (
+    canonicalize_success,
+    escalation_payload,
+    recover_intermediate_success,
+)
 
 
 def _row(*, success: bool = True) -> dict:
@@ -51,3 +55,36 @@ def test_escalation_uses_best_8b_candidate_as_new_initial_submission() -> None:
     assert payload["problem"]["problem_id"] == "p"
     assert payload["initial_submission"]["producer_model"] == "qwen3-32b"
     assert payload["initial_submission"]["parent_task_id"] == "parent"
+
+
+def test_recovers_full_pass_execute_before_later_regression() -> None:
+    row = _row(success=False)
+    first = row["repair_trajectory"]["steps"][0]
+    first["prompt_messages"] = [{"role": "user", "content": "repair"}]
+    first["submission"].update({"code_sha256": "abc", "prompt_tokens": None, "reasoning_content": None, "provider_metadata": {}})
+    first["observation"] = {
+        "judge": {"compiled": True, "passed": 1, "total": 1, "pass_rate": 1.0, "runtime_error": False, "timeout": False, "error_type": None, "compile_stderr": "", "cases": []}
+    }
+    first["hidden_evaluation"] = {
+        "judge": {"compiled": True, "passed": 2, "total": 2, "pass_rate": 1.0, "runtime_error": False, "timeout": False, "error_type": None, "compile_stderr": "", "cases": []}
+    }
+    row["repair_trajectory"]["steps"].append(
+        {
+            "turn": 1,
+            "prompt_messages": [{"role": "tool", "content": "passed"}],
+            "submission": {**first["submission"], "turn": 1, "code": "bad", "code_sha256": "bad"},
+            "observation": None,
+            "hidden_evaluation": {"judge": {"passed": 0, "total": 3}},
+            "previous_visible_pass_rate": 1.0,
+            "current_visible_pass_rate": None,
+            "delta_visible_pass_rate": None,
+        }
+    )
+    value = recover_intermediate_success(row, source_run="run")
+    assert value is not None
+    assert len(value["repair_trajectory"]["steps"]) == 2
+    final = value["repair_trajectory"]["steps"][-1]
+    assert final["submission"]["effective_action"] == "final"
+    assert final["submission"]["code"] == "int main(){}"
+    assert value["repair_trajectory"]["hidden_evaluation"]["judge"]["total"] == 3
+    assert value["normalization"]["truncated_turns"] == [1]

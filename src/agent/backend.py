@@ -18,6 +18,7 @@ class ExecutionBackend(Protocol):
 
 def _judge(code: str, problem: AgentProblem, *, hidden: bool):
     limits = problem.limits
+    checker = problem.metadata.get("output_checker") or {}
     return judge(
         code,
         problem.hidden_tests if hidden else problem.visible_tests,
@@ -25,6 +26,9 @@ def _judge(code: str, problem: AgentProblem, *, hidden: bool):
         execution_timeout_seconds=limits.execution_timeout_seconds,
         memory_limit_bytes=limits.memory_limit_bytes,
         output_limit_bytes=limits.output_limit_bytes,
+        output_checker_source=checker.get("source"),
+        testlib_path=checker.get("testlib_path"),
+        checker_timeout_seconds=float(checker.get("timeout_seconds", 4.0)),
     )
 
 

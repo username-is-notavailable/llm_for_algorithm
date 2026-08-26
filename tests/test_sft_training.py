@@ -30,6 +30,15 @@ class FakeTokenizer:
             "offset_mapping": [(index, index + 1) for index in range(len(value))],
         }
 
+    def apply_chat_template(
+        self, messages: list[dict], *, tokenize: bool, add_generation_prompt: bool
+    ) -> list[int] | str:
+        assert add_generation_prompt is False
+        text = "".join(
+            f"<{message['role']}>{message['content']}<|im_end|>" for message in messages
+        )
+        return self.encode(text, add_special_tokens=False) if tokenize else text
+
 
 def _row(problem_id: str, total: int = 10) -> dict:
     return {
@@ -55,6 +64,32 @@ def test_encoding_rejects_instead_of_truncating() -> None:
         assert "too-long" in str(error)
     else:
         raise AssertionError("Expected an over-length sample error")
+
+
+def test_agent_encoding_masks_non_assistant_turns() -> None:
+    row = {
+        "problem_id": "agent",
+        "messages": [
+            {"role": "user", "content": "problem"},
+            {"role": "assistant", "content": "<action>execute_code</action> code"},
+            {"role": "tool", "content": "wrong answer"},
+            {"role": "assistant", "content": "<action>final</action> fixed"},
+        ],
+    }
+    encoded = encode_sft_row(row, FakeTokenizer(), max_length=1000)
+    rendered = FakeTokenizer().apply_chat_template(
+        row["messages"], tokenize=False, add_generation_prompt=False
+    )
+    for message in row["messages"]:
+        start = rendered.index(message["content"])
+        labels = encoded["labels"][start : start + len(message["content"])]
+        if message["role"] == "assistant":
+            assert all(label != -100 for label in labels)
+            terminator_start = start + len(message["content"])
+            terminator_end = terminator_start + len("<|im_end|>")
+            assert all(label != -100 for label in encoded["labels"][terminator_start:terminator_end])
+        else:
+            assert labels == [-100] * len(labels)
 
 
 def test_dataset_selection_and_collation(tmp_path: Path) -> None:
