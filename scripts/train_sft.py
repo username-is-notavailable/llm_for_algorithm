@@ -114,6 +114,7 @@ def main() -> int:
         do_train=True,
         do_eval=eval_dataset is not None,
         per_device_train_batch_size=micro_batch,
+        per_device_eval_batch_size=int(training.get("per_device_eval_batch_size", 1)),
         gradient_accumulation_steps=gradient_accumulation,
         max_steps=max_steps,
         num_train_epochs=num_train_epochs,

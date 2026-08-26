@@ -150,6 +150,10 @@
   8.41 GiB 时 OOM；此前 5 steps 正常，确认是单条长尾而非总显存或 DDP 故障。pilot 不引入 FSDP
   且不截断 target，改为显式排除该 1 条并记录 provenance；实际训练集 33 条、最长 9,837 tokens、
   max length 10,240，8 条 dev 不变。
+- M11 第二次运行已完整完成 epoch 1 的 9 个训练 steps，但进入 dev evaluation 后 OOM。根因是
+  Transformers 默认 `per_device_eval_batch_size=8`，8 条不同长度序列一起 padding，causal-LM loss
+  将 151K-vocabulary logits 转为 FP32 时额外申请 27.57 GiB；不是训练长度仍超限。训练入口现统一
+  将 eval batch 默认设为 1，M11 配置显式冻结为 1，无需升级至 80GB。
 
 ## Milestone 0
 
