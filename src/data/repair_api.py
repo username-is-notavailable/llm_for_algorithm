@@ -7,7 +7,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Callable
 
-from src.agent.backend import LocalVerifierBackend
+from src.agent.backend import LocalVerifierBackend, reveal_hidden_counterexample
 from src.agent.controller import run_agent
 from src.agent.schemas import (
     ActionParseStatus,
@@ -74,8 +74,26 @@ def process_task(
         max_feedback_bytes=int(config["agent"].get("max_feedback_bytes", 4096)),
     )
     initial_hidden = backend.evaluate_hidden(initial_code, original)
+    initial_revealed = 0
+    if (
+        observation.visible_pass_rate == 1
+        and not initial_hidden.success
+        and int(config["agent"].get("max_revealed_counterexamples", 1)) > 0
+    ):
+        revealed = reveal_hidden_counterexample(
+            backend,
+            initial_code,
+            original,
+            initial_hidden,
+            executions_remaining=int(config["agent"]["max_execute_calls"]),
+            max_feedback_bytes=int(config["agent"].get("max_feedback_bytes", 4096)),
+            min_private_tests=int(config["agent"].get("min_private_tests", 1)),
+        )
+        if revealed is not None:
+            original, observation = revealed
+            initial_revealed = 1
     base = {
-        "schema_version": "repair-example-v1",
+        "schema_version": "repair-example-v2",
         "task_id": payload["task_id"],
         "problem_id": original.problem_id,
         "difficulty": original.difficulty,
@@ -86,7 +104,7 @@ def process_task(
         "initial_observation": asdict(observation),
         "initial_hidden_evaluation": asdict(initial_hidden),
     }
-    if initial_hidden.success:
+    if initial_hidden.success and observation.visible_pass_rate == 1:
         return {**base, "accepted": False, "rejection_reason": "initial_code_already_correct"}, False
     if observation.visible_pass_rate == 1:
         return {**base, "accepted": False, "rejection_reason": "no_visible_failure_feedback"}, False
@@ -108,6 +126,7 @@ def process_task(
         generator=generator,
         backend=backend,
         generation=config["generation"],
+        initial_revealed_counterexamples=initial_revealed,
     )
     explicit = all(
         step.submission.action_parse_status == ActionParseStatus.EXPLICIT for step in trajectory.steps

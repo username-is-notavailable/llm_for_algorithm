@@ -101,8 +101,9 @@ Final or Termination
 
 模型只需要选择两个动作，每个动作都必须附带一份完整 C++17 程序：
 
-- `execute_code`：运行 visible tests 并返回执行反馈；
-- `final`：结束交互，只运行 hidden tests，不返回反馈。
+- `execute_code`：运行当前 feedback tests 并返回执行反馈；若 feedback tests 全过但 private gate
+  失败，可按预算揭示一条真实 counterexample；
+- `final`：结束交互，对全部 feedback + remaining private tests 做完整验证，不返回反馈。
 
 动作使用简单标签 `<action>execute_code</action>` 或 `<action>final</action>`，不要求 Base 模型
 生成嵌套 JSON function call。缺失或非法标签采用预算感知回退，并记录 requested/effective action
@@ -402,8 +403,9 @@ termination reason 都有测试；Agent 与 sandbox backend 解耦。
 - 先通过固定 10 题 smoke，再得到 Base one-shot 与 Base agent 对照；
 - 人工 audit 至少 30 条 trajectory。
 
-实现协议固定为 10 题 smoke 和 60 题 agent-dev。one-shot 与 Agent 使用相同 hidden tests；最多三次
-`execute_code` 仅使用 visible tests。支持完整 trajectory 落盘、单 GPU resume 和两 GPU
+实现协议固定为 10 题 smoke 和 60 题 agent-dev。最多三次 `execute_code` 使用动态 feedback
+tests；初始 feedback 全过而 private gate 失败时可揭示一条 counterexample，`final` 验证完整并集。
+支持完整 trajectory 落盘、单 GPU resume 和两 GPU
 problem sharding。Qwen3-1.7B-Base 先完成云端 gate，再运行 4B 对照。
 
 M9 已于 2026-08-24 验收。官方 post-trained Qwen3-4B 的 60 题能力参考中，Agent 首次/最终成功率
@@ -430,7 +432,8 @@ execution feedback 有效，同时为 Agent action、停止决策和修复效率
 
 验收要求 wrong code 实际失败、repair target 通过全部 tests、feedback 与 JudgeResult 一致且无 eval
 problem 泄漏。API key 只从环境变量读取；保存 provider/model、请求 ID、usage、reasoning、content、
-生成参数和时间，hidden tests 及其结果不得进入模型消息。
+生成参数和时间。private tests 及其结果不得进入模型消息；仅允许将按策略选择的失败 case 显式迁移
+为 revealed counterexample，并记录 provenance。
 
 ### M11：Qwen3-1.7B Agentic SFT Pilot
 

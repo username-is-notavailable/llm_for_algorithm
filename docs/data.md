@@ -1,15 +1,20 @@
 # Data
 
-## Agent Trajectory v1
+## Agent Trajectory v2
 
 新方向将 executable problem 的 tests 固定拆成两组：
 
-- `visible_tests`：仅由 `execute_code` 使用，可向模型展示第一个失败输入、expected 和 actual；
-- `hidden_tests`：仅供后台审计和 `final` 判定，任何结果都不得进入后续模型上下文。
+- `visible_tests`：由 `execute_code` 使用，可向模型展示第一个失败输入、expected 和 actual；
+- `hidden_tests`：private gate；默认不进入模型上下文。当现有 visible tests 全过但 private gate
+  失败时，最多选择一条真实失败 case，将其显式迁移为 `revealed_counterexample` 并加入后续
+  visible tests。迁移后该 case 不再计作 private，且始终至少保留一条未揭示 private test；
+- `final` 对当前 visible 与 remaining private 的完整并集重新验证，防止最后一次生成在已见 case
+  上回归。
 
 模型动作协议只有 `execute_code` 和 `final`。每个动作必须附带完整 C++17；系统不使用“沿用上次
 代码”的隐式 final。单条 trajectory 保存模型原始响应、requested/effective action、action parse
-status、代码与 hash、visible observation、不可见的 hidden audit、token 数和 termination reason。
+status、代码与 hash、visible observation、不可见的 private audit、反例揭示 provenance、token 数和
+termination reason。
 
 默认预算为三次 feedback-producing execution 和一次 final candidate。超额 `execute_code` 作为
 final 处理，但同时记录：

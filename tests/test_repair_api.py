@@ -5,6 +5,7 @@ from typing import Any
 from src.data.repair_api import process_task
 from src.data.repair_api import repair_prompt
 from src.data.repair_api import run_workers
+from src.agent.schemas import AgentTrajectory
 from src.inference.generate import GeneratedText
 
 
@@ -76,6 +77,54 @@ def test_process_task_accepts_verified_explicit_repair() -> None:
     first = result["repair_trajectory"]["steps"][0]["submission"]
     assert first["reasoning_content"] == "fix addition"
     assert first["provider_metadata"]["request_id"] == "r-1"
+
+
+def test_process_task_reveals_hidden_counterexample_when_initial_visible_passes() -> None:
+    payload = {
+        "task_id": "task-adaptive",
+        "problem": {
+            "problem_id": "toy:add-adaptive",
+            "problem": "Read two integers and print their sum.",
+            "language": "cpp",
+            "difficulty": "easy",
+            "visible_tests": [{"input": "1 2\n", "output": "3\n"}],
+            "hidden_tests": [
+                {"input": "2 2\n", "output": "4\n"},
+                {"input": "10 20\n", "output": "30\n"},
+            ],
+        },
+        "initial_submission": {
+            "producer_model": "fake-posttrained",
+            "response": "constant output",
+            "code": "#include <iostream>\nint main(){std::cout<<3<<'\\n';}",
+        },
+    }
+    value = {
+        "api": {"model": "qwen3-8b"},
+        "generation": {"max_new_tokens": 100},
+        "agent": {
+            "max_execute_calls": 1,
+            "max_candidate_submissions": 2,
+            "max_revealed_counterexamples": 1,
+            "min_private_tests": 1,
+        },
+        "verifier": {
+            "compile_timeout_seconds": 5,
+            "execution_timeout_seconds": 1,
+            "memory_limit_mb": 256,
+            "output_limit_bytes": 65536,
+        },
+    }
+    result, accepted = process_task(payload, value, FakeTeacher())
+    assert accepted
+    assert result["initial_observation"]["revealed_counterexample"] is True
+    assert result["initial_observation"]["private_tests_remaining"] == 1
+    assert result["repair_trajectory"]["initial_revealed_counterexamples"] == 1
+    assert result["repair_trajectory"]["outcome"]["revealed_counterexamples"] == 1
+    assert result["repair_trajectory"]["hidden_evaluation"]["judge"]["total"] == 3
+    restored = AgentTrajectory.from_dict(result["repair_trajectory"])
+    assert restored.revealed_counterexamples == 1
+    assert restored.full_tests_total == 3
 
 
 def test_workers_emit_progress(tmp_path, capsys) -> None:

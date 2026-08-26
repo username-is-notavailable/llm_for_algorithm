@@ -31,6 +31,8 @@ agent:
   max_visible_failure_cases: 1
   stop_on_repeated_code: true
   evaluate_hidden_each_submission: true
+  max_revealed_counterexamples: 1
+  min_private_tests: 1
 verifier:
   compile_timeout_seconds: 10
   execution_timeout_seconds: 6

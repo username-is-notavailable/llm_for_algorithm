@@ -100,6 +100,12 @@
   响应均含单个标准 C++ fence，可见 target 最大估算 1,562 tokens。因此当前 one-shot 瓶颈是
   correctness 而非格式，无需切换 native tool calling。32B 私有 thinking 成本仍偏高：completion
   tokens p50=12,029、p95=21,597；后续单独做 thinking budget/关闭 thinking 消融。
+- 2026-08-26，native 36-task repair smoke 中严格接收 15 条，实际 full-test success 17 条；79
+  个 steps 中 77 个 explicit action，2 条仅因首步 action 缺失被协议拒绝。另有 4 条初始代码
+  visible-pass/private-fail 且无反馈。由此冻结 adaptive counterexample policy：最多将一条失败
+  private case 迁移为 feedback case、至少保留一条 private test，并在 `final` 对完整测试并集重新
+  验证。trajectory schema 升级为 v2，记录 reveal index/count/private remaining；native tool calling
+  暂不作为 one-shot 或 repair 的阻塞项。
 - M10 官方 4B producer 使用 4090 24GB 安全配置：BF16、16K context、8K 最大输出、单卡
   `max_num_seqs=2`，按 problem 多卡分片，不使用 tensor parallel。
 

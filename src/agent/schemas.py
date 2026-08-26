@@ -70,6 +70,8 @@ class AgentConfig:
     max_visible_failure_cases: int = 1
     stop_on_repeated_code: bool = True
     evaluate_hidden_each_submission: bool = True
+    max_revealed_counterexamples: int = 1
+    min_private_tests: int = 1
 
     def __post_init__(self) -> None:
         if self.max_execute_calls < 0:
@@ -82,6 +84,8 @@ class AgentConfig:
             raise ValueError("max_total_generation_tokens must be positive")
         if self.max_feedback_bytes < 1 or self.max_visible_failure_cases != 1:
             raise ValueError("Code Agent v1 requires positive feedback bytes and one failure case")
+        if self.max_revealed_counterexamples < 0 or self.min_private_tests < 1:
+            raise ValueError("Counterexample reveal limits must be non-negative with a private gate")
 
 
 @dataclass(frozen=True)
@@ -107,6 +111,9 @@ class ExecutionObservation:
     model_feedback: str
     executions_remaining: int
     cached: bool = False
+    revealed_counterexample: bool = False
+    revealed_private_index: int | None = None
+    private_tests_remaining: int | None = None
 
     @property
     def visible_pass_rate(self) -> float:
@@ -143,6 +150,8 @@ class AgentTrajectory:
     model: dict[str, Any]
     agent_config: AgentConfig
     hidden_tests_total: int
+    full_tests_total: int | None = None
+    initial_revealed_counterexamples: int = 0
     steps: list[AgentStep] = field(default_factory=list)
     hidden_evaluation: HiddenEvaluation | None = None
     termination_reason: TerminationReason | None = None
@@ -160,10 +169,21 @@ class AgentTrajectory:
         return sum(step.submission.generation_tokens for step in self.steps)
 
     @property
+    def revealed_counterexamples(self) -> int:
+        return self.initial_revealed_counterexamples + sum(
+            bool(step.observation and step.observation.revealed_counterexample)
+            for step in self.steps
+        )
+
+    @property
     def first_attempt_success(self) -> bool:
         if not self.steps:
             return False
-        return bool(self.steps[0].hidden_evaluation and self.steps[0].hidden_evaluation.success)
+        first = self.steps[0]
+        visible_success = first.observation is None or first.observation.visible_pass_rate == 1
+        return bool(
+            visible_success and first.hidden_evaluation and first.hidden_evaluation.success
+        )
 
     @property
     def final_success(self) -> bool:
@@ -182,6 +202,8 @@ class AgentTrajectory:
             "execute_calls": self.execute_calls,
             "candidate_submissions": self.candidate_submissions,
             "total_generation_tokens": self.total_generation_tokens,
+            "revealed_counterexamples": self.revealed_counterexamples,
+            "full_tests_total": self.full_tests_total,
             "termination_reason": self.termination_reason,
         }
         return value
@@ -212,6 +234,11 @@ class AgentTrajectory:
                     model_feedback=observation_data["model_feedback"],
                     executions_remaining=int(observation_data["executions_remaining"]),
                     cached=bool(observation_data.get("cached", False)),
+                    revealed_counterexample=bool(
+                        observation_data.get("revealed_counterexample", False)
+                    ),
+                    revealed_private_index=observation_data.get("revealed_private_index"),
+                    private_tests_remaining=observation_data.get("private_tests_remaining"),
                 )
             steps.append(
                 AgentStep(
@@ -238,6 +265,14 @@ class AgentTrajectory:
             hidden_tests_total=int(
                 value.get("hidden_tests_total")
                 or (value.get("hidden_evaluation") or {}).get("judge", {}).get("total", 0)
+            ),
+            full_tests_total=int(
+                value.get("full_tests_total")
+                or (value.get("hidden_evaluation") or {}).get("judge", {}).get("total", 0)
+                or value.get("hidden_tests_total", 0)
+            ),
+            initial_revealed_counterexamples=int(
+                value.get("initial_revealed_counterexamples", 0)
             ),
             steps=steps,
             hidden_evaluation=load_hidden(value.get("hidden_evaluation")),

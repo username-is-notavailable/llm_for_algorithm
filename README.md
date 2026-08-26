@@ -17,8 +17,10 @@ Agent 每轮生成一个动作标签和一份完整 C++17 程序：
 <action>final</action>        + complete C++
 ```
 
-`execute_code` 最多调用三次，只运行 visible tests 并返回受限的执行反馈；`final` 不返回反馈，
-直接用 hidden tests 判定最终结果。三次执行额度用完后再次请求 `execute_code`，该候选会被明确
+`execute_code` 最多调用三次，初始只运行 feedback-visible tests 并返回受限的执行反馈。若这些
+tests 全过但 private gate 失败，环境最多揭示一条真实失败反例，并将它加入后续 feedback tests；
+仍至少保留一条 private test。`final` 不返回反馈，直接用全部 feedback + remaining private tests
+判定最终结果。三次执行额度用完后再次请求 `execute_code`，该候选会被明确
 记录为 auto-final。缺失或非法 action 使用预算感知的兼容回退，同时保留 parse status 供分析。
 
 M8 的内部架构位于 `src/agent/`：模型动作协议、trajectory schema、feedback formatter、可替换
@@ -28,7 +30,7 @@ M8 的内部架构位于 `src/agent/`：模型动作协议、trajectory schema�
 ## M9 Agent baseline
 
 M9 从冻结 LiveCodeBench dev 中确定性选择 60 题，其中原固定 10 题是 smoke 子集。每题按固定
-seed 将 tests 拆为 visible/hidden；one-shot 和 Agent final 使用完全相同的 hidden tests。
+seed 将 tests 拆为 visible/private；Agent final 始终重新验证二者的完整并集。
 
 云端先生成派生数据，再运行 1.7B smoke 对照：
 
@@ -79,10 +81,10 @@ bash scripts/cloud_eval_agent.sh 1.7b-post smoke both \
 该覆盖只用于诊断，不修改冻结 baseline 配置；产物 experiment ID 带 `long8k` 后缀。
 
 Agent artifacts 位于 `outputs/agent_eval/`，包括 config、environment、逐题完整
-`trajectories.jsonl` 和 `metrics.json`。指标包含 first-attempt/Agent/repair success、hidden testcase
+`trajectories.jsonl` 和 `metrics.json`。指标包含 first-attempt/Agent/repair success、final full-test
 pass rate、action validity/fallback、主动 final、execution/token efficiency、termination 和难度分层。
 即使某轮被截断或没有可提取代码，原始 response、token 数与 finish reason 也会写入 trajectory，
-并在 hidden testcase 汇总中按失败计入分母。
+并在 final full-test 汇总中按失败计入分母。
 
 当前 `LocalVerifierBackend` 延续项目原 verifier 的 resource limit，只能用于固定 benchmark 和受控
 实验。它不提供文件系统或网络强隔离；正式扩大 rollout 前仍需在云平台接入 isolate/nsjail。
@@ -92,12 +94,12 @@ pass rate、action validity/fallback、主动 final、execution/token efficiency
 M10 使用官方 post-trained 4B GPU rollout 生成干净的 one-shot 与真实 failure，不再设置本地
 teacher 修复层。后续 SFT 初始化仍先实验 Base；这是数据 producer 与训练 student 两个独立字段。
 失败样本由阿里云百炼 OpenAI-compatible API 的 `qwen3-8b` 并发修复；每轮候选必须经过本地
-verifier，模型只看到 visible feedback，hidden tests 仅用于接收/拒绝数据。
+verifier，模型只看到 feedback cases；private tests 仅用于 gate，除非按策略迁移一条失败反例。
 
 当前小规模 SFT smoke 改为直接从 TACO 构造 executable problems，不依赖 OCR2 选题或代码。
 每题必须是非交互 stdin/stdout、与 eval 隔离、至少两个 testcase，并且最多尝试三份 TACO 原生
 Python solution 后至少一份 full-pass。筛选最多使用 200 个 testcase，而 Agent 每次只看到最多
-5 个 visible tests，其余留作 hidden final gate。先在本地冻结 200 条：
+5 个初始 visible tests，其余留作 private gate；final 仍验证完整并集。先在本地冻结 200 条：
 
 ```bash
 HF_HOME="$PWD/cache/m10_source_audit" \

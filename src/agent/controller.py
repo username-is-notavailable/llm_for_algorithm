@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 from typing import Any, Protocol
 
-from src.agent.backend import ExecutionBackend
+from src.agent.backend import ExecutionBackend, full_gate_problem, reveal_hidden_counterexample
 from src.agent.schemas import (
     ActionType,
     AgentConfig,
@@ -30,6 +30,8 @@ def build_initial_messages(problem: AgentProblem, config: AgentConfig) -> list[d
                 "Choose <action>execute_code</action> to run visible tests and receive feedback, "
                 "or <action>final</action> to submit your final program. "
                 f"You may request execution feedback at most {config.max_execute_calls} times. "
+                "If current feedback tests pass but private validation fails, the environment may "
+                "reveal one counterexample; treat it as a new feedback test. "
                 "Never omit the action tag. Your visible response must use exactly this shape: "
                 "<action>execute_code</action> (or <action>final</action>), followed by exactly "
                 "one complete program in a ```cpp code fence."
@@ -56,20 +58,25 @@ def run_agent(
     generator: AgentGenerator,
     backend: ExecutionBackend,
     generation: dict[str, Any] | None = None,
+    initial_revealed_counterexamples: int = 0,
 ) -> AgentTrajectory:
     trajectory = AgentTrajectory(
-        schema_version="agent-trajectory-v1",
+        schema_version="agent-trajectory-v2",
         trajectory_id=trajectory_id,
         problem_id=problem.problem_id,
         difficulty=problem.difficulty,
         model=dict(model),
         agent_config=config,
         hidden_tests_total=len(problem.hidden_tests),
+        full_tests_total=len(problem.visible_tests) + len(problem.hidden_tests),
+        initial_revealed_counterexamples=initial_revealed_counterexamples,
     )
     messages = build_initial_messages(problem, config)
     generation_options = dict(generation or {})
     code_hashes: set[str] = set()
     last_visible_pass_rate: float | None = None
+    active_problem = problem
+    revealed_counterexamples = initial_revealed_counterexamples
 
     for turn in range(config.max_candidate_submissions):
         generated = generator.generate(messages, generation_options)
@@ -161,7 +168,9 @@ def run_agent(
                 )
             )
             try:
-                trajectory.hidden_evaluation = backend.evaluate_hidden(parsed.code, problem)
+                trajectory.hidden_evaluation = backend.evaluate_hidden(
+                    parsed.code, full_gate_problem(active_problem)
+                )
             except Exception:
                 trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
                 break
@@ -193,7 +202,9 @@ def run_agent(
                 )
             )
             try:
-                trajectory.hidden_evaluation = backend.evaluate_hidden(parsed.code, problem)
+                trajectory.hidden_evaluation = backend.evaluate_hidden(
+                    parsed.code, full_gate_problem(active_problem)
+                )
             except Exception:
                 trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
                 break
@@ -218,7 +229,7 @@ def run_agent(
         try:
             observation = backend.execute_visible(
                 parsed.code,
-                problem,
+                active_problem,
                 executions_remaining=executions_remaining,
                 max_feedback_bytes=config.max_feedback_bytes,
             )
@@ -241,9 +252,33 @@ def run_agent(
         hidden_evaluation = None
         if config.evaluate_hidden_each_submission:
             try:
-                hidden_evaluation = backend.evaluate_hidden(parsed.code, problem)
+                hidden_evaluation = backend.evaluate_hidden(parsed.code, active_problem)
             except Exception:
                 trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
+        if (
+            trajectory.termination_reason is None
+            and observation.visible_pass_rate == 1
+            and hidden_evaluation is not None
+            and not hidden_evaluation.success
+            and revealed_counterexamples < config.max_revealed_counterexamples
+        ):
+            try:
+                revealed = reveal_hidden_counterexample(
+                    backend,
+                    parsed.code,
+                    active_problem,
+                    hidden_evaluation,
+                    executions_remaining=executions_remaining,
+                    max_feedback_bytes=config.max_feedback_bytes,
+                    min_private_tests=config.min_private_tests,
+                )
+            except Exception:
+                trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
+                revealed = None
+            if revealed is not None:
+                active_problem, observation = revealed
+                revealed_counterexamples += 1
+                current_pass_rate = observation.visible_pass_rate
         trajectory.steps.append(
             AgentStep(
                 turn=turn,
