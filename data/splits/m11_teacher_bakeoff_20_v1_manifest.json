@@ -1,0 +1,36 @@
+{
+  "schema_version": "m11-teacher-bakeoff-v1",
+  "seed": 20260827,
+  "input": "data/processed/agent_sft_source_v1/repair_escalation_32b.jsonl",
+  "size": 20,
+  "problem_ids": [
+    "ccplus:Codeforces:501_D",
+    "ccplus:Codeforces:706_D",
+    "ccplus:Codeforces:743_B",
+    "ccplus:Codeforces:665_E",
+    "ccplus:Codeforces:1084_C",
+    "ccplus:Codeforces:1491_G",
+    "ccplus:Codeforces:618_B",
+    "ccplus:Codeforces:535_A",
+    "ccplus:AIZU:p01009",
+    "ccplus:Codeforces:1227_C",
+    "ccplus:Codeforces:958_A3",
+    "ccplus:Codeforces:1320_C",
+    "ccplus:Codeforces:1070_M",
+    "ccplus:AtCoder:p03529",
+    "ccplus:Codeforces:111_E",
+    "ccplus:Codeforces:1369_C",
+    "ccplus:Codeforces:144_E",
+    "ccplus:Codeforces:1167_E",
+    "ccplus:Codeforces:1129_B",
+    "ccplus:Codeforces:665_A"
+  ],
+  "termination_reasons": {
+    "execution_budget_exhausted_auto_final": 5,
+    "final_incorrect": 5,
+    "model_stop_without_code": 1,
+    "repeated_code": 5,
+    "token_budget_exhausted_auto_final": 4
+  },
+  "sha256": "b2567181d2a07571f63c74b9d6be37ddd36229080a713efa241cc5ae57255133"
+}

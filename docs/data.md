@@ -61,12 +61,69 @@ trajectory。按 seed `20260826` 和 problem ID 稳定划分为 34 train / 8 dev
 assistant 和模板控制部分全部 mask。v2 从 canonical step submission 重建 assistant turns，修复了
 v1 中后处理只更新 submission、未同步后续 prompt snapshot，导致少量规范化前响应进入 target 的问题。
 
-派生数据位于 `data/processed/agent_sft_v2/`（不提交 Git），可通过以下命令重建；提交的
-`data/splits/agent_sft_smoke_v2_manifest.json` 固定来源、划分、tokenizer revision 和文件 hash：
+派生数据位于 `data/processed/agent_sft_v2/`（不提交 Git），提交的历史 manifest 为
+`data/splits/agent_sft_smoke_v2_manifest.json`。v2 已由 v3 取代，不再由默认入口重建。
+
+### Agent SFT smoke v3
+
+v2 的训练 target 虽已 canonical，但首个 user message 仍把题面、初始错误代码和 execution feedback
+拼成一段，这与真实 Agent rollout 的消息状态不一致。v3 将同一条 checker-backed repair 样本重建为：
+
+```text
+system → user(problem)
+       → assistant(initial wrong code, trainable=false)
+       → tool(initial execution feedback)
+       → assistant(teacher repair, trainable=true)
+       → tool(...)
+       → assistant(final, trainable=true)
+```
+
+所有 feedback 的 execution budget 按包含初始失败在内的真实 Agent horizon 重新计算。总 execution
+超过协议上限 3 的轨迹整条拒绝，不截断成功路径。现有 42 条中 3 条因此拒绝，剩余 39 条稳定划分为
+31 train / 8 dev；共 39 个 context-only initial assistant turns 和 85 个可训练 teacher turns。
+v3 仍是结构与可学习性 smoke，不足以作为正式训练集。
+
+下一阶段在本地从同一固定 CodeContests+ revision 准备 300 题 checker-backed source pool，同时导出
+真实错误提交 repair pool 与 checker full-pass one-shot seed。该阶段只需 CPU、磁盘和网络：
 
 ```bash
-.third_party/verl/.venv/bin/python scripts/prepare_agent_sft_smoke.py
+bash scripts/cloud_prepare_codecontests_plus_repair.sh \
+  --config configs/data/m11_codecontests_plus_repair_300_v1.yaml
 ```
+
+该批次最终得到 300 个严格 accepted problems。原始 producer 文件为了兼容旧 pipeline，在 problem、
+failure 和 one-shot 三处重复保存 tests/checker，合计约 17 GB，仅作为可追溯中间产物。正式使用
+compact v2：`problems.jsonl` 唯一保存题目环境，failure/one-shot 仅以 `problem_id` 引用，并将
+`source_judge` 缩减为判题摘要；`problems.index.json` 提供 byte-offset 随机读取，worker 无需把题库
+载入内存。最终四个文件约 3.71 GB，SHA-256 与计数冻结在
+`data/splits/codecontests_plus_repair_300_v2_manifest.json`。转换命令：
+
+```bash
+.third_party/verl/.venv/bin/python scripts/compact_codecontests_plus_repair.py \
+  --problems data/processed/codecontests_plus_repair_300_v1/problems_300.jsonl \
+  --failure-pool data/processed/codecontests_plus_repair_300_v1/failure_pool_300.jsonl \
+  --one-shot-seeds data/processed/codecontests_plus_repair_300_v1/one_shot_seeds_300.jsonl \
+  --output-dir data/processed/codecontests_plus_repair_300_v2 \
+  --manifest data/splits/codecontests_plus_repair_300_v2_manifest.json
+```
+
+compact v2 的第一批监督源由 `scripts/prepare_m11_agent_sources.sh` 构造。one-shot 正确代码会再次
+通过 visible 与完整 checker gate，然后形成两个 trainable assistant turns（execute 与 pass 后的
+final）；repair 部分使用 qwen3-8b 在线执行，SQLite queue 支持 `--resume`。
+
+首版正式 Agent SFT 数据由 300 条 one-shot、153 条 qwen3-8b repair 和 85 条
+qwen3-235b-a22b repair source 构成。235B source 包括 71 条严格成功、10 条协议规范化成功和 4 条
+中间成功截断恢复；剩余 62 条保留为后续 hard/RL pool。运行
+`bash scripts/prepare_m11_agent_sft.sh` 会把 repair 转换为
+`Problem + Wrong Code + Execution Feedback -> execute/final` messages，并使用 Qwen3-4B-Base
+tokenizer 计数。split 以 problem ID 为单位，确保同题的 one-shot 与 repair 不会跨 train/dev。
+
+当前冻结结果为 537 条：train 499（280 one-shot、219 repair），dev 38（20 one-shot、18 repair），
+覆盖 300 个唯一题目。唯一排除项是 17,379-token repair，超过 16,384-token 训练窗口；不截断代码
+或成功轨迹。全体长度 P50/P90/P95/P99 为 1,650/5,760/6,530/10,323 tokens，最大 15,077。
+文件 hash、20 个 dev problem ID 和完整计数记录在
+`data/splits/m11_agent_sft_v1_manifest.json`；训练数据位于被 Git 忽略的
+`data/processed/agent_sft_v1/{train,dev}.jsonl`。
 
 ## Output Protocol v1
 

@@ -1,0 +1,26 @@
+input:
+  one_shot: data/processed/agent_sft_source_v1/one_shot_300.jsonl
+  repair:
+    - data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl
+    - data/processed/agent_sft_source_v1/repair_235b_canonical.jsonl
+  problem_dataset: data/processed/codecontests_plus_repair_300_v2/problems.jsonl
+  problem_index: data/processed/codecontests_plus_repair_300_v2/problems.index.json
+output:
+  train: data/processed/agent_sft_v1/train.jsonl
+  dev: data/processed/agent_sft_v1/dev.jsonl
+  manifest: data/splits/m11_agent_sft_v1_manifest.json
+split:
+  seed: 20260827
+  dev_problems: 20
+tokenizer:
+  name_or_path: Qwen/Qwen3-4B-Base
+  revision: 906bfd4b4dc7f14ee4320094d8b41684abff8539
+  max_length: 16384
+agent:
+  max_execute_calls: 3
+  max_feedback_bytes: 4096
+verifier:
+  compile_timeout_seconds: 15
+  execution_timeout_seconds: 4
+  memory_limit_mb: 512
+  output_limit_bytes: 16777216

@@ -1,0 +1,33 @@
+{
+  "schema_version": "m11-repair-escalation-v1",
+  "source_run": "outputs/data_generation/m11-repair-api-codecontests-plus-300-8b-v1-20260826-220421",
+  "counts": {
+    "strict_success": 143,
+    "escalated": 147,
+    "intermediate_success_recovered": 3,
+    "protocol_recovered": 7,
+    "fallback_to_original": 1
+  },
+  "escalation_rejection_reasons": {
+    "repair_failed_full_tests": 147
+  },
+  "escalation_termination_reasons": {
+    "repeated_code": 42,
+    "execution_budget_exhausted_auto_final": 25,
+    "token_budget_exhausted_auto_final": 30,
+    "final_incorrect": 49,
+    "model_stop_without_code": 1
+  },
+  "files": {
+    "canonical": {
+      "path": "data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl",
+      "bytes": 6394184,
+      "sha256": "86c6ee0ec71492027b036944ad70c979b0f9326da207676cee8f39f8564d4ee8"
+    },
+    "escalation": {
+      "path": "data/processed/agent_sft_source_v1/repair_escalation_32b.jsonl",
+      "bytes": 647994,
+      "sha256": "6c9242a1cff505a21c5d580ba956bd3843abba7d7f550d11eebe7416f419074e"
+    }
+  }
+}

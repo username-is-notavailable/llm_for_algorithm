@@ -144,3 +144,16 @@ def test_workers_emit_progress(tmp_path, capsys) -> None:
 
     assert run_workers(queue, config, generator_factory=factory) == {}
     assert "Progress: 0/0 finished" in capsys.readouterr().out
+
+
+def test_workers_require_store_for_compact_payload(tmp_path) -> None:
+    from src.data.repair_queue import RepairQueue
+
+    queue = RepairQueue(tmp_path / "tasks.sqlite3")
+    queue.add("compact", {"task_id": "compact", "problem_id": "p", "initial_submission": {}})
+    config = {
+        "api": {"concurrency": 1, "requests_per_minute": 600, "tokens_per_minute": 1_000_000},
+        "queue": {"progress_interval_seconds": 1, "max_task_attempts": 1},
+    }
+    result = run_workers(queue, config, generator_factory=lambda: object())
+    assert result == {"failed": 1}

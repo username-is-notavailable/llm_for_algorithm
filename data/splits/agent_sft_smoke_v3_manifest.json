@@ -1,0 +1,103 @@
+{
+  "schema_version": "agent-sft-smoke-v3",
+  "source_files": [
+    "data/processed/codecontests_plus_repair_v1/repair_api_8b_canonical_33.jsonl",
+    "data/processed/codecontests_plus_repair_v1/repair_api_32b_canonical_9.jsonl"
+  ],
+  "tokenizer": {
+    "name_or_path": "Qwen/Qwen3-1.7B-Base",
+    "revision": "ea980cb0a6c2ae4b936e82123acc929f1cec04c1"
+  },
+  "max_length": 32768,
+  "max_train_length": 10240,
+  "max_execute_calls": 3,
+  "seed": 20260826,
+  "problem_ids": {
+    "train": [
+      "ccplus:Codeforces:965_C",
+      "ccplus:Codeforces:1538_F",
+      "ccplus:Codeforces:131_A",
+      "ccplus:AtCoder:p02916",
+      "ccplus:Codeforces:898_D",
+      "ccplus:Codeforces:47_B",
+      "ccplus:AtCoder:p02555",
+      "ccplus:Codeforces:985_A",
+      "ccplus:Codeforces:1277_B",
+      "ccplus:AtCoder:p03994",
+      "ccplus:Codeforces:568_B",
+      "ccplus:Codeforces:1549_A",
+      "ccplus:AIZU:p01600",
+      "ccplus:AtCoder:p02862",
+      "ccplus:Codeforces:938_B",
+      "ccplus:Codeforces:803_B",
+      "ccplus:Codeforces:804_B",
+      "ccplus:Codeforces:271_A",
+      "ccplus:AtCoder:p02856",
+      "ccplus:Codeforces:385_B",
+      "ccplus:Codeforces:730_G",
+      "ccplus:Codeforces:1428_C",
+      "ccplus:Codeforces:80_A",
+      "ccplus:Codeforces:266_B",
+      "ccplus:AIZU:p02277",
+      "ccplus:Codeforces:599_C",
+      "ccplus:Codeforces:794_A",
+      "ccplus:AIZU:p01939",
+      "ccplus:AtCoder:p02926",
+      "ccplus:Codeforces:651_A",
+      "ccplus:AtCoder:p03776"
+    ],
+    "dev": [
+      "ccplus:Codeforces:412_B",
+      "ccplus:Codeforces:932_E",
+      "ccplus:Codeforces:259_B",
+      "ccplus:AtCoder:p02742",
+      "ccplus:AtCoder:p02851",
+      "ccplus:Codeforces:165_B",
+      "ccplus:AtCoder:p03125",
+      "ccplus:AIZU:p00123"
+    ]
+  },
+  "counts": {
+    "train": 31,
+    "dev": 8,
+    "excluded_train_over_length": 0,
+    "rejected_before_split": 3,
+    "assistant_turns": 124,
+    "trainable_assistant_turns": 85,
+    "context_assistant_turns": 39,
+    "tokens": {
+      "train": {
+        "total": 92488,
+        "assistant": 20485,
+        "context": 72003
+      },
+      "dev": {
+        "total": 20102,
+        "assistant": 6475,
+        "context": 13627
+      }
+    }
+  },
+  "excluded_train": [],
+  "rejected": [
+    {
+      "problem_id": "ccplus:Codeforces:369_C",
+      "reason": "execution_budget_mismatch",
+      "detail": "167f8bc430ef30f48862a922bbf97706cfe4e704c866fbf338a2729312e3954e: 4 execute calls exceed Agent budget 3"
+    },
+    {
+      "problem_id": "ccplus:Codeforces:1227_C",
+      "reason": "execution_budget_mismatch",
+      "detail": "847b9cfc0b57f112780e80bd2f23868983a215d84dc4639e5267a2663753524c: 4 execute calls exceed Agent budget 3"
+    },
+    {
+      "problem_id": "ccplus:Codeforces:219_C",
+      "reason": "execution_budget_mismatch",
+      "detail": "fdd0c9bf5e1935dfb7fa9d2d0d796f2d675bef080eb8370bc0da63a9861f7d22: 4 execute calls exceed Agent budget 3"
+    }
+  ],
+  "sha256": {
+    "train": "b01b01bac8a45654224b319f6fdea044c2899178ca323f966c078ddd1d6ad46d",
+    "dev": "d0ec85eebecc4f46374eeacd1392abcb78196bbb2736e3dd276730074d93ea61"
+  }
+}

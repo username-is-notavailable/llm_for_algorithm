@@ -87,7 +87,14 @@ class DashScopeAgentGenerator:
 
     def generate(self, messages: list[dict[str, str]], generation: dict[str, Any]) -> GeneratedText:
         max_tokens = int(generation.get("max_new_tokens", self._config.get("max_tokens", 8192)))
-        reserved = max_tokens + int(self._config.get("prompt_token_reserve", 8192))
+        thinking_budget = self._config.get("thinking_budget")
+        if thinking_budget is not None and int(thinking_budget) < 1:
+            raise ValueError("thinking_budget must be a positive integer")
+        reserved = (
+            max_tokens
+            + int(self._config.get("prompt_token_reserve", 8192))
+            + (int(thinking_budget) if thinking_budget is not None else 0)
+        )
         attempts = int(self._config.get("max_retries", 5)) + 1
         for attempt in range(attempts):
             try:
@@ -107,13 +114,18 @@ class DashScopeAgentGenerator:
     def _request(
         self, messages: list[dict[str, str]], generation: dict[str, Any], max_tokens: int
     ) -> GeneratedText:
+        extra_body: dict[str, Any] = {
+            "enable_thinking": bool(self._config.get("enable_thinking", True))
+        }
+        if self._config.get("thinking_budget") is not None:
+            extra_body["thinking_budget"] = int(self._config["thinking_budget"])
         kwargs: dict[str, Any] = {
             "model": self._model,
             "messages": normalize_messages(messages),
             "stream": True,
             "stream_options": {"include_usage": True},
             "max_tokens": max_tokens,
-            "extra_body": {"enable_thinking": bool(self._config.get("enable_thinking", True))},
+            "extra_body": extra_body,
         }
         for source, target in (("temperature", "temperature"), ("top_p", "top_p")):
             if source in generation:

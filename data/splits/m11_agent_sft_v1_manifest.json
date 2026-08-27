@@ -1,0 +1,128 @@
+{
+  "schema_version": "agent-sft-v1-manifest",
+  "config": {
+    "input": {
+      "one_shot": "data/processed/agent_sft_source_v1/one_shot_300.jsonl",
+      "repair": [
+        "data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl",
+        "data/processed/agent_sft_source_v1/repair_235b_canonical.jsonl"
+      ],
+      "problem_dataset": "data/processed/codecontests_plus_repair_300_v2/problems.jsonl",
+      "problem_index": "data/processed/codecontests_plus_repair_300_v2/problems.index.json"
+    },
+    "output": {
+      "train": "data/processed/agent_sft_v1/train.jsonl",
+      "dev": "data/processed/agent_sft_v1/dev.jsonl",
+      "manifest": "data/splits/m11_agent_sft_v1_manifest.json"
+    },
+    "split": {
+      "seed": 20260827,
+      "dev_problems": 20
+    },
+    "tokenizer": {
+      "name_or_path": "Qwen/Qwen3-4B-Base",
+      "revision": "906bfd4b4dc7f14ee4320094d8b41684abff8539",
+      "max_length": 16384
+    },
+    "agent": {
+      "max_execute_calls": 3,
+      "max_feedback_bytes": 4096
+    },
+    "verifier": {
+      "compile_timeout_seconds": 15,
+      "execution_timeout_seconds": 4,
+      "memory_limit_mb": 512,
+      "output_limit_bytes": 16777216
+    }
+  },
+  "source_sha256": {
+    "one_shot": "e48803b8d03641881e11a560330d3249f8c0ac2ebce7f83330cba5bf58726bdb",
+    "repair": {
+      "data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl": "86c6ee0ec71492027b036944ad70c979b0f9326da207676cee8f39f8564d4ee8",
+      "data/processed/agent_sft_source_v1/repair_235b_canonical.jsonl": "549bcf8a6146e2140afc701150270ab5d208bddb5034593161f8988b13f7c56c"
+    }
+  },
+  "counts": {
+    "source_rows": 538,
+    "accepted": 537,
+    "train": 499,
+    "dev": 38,
+    "unique_problems": 300,
+    "over_length": 1,
+    "families": {
+      "all": {
+        "one_shot": 300,
+        "repair": 237
+      },
+      "train": {
+        "one_shot": 280,
+        "repair": 219
+      },
+      "dev": {
+        "repair": 18,
+        "one_shot": 20
+      }
+    }
+  },
+  "token_counts": {
+    "all": {
+      "min": 440,
+      "p50": 1650,
+      "p90": 5760,
+      "p95": 6530,
+      "p99": 10323,
+      "max": 15077,
+      "mean": 2475.93
+    },
+    "train": {
+      "min": 440,
+      "p50": 1658,
+      "p90": 5757,
+      "p95": 6530,
+      "p99": 10323,
+      "max": 15077,
+      "mean": 2465.82
+    },
+    "dev": {
+      "min": 456,
+      "p50": 1474,
+      "p90": 5971,
+      "p95": 6294,
+      "p99": 9671,
+      "max": 9671,
+      "mean": 2608.74
+    }
+  },
+  "dev_problem_ids": [
+    "ccplus:AIZU:p00036",
+    "ccplus:AIZU:p01011",
+    "ccplus:AIZU:p01158",
+    "ccplus:AIZU:p01963",
+    "ccplus:AIZU:p02150",
+    "ccplus:AIZU:p02463",
+    "ccplus:AtCoder:p02748",
+    "ccplus:AtCoder:p02848",
+    "ccplus:AtCoder:p03556",
+    "ccplus:Codeforces:1054_B",
+    "ccplus:Codeforces:110_B",
+    "ccplus:Codeforces:1156_C",
+    "ccplus:Codeforces:1167_E",
+    "ccplus:Codeforces:1178_D",
+    "ccplus:Codeforces:1501_A",
+    "ccplus:Codeforces:216_A",
+    "ccplus:Codeforces:588_F",
+    "ccplus:Codeforces:743_B",
+    "ccplus:Codeforces:80_A",
+    "ccplus:Codeforces:938_B"
+  ],
+  "over_length": [
+    {
+      "problem_id": "ccplus:Codeforces:1575_I",
+      "detail": "ccplus:Codeforces:1575_I has 17379 chat tokens; max_length=16384"
+    }
+  ],
+  "sha256": {
+    "train": "026972bdc4a1cde9630ec7ae4c3c28d4471e02ff720f8340f2e63a25e46ca063",
+    "dev": "d0e63ba8ac09926e5c38d9d7b9a0234fcdb09308641f64458244229d944e2b1a"
+  }
+}

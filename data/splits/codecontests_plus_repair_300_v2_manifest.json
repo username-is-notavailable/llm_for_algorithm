@@ -1,0 +1,37 @@
+{
+  "schema_version": "codecontests-plus-repair-compact-v2",
+  "counts": {
+    "problems": 300,
+    "visible_tests": 2672,
+    "hidden_tests": 4728,
+    "initial_error_types": {
+      "wrong_answer": 250,
+      "compile_error": 31,
+      "runtime_error": 15,
+      "timeout": 4
+    }
+  },
+  "files": {
+    "problems.jsonl": {
+      "bytes": 3709608541,
+      "sha256": "9829f71c5b5ad05c5cb41fec5dcad51d1a14e141b793d7f5bb994166f166518f"
+    },
+    "failure_pool.jsonl": {
+      "bytes": 1053070,
+      "sha256": "b9a1bcd9a6d0f09ea5dc2f6c81158db5e4fdb232840854764770f870c1f46d02"
+    },
+    "one_shot_seeds.jsonl": {
+      "bytes": 758924,
+      "sha256": "ff79d6bbbc75f54be6833db1071e4875c28a3a6576895529ccb7df7a9f077ff4"
+    },
+    "problems.index.json": {
+      "bytes": 13570,
+      "sha256": "5a9fc959914569fef80e4cc45bc37dbc42e374f2a9529d3bc902d3719a7c85d9"
+    }
+  },
+  "source_files": {
+    "problems": "data/processed/codecontests_plus_repair_300_v1/problems_300.jsonl",
+    "failure_pool": "data/processed/codecontests_plus_repair_300_v1/failure_pool_300.jsonl",
+    "one_shot_seeds": "data/processed/codecontests_plus_repair_300_v1/one_shot_seeds_300.jsonl"
+  }
+}

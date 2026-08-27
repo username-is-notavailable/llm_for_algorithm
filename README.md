@@ -91,9 +91,9 @@ pass rate、action validity/fallback、主动 final、execution/token efficiency
 
 ## M11 Agent SFT smoke
 
-将 M10 中通过完整 CodeContests+ checker 的 42 条 repair trajectory 先稳定划分为 34 train / 8 dev。
-其中唯一的 14,850-token 训练长尾在 A100 40GB 的 full-parameter backward 中 OOM，因此保留在
-冻结来源与 manifest 中但不进入该 pilot，实际训练为 33 train / 8 dev，最长 9,837 tokens：
+当前默认入口生成对齐真实 Agent loop 的 v3 smoke：初始错误代码作为 context-only assistant turn，
+初始 execution feedback 作为独立 tool turn，只有 teacher repair/final 参与 loss。超过三次 execution
+预算的轨迹拒绝，现有数据得到 31 train / 8 dev：
 
 ```bash
 .third_party/verl/.venv/bin/python scripts/prepare_agent_sft_smoke.py
@@ -107,7 +107,7 @@ SFT_GPU_COUNT=2 bash scripts/cloud_train_sft.sh agent-smoke \
 ```
 
 该 pilot 共 4 epochs，每个 epoch 保存 checkpoint 并计算 8 条固定 dev 的 loss。训练数据位于
-`data/processed/agent_sft_v2/`，默认不提交 Git，上传云端时需同时包含 `train_33.jsonl` 与
+`data/processed/agent_sft_v3/`，默认不提交 Git，上传云端时需同时包含 `train.jsonl` 与
 `dev_8.jsonl`。
 
 ## M10 API repair data pilot
@@ -128,6 +128,71 @@ bash scripts/cloud_prepare_codecontests_plus_repair.sh \
 
 当前 smoke 冻结 50 题、1,148 tests 和 50 个真实 failure。旧 TACO-native 200 题实验保留为历史
 对照；其复现入口如下：
+
+正式扩充的 300 题数据使用 compact v2，位于
+`data/processed/codecontests_plus_repair_300_v2/`。API 配置使用 compact failure pool 时必须同时
+提供 `input.problem_dataset` 与 `input.problem_index`；worker 会按 `problem_id` 读取单题环境，
+不会将约 3.7 GB 的 checker/testcase 数据整体载入内存。冻结哈希见
+`data/splits/codecontests_plus_repair_300_v2_manifest.json`。
+
+构造正式 Agent SFT source 时，先设置百炼 Key，再运行统一入口：
+
+```bash
+export DASHSCOPE_API_KEY='...'
+bash scripts/prepare_m11_agent_sources.sh \
+  2>&1 | tee /tmp/qwen3-m11-agent-sources.log
+```
+
+第一阶段会重新通过 checker 验证 300 个 correct seeds，并生成
+`one-shot → execute_code → passed feedback → final` 消息；第二阶段使用 `qwen3-8b` 对 300 个真实
+错误提交进行可断点续跑的 Agent repair。若 API 任务中断，从输出目录继续：
+
+```bash
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m11_repair_api_codecontests_plus_300_8b.yaml \
+  --resume outputs/data_generation/<run-directory>
+```
+
+对未解决 repair 更换主 teacher 前，使用固定 20 题 termination-stratified bake-off 比较普通
+`qwen3-32b` 与代码专用 `qwen3-coder-next`：
+
+```bash
+bash scripts/run_m11_teacher_bakeoff.sh \
+  2>&1 | tee /tmp/qwen3-m11-teacher-bakeoff.log
+```
+
+两侧共享完全相同的 problem IDs、初始候选、checker、Agent horizon 与 8K 单轮生成上限；Coder
+首轮 Coder Next 关闭 thinking，32B 保持 thinking。Coder Next 首轮出现大量仅 action tag 或将长推理
+写入 visible content 的响应，因此第二轮在同一20题上只打开 thinking，其他配置保持不变。选择以
+full-checker success 为主，并同时比较代码输出率、重复、执行次数、visible response 长度和 API
+token 消耗。
+
+若 Coder Next 因自定义 action 协议或算法推理能力未通过 gate，使用相同20题测试高难推理 teacher：
+
+```bash
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m11_repair_api_bakeoff_235b_thinking.yaml
+```
+
+该实验保持8K单轮/32K总生成预算不变，仅替换模型为
+`qwen3-235b-a22b-thinking-2507` 并启用独立 thinking。
+
+同一20题还可用百炼直供 `deepseek-v4-pro` 做异构 teacher 对照：
+
+```bash
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m11_repair_api_bakeoff_deepseek_v4_pro.yaml
+```
+
+该配置使用16K thinking、8K visible output，并采用 DeepSeek V4 官方默认 temperature/top-p 1.0。
+
+固定20题 teacher bake-off 最终选择 `qwen3-235b-a22b-thinking-2507`：16K thinking 下严格成功
+11/20、实际 full-checker success 12/20，且全部调用均生成代码。对剩余147条 escalation 使用：
+
+```bash
+bash scripts/cloud_generate_repair_api.sh \
+  configs/data/m11_repair_api_codecontests_plus_escalation_235b.yaml
+```
 
 ```bash
 HF_HOME="$PWD/cache/m10_source_audit" \

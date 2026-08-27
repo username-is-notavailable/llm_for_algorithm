@@ -59,3 +59,22 @@ def test_normalize_messages_marks_execution_observation() -> None:
     assert normalize_messages([{"role": "tool", "content": "WA"}]) == [
         {"role": "user", "content": "Execution environment observation:\nWA"}
     ]
+
+
+def test_dashscope_passes_thinking_budget() -> None:
+    completions = FakeCompletions()
+    client = SimpleNamespace(chat=SimpleNamespace(completions=completions))
+    generator = DashScopeAgentGenerator(
+        {
+            "model": "qwen3-235b-a22b-thinking-2507",
+            "enable_thinking": True,
+            "thinking_budget": 16384,
+            "max_retries": 0,
+        },
+        client=client,
+    )
+    generator.generate([{"role": "user", "content": "solve"}], {"max_new_tokens": 1024})
+    assert completions.kwargs["extra_body"] == {
+        "enable_thinking": True,
+        "thinking_budget": 16384,
+    }

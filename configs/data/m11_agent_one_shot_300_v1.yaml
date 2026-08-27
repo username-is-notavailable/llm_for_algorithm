@@ -1,0 +1,17 @@
+input:
+  seeds: data/processed/codecontests_plus_repair_300_v2/one_shot_seeds.jsonl
+  problem_dataset: data/processed/codecontests_plus_repair_300_v2/problems.jsonl
+  problem_index: data/processed/codecontests_plus_repair_300_v2/problems.index.json
+output:
+  dataset: data/processed/agent_sft_source_v1/one_shot_300.jsonl
+  manifest: data/splits/agent_one_shot_300_v1_manifest.json
+selection:
+  max_samples: 300
+agent:
+  max_execute_calls: 3
+  max_feedback_bytes: 4096
+verifier:
+  compile_timeout_seconds: 15
+  execution_timeout_seconds: 4
+  memory_limit_mb: 512
+  output_limit_bytes: 16777216

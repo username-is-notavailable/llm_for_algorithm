@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from src.data.agent_eval import read_jsonl, write_jsonl
+from src.data.problem_store import IndexedProblemStore
 
 
 def _canonical_response(response: str, action: str) -> str:
@@ -216,11 +217,18 @@ def main() -> int:
     parser.add_argument("--failure-pool", required=True)
     parser.add_argument("--canonical-output", required=True)
     parser.add_argument("--escalation-output", required=True)
+    parser.add_argument("--problem-dataset")
+    parser.add_argument("--problem-index")
     args = parser.parse_args()
 
     run = Path(args.run)
     rows = read_jsonl(run / "accepted.jsonl") + read_jsonl(run / "rejected.jsonl")
     original = {row["task_id"]: row for row in read_jsonl(args.failure_pool)}
+    problem_store = None
+    if args.problem_dataset or args.problem_index:
+        if not args.problem_dataset or not args.problem_index:
+            parser.error("--problem-dataset and --problem-index must be provided together")
+        problem_store = IndexedProblemStore(args.problem_dataset, args.problem_index)
     successful = [
         row
         for row in rows
@@ -244,7 +252,20 @@ def main() -> int:
     escalation = [
         payload
         for row in failed
-        if (payload := escalation_payload(row, original[row["task_id"]], source_run=str(run)))
+        if (
+            payload := escalation_payload(
+                row,
+                (
+                    original[row["task_id"]]
+                    if "problem" in original[row["task_id"]]
+                    else {
+                        **original[row["task_id"]],
+                        "problem": problem_store.get(original[row["task_id"]]["problem_id"]),
+                    }
+                ),
+                source_run=str(run),
+            )
+        )
     ]
     write_jsonl(args.canonical_output, canonical)
     write_jsonl(args.escalation_output, escalation)

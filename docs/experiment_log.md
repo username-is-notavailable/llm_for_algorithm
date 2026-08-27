@@ -160,10 +160,30 @@
   structured action/canonicalization 更新了 step submission，却未同步历史 prompt snapshot，少量
   规范化前 assistant 文本进入 target。Agent SFT v2 改为从 canonical steps 重建所有 assistant
   turns，逐消息显式记录 `trainable`，并要求全部 93 个监督 turns 具有文本 action prefix。
+- M11 v2 checkpoint Agent smoke 仍为 repair success 0/10；进一步审计发现更主要的 distribution
+  mismatch：teacher 看到的是把错误代码与反馈拼入 user 的 repair request，而正式 Agent 在独立的
+  assistant/tool turns 中接收自己的执行结果。v3 按真实 loop 重建消息，初始错误 assistant 设为
+  context-only、初始 observation 独立为 tool，并将三次 execution budget 贯穿整条轨迹。42 条中
+  3 条需要 4 次 execution 而拒绝，冻结候选为 31 train / 8 dev。正式训练前将扩充至至少
+  300–500 条，并混入 one-shot correct 数据保护首次编码能力。
 - M11 v2 首次运行训练与 eval 正常完成 2 epochs（dev loss 0.2578 → 0.2530），但保存
   checkpoint-18 的 optimizer state 时在约 5.22GB 处发生 filesystem iostream error；这是磁盘空间/
   配额问题，不是 CUDA OOM。该 pilot 的 epoch checkpoint 仅用于推理比较、不需要 resume，故 M11
   冻结为 `save_only_model=true`，保留四轮模型权重而不重复保存大体积 optimizer state。
+- M11 正式扩充源池得到 300 个 CodeContests+ accepted problems。100-candidate 固定前缀审计中
+  accepted 39、quality threshold rejected 56、correct local gate rejected 4、incorrect/full-pass
+  conflict 1；quality rejection 主要来自 TNR 低于 0.9，因此继续保留 TPR/TNR 0.9 门槛。原始三个
+  JSONL 各 300 行但因重复 tests/checker 合计约 17 GB；compact v2 将 problem 环境单独存储并以
+  byte-offset index 按需读取，failure pool 缩至 1,053,070 bytes、one-shot seeds 缩至 758,924
+  bytes，完整 problems 为 3,709,608,541 bytes。300 个引用、判题摘要和 problem IDs 全量校验通过，
+  最终四文件 SHA-256 见 `data/splits/codecontests_plus_repair_300_v2_manifest.json`。
+- M11 qwen3-8b repair 完成 300/300：严格接收 143；后处理另恢复 7 条 full-pass 但 action protocol
+  不规范的轨迹，以及 3 条 success-before-regression 轨迹，故冻结 8B canonical 153 条。其余 147
+  条全部进入 qwen3-32b escalation：42 repeated code、49 final incorrect、30 token budget、25
+  execution budget、1 model stop without code；最后一条无 8B 候选代码，明确回退到数据集原始错误
+  提交。原始 accepted/rejected 因 prompt snapshots 重复 checker/tests 合计约 6 GB，流式 compact 后
+  canonical 为 6,394,184 bytes、escalation 为 624,489 bytes，哈希见
+  `data/splits/m11_repair_8b_escalation_v1_manifest.json`。
 
 ## Milestone 0
 

@@ -17,6 +17,7 @@ from src.agent.schemas import (
     ExecutionLimits,
 )
 from src.data.repair_queue import RepairQueue
+from src.data.problem_store import IndexedProblemStore
 from src.inference.dashscope import DashScopeAgentGenerator, SlidingWindowLimiter
 from src.verifier import TestCase
 
@@ -156,6 +157,7 @@ def run_workers(
     config: dict[str, Any],
     *,
     generator_factory: Callable[[], DashScopeAgentGenerator] | None = None,
+    problem_store: IndexedProblemStore | None = None,
 ) -> dict[str, int]:
     api = config["api"]
     limiter = SlidingWindowLimiter(
@@ -195,6 +197,12 @@ def run_workers(
                 return
             task_id, payload, attempts = claimed
             try:
+                if "problem" not in payload:
+                    if problem_store is None:
+                        raise ValueError(
+                            "Compact repair task requires input.problem_dataset and input.problem_index"
+                        )
+                    payload = {**payload, "problem": problem_store.get(payload["problem_id"])}
                 result, accepted = process_task(payload, config, generator)
                 queue.complete(task_id, result, accepted=accepted)
             except Exception as error:

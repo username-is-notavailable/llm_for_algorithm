@@ -10,6 +10,7 @@ import yaml
 from src.data.agent_eval import read_jsonl
 from src.data.repair_api import export_results, run_workers
 from src.data.repair_queue import RepairQueue
+from src.data.problem_store import IndexedProblemStore
 from src.utils.config import load_config, require_sections
 from src.utils.experiment import collect_environment
 
@@ -47,7 +48,15 @@ def main() -> int:
     config = load_config(args.config)
     require_sections(config, "experiment", "input", "api", "generation", "agent", "verifier", "queue")
     output, queue = prepare_run(config, args.resume)
-    counts = run_workers(queue, config)
+    input_config = config["input"]
+    problem_store = None
+    if input_config.get("problem_dataset") or input_config.get("problem_index"):
+        if not input_config.get("problem_dataset") or not input_config.get("problem_index"):
+            raise ValueError("Both input.problem_dataset and input.problem_index are required")
+        problem_store = IndexedProblemStore(
+            input_config["problem_dataset"], input_config["problem_index"]
+        )
+    counts = run_workers(queue, config, problem_store=problem_store)
     export_results(queue, output)
     (output / "metrics.json").write_text(
         json.dumps({"queue_status": counts}, indent=2), encoding="utf-8"
