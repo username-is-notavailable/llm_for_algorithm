@@ -87,7 +87,20 @@ repair 因总 execution 次数超过 3 而排除，按 problem 稳定划分后�
 `data/splits/m11_agent_sft_v3_manifest.json`，派生 JSONL 位于 `data/processed/agent_sft_v3/`（不提交
 Git）。这仍是 pilot 规模数据，不作为最终正式训练集。
 
-下一阶段在本地从同一固定 CodeContests+ revision 准备 300 题 checker-backed source pool，同时导出
+### M12 增量 repair source pool
+
+下一轮数据扩充保留上述 300 题，并从相同冻结 revision 增量筛选 1000 个新 problem。配置通过旧池
+`problems.index.json` 排除已付费处理的 problem ID，继续保持 TPR/TNR 均不低于 0.9、完整 checker
+本地门禁及 eval fingerprint 排除。原始 JSONL 生成后立即 compact，tests/checker 只在 indexed problem
+store 保存一份。
+
+Teacher 采用两阶段队列：全部新问题先由 `qwen3-8b` 处理，未通过完整 checker 的任务携带最佳候选
+升级至 `qwen3-32b`。每阶段使用独立 SQLite queue，可用原输出目录 `--resume`，不会重放已完成请求。
+API 接收率不是训练质量指标；最终仅冻结经过完整 checker、发生过实质修复且满足三次 execution
+budget 的 rollout-aligned trajectory。新池与旧池合并后，目标约为 1000 条 repair 和 400 条
+one-shot，实际数量以最终 checker audit 为准，不为凑数放宽门禁。
+
+早期阶段曾在本地从同一固定 CodeContests+ revision 准备 300 题 checker-backed source pool，同时导出
 真实错误提交 repair pool 与 checker full-pass one-shot seed。该阶段只需 CPU、磁盘和网络：
 
 ```bash

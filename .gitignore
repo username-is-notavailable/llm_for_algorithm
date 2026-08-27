@@ -33,6 +33,10 @@ data/splits/*
 !data/splits/m11_agent_sft_v1_manifest.json
 !data/splits/m11_agent_sft_v2_manifest.json
 !data/splits/m11_agent_sft_v3_manifest.json
+!data/splits/codecontests_plus_repair_1000_v1_manifest.json
+!data/splits/codecontests_plus_repair_1000_v2_manifest.json
+!data/splits/m12_repair_8b_escalation_v1_manifest.json
+!data/splits/m12_repair_32b_final_v1_manifest.json
 outputs/
 .third_party/
 *.log

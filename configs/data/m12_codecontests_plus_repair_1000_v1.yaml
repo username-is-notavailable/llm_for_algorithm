@@ -1,0 +1,36 @@
+source:
+  dataset: ByteDance-Seed/Code-Contests-Plus
+  revision: 96c850540fade31d384a25766461e0da6b08f5fc
+  shard_glob: ccplus_1x/part-*.parquet
+  shard_count: 5
+  row_groups_per_shard: 10
+  streaming: true
+  eval_fingerprints: data/splits/eval_v1_fingerprints.json
+selection:
+  seed: 20260826
+  target_count: 1000
+  minimum_true_positive_rate: 0.9
+  minimum_true_negative_rate: 0.9
+  minimum_tests: 2
+  language: cpp
+  # The old 300-problem pool remains usable; do not pay to generate it again.
+  exclude_problem_indices:
+    - data/processed/codecontests_plus_repair_300_v2/problems.index.json
+execution:
+  compile_timeout_seconds: 15
+  execution_timeout_seconds: 4
+  checker_timeout_seconds: 4
+  memory_limit_bytes: 536870912
+  output_limit_bytes: 16777216
+test_split:
+  seed: 20260828
+  visible_fraction: 0.4
+  visible_max: 10
+testlib:
+  revision: 1e4e8a24c79c6bad3becbdb5a332ffc352b7d5dd
+  cache_path: cache/codecontests_plus/testlib.h
+output:
+  dataset: data/processed/codecontests_plus_repair_1000_v1_raw/problems_1000.jsonl
+  failure_pool: data/processed/codecontests_plus_repair_1000_v1_raw/failure_pool_1000.jsonl
+  one_shot_seeds: data/processed/codecontests_plus_repair_1000_v1_raw/one_shot_seeds_1000.jsonl
+  manifest: data/splits/codecontests_plus_repair_1000_v1_manifest.json

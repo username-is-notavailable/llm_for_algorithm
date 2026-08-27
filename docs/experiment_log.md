@@ -198,6 +198,10 @@
   相比 v2 LR `2e-6` 的 7/7 失败均直接重复已有明显行为改善。结论：rollout-aligned schema 有效，
   但 233 条 repair supervision 尚不足以产生成功修复；下一轮应优先扩充高质量 repair 状态并改善
   feedback/target 配对，而不是增加 epoch。
+- M12 数据扩充入口已准备：现有 Agent eval 保持冻结的 smoke 10 / dev 60，不重新抽样；训练侧从
+  同一 CodeContests+ revision 筛选 1000 个新问题，并通过旧 300 题 compact index 显式排重。
+  生产顺序冻结为 checker-backed source → compact → qwen3-8b repair → 失败任务 qwen3-32b
+  escalation → full-checker audit → rollout-aligned SFT。各 API 阶段均使用可恢复 SQLite queue。
 
 ## Milestone 0
 

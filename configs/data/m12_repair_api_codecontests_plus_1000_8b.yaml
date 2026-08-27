@@ -1,0 +1,47 @@
+experiment:
+  name: m12-repair-api-codecontests-plus-1000-8b-v1
+  output_dir: outputs/data_generation
+input:
+  failure_pool: data/processed/codecontests_plus_repair_1000_v2/failure_pool.jsonl
+  problem_dataset: data/processed/codecontests_plus_repair_1000_v2/problems.jsonl
+  problem_index: data/processed/codecontests_plus_repair_1000_v2/problems.index.json
+api:
+  provider: dashscope
+  base_url: https://dashscope.aliyuncs.com/compatible-mode/v1
+  api_key_env: DASHSCOPE_API_KEY
+  model: qwen3-8b
+  enable_thinking: true
+  concurrency: 16
+  requests_per_minute: 600
+  tokens_per_minute: 1000000
+  prompt_token_reserve: 8192
+  timeout_seconds: 180
+  max_retries: 5
+  retry_base_seconds: 1
+  retry_max_seconds: 30
+generation:
+  max_new_tokens: 8192
+  temperature: 0.6
+  top_p: 0.95
+agent:
+  protocol_version: code-agent-v1
+  feedback_version: execution-feedback-v1
+  max_execute_calls: 3
+  max_candidate_submissions: 4
+  max_total_generation_tokens: 32768
+  max_feedback_bytes: 4096
+  max_visible_failure_cases: 1
+  stop_on_repeated_code: true
+  evaluate_hidden_each_submission: true
+  max_revealed_counterexamples: 1
+  min_private_tests: 1
+verifier:
+  compile_timeout_seconds: 15
+  execution_timeout_seconds: 4
+  memory_limit_mb: 512
+  output_limit_bytes: 16777216
+queue:
+  target_accepted: null
+  progress_interval_seconds: 10
+  lease_timeout_seconds: 3600
+  max_task_attempts: 1

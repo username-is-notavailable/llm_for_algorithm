@@ -31,6 +31,22 @@ from src.utils.config import load_config, require_sections
 from src.verifier import judge
 
 
+def excluded_problem_ids(selection: dict[str, Any]) -> set[str]:
+    """Load IDs from compact problem indices without materializing problem rows."""
+
+    excluded: set[str] = set()
+    for value in selection.get("exclude_problem_indices", []):
+        path = Path(value)
+        if not path.is_file():
+            raise FileNotFoundError(f"Missing exclusion index: {path}")
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        records = payload.get("records")
+        if not isinstance(records, dict):
+            raise ValueError(f"{path}: expected a records object")
+        excluded.update(str(problem_id) for problem_id in records)
+    return excluded
+
+
 def source_shards(config: dict[str, Any]) -> list[str]:
     source, selection = config["source"], config["selection"]
     info = HfApi().dataset_info(source["dataset"], revision=source["revision"])
@@ -122,6 +138,9 @@ def main() -> int:
     rejected_records: list[dict[str, Any]] = []
     accepted_count = 0
     scanned_count = 0
+    excluded_ids = excluded_problem_ids(selection)
+    if excluded_ids:
+        print(f"Excluding {len(excluded_ids)} frozen problem IDs", flush=True)
 
     def reject(row: dict[str, Any], candidate_index: int, reason: str, **details: Any) -> None:
         rejected[reason] += 1
@@ -149,6 +168,10 @@ def main() -> int:
         if accepted_count >= int(selection["target_count"]):
             break
         scanned_count = candidate_index
+        problem_id = f"ccplus:{row.get('source')}:{row.get('id')}"
+        if problem_id in excluded_ids:
+            reject(row, candidate_index, "excluded_existing_problem")
+            continue
         tests = row.get("test_cases") or []
         if (
             (row.get("true_positive_rate") or 0) < float(selection["minimum_true_positive_rate"])
@@ -318,6 +341,7 @@ def main() -> int:
                 Counter(row["initial_submission"]["source_judge"]["error_type"] for row in failures)
             ),
             "rejected": dict(rejected),
+            "excluded_problem_ids": len(excluded_ids),
         },
     }
     dataset_path = Path(output["dataset"])
