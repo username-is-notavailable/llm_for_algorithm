@@ -15,7 +15,7 @@ from src.utils.experiment import collect_environment
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate and merge deterministic eval shards")
     parser.add_argument("--config", required=True)
-    parser.add_argument("--model-path", required=True)
+    parser.add_argument("--model-path")
     parser.add_argument("--output-dir", required=True)
     parser.add_argument("shards", nargs="+")
     return parser.parse_args()
@@ -24,9 +24,10 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     config = load_config(args.config)
-    model_path = Path(args.model_path).resolve()
-    config["model"]["name_or_path"] = str(model_path)
-    config["model"].pop("revision", None)
+    if args.model_path:
+        model_path = Path(args.model_path).resolve()
+        config["model"]["name_or_path"] = str(model_path)
+        config["model"].pop("revision", None)
 
     problems = load_problems(config["dataset"]["path"])
     manifest = config["dataset"].get("manifest")
