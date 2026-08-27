@@ -14,7 +14,8 @@ data:
   # exceed four A100-40GB FSDP memory during backward.
   selection: shortest
   limit: 487
-  eval_selection: ordered
+  eval_selection: shortest
+  eval_limit: 36
   max_length: 8192
 training:
   num_train_epochs: 1
