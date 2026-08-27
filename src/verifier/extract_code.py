@@ -10,6 +10,9 @@ _FENCE_RE = re.compile(
 )
 _THINK_RE = re.compile(r"<think(?:\s[^>]*)?>.*?</think\s*>", flags=re.DOTALL | re.IGNORECASE)
 _ANSWER_TAG_RE = re.compile(r"</?answer(?:\s[^>]*)?>", flags=re.IGNORECASE)
+_FILE_HEADER_RE = re.compile(
+    r"<file(?:\s[^>]*)?>[^<\n]*</file>\s*", flags=re.IGNORECASE
+)
 _CPP_LANGUAGES = {"cpp", "c++", "cc", "cxx"}
 
 
@@ -54,6 +57,15 @@ def _select_fenced_candidate(candidates: list[_Candidate]) -> str | None:
     return None
 
 
+def _normalize_raw_candidate(response: str) -> str:
+    """Remove filename wrappers emitted around otherwise raw source code."""
+
+    stripped = _FILE_HEADER_RE.sub("", response).strip()
+    # Some coding models emit a closing Markdown fence after a <file> header
+    # without emitting the corresponding opening fence.
+    return re.sub(r"\n[ \t]*```[ \t]*$", "", stripped).strip()
+
+
 def extract_code(response: str) -> str | None:
     """Extract the most plausible C++ program from a model response."""
 
@@ -77,5 +89,5 @@ def extract_code(response: str) -> str | None:
         if _looks_like_cpp(remainder):
             return remainder
 
-    stripped = normalized_response.strip()
+    stripped = _normalize_raw_candidate(normalized_response)
     return stripped if _looks_like_cpp(stripped) else None

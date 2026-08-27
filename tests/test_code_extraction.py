@@ -44,6 +44,17 @@ def test_extracts_raw_cpp_without_code_fence() -> None:
     assert extract_code(response) == response
 
 
+@pytest.mark.parametrize(
+    "response",
+    [
+        "<file>main.cpp</file>\n#include <iostream>\nint main() {}",
+        "<file name=\"main.cpp\">main.cpp</file>\n#include <iostream>\nint main() {}\n```",
+    ],
+)
+def test_extracts_raw_cpp_after_file_header(response: str) -> None:
+    assert extract_code(response) == "#include <iostream>\nint main() {}"
+
+
 def test_ignores_code_in_think_before_selecting_remaining_cpp_block() -> None:
     response = """
 <think>
