@@ -25,10 +25,11 @@ training:
   max_grad_norm: 1.0
   bf16: true
   tf32: true
-  gradient_checkpointing: true
+  gradient_checkpointing: false
   fsdp: full_shard auto_wrap
   fsdp_config:
     transformer_layer_cls_to_wrap: Qwen3DecoderLayer
+    activation_checkpointing: true
     use_orig_params: true
     sync_module_states: true
     limit_all_gathers: true
