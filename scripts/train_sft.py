@@ -142,6 +142,9 @@ def main() -> int:
         include_num_input_tokens_seen="all",
         seed=int(config["experiment"]["seed"]),
         data_seed=int(config["experiment"]["seed"]),
+        fsdp=training.get("fsdp", ""),
+        fsdp_config=training.get("fsdp_config"),
+        optim=training.get("optim", "adamw_torch"),
     )
     class WeightedSFTTrainer(Trainer):
         def __init__(self, *args: Any, **kwargs: Any) -> None:
