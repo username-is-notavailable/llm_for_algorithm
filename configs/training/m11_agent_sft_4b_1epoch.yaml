@@ -10,12 +10,12 @@ model:
 data:
   path: data/processed/agent_sft_v1/train.jsonl
   eval_path: data/processed/agent_sft_v1/dev.jsonl
-  # Keep the frozen dataset intact but exclude the two 13.9K/15.1K outliers
-  # that exceed four A100-40GB FSDP memory during backward.
+  # Keep the frozen dataset intact but exclude the 12 samples above 8K that
+  # exceed four A100-40GB FSDP memory during backward.
   selection: shortest
-  limit: 497
+  limit: 487
   eval_selection: ordered
-  max_length: 12288
+  max_length: 8192
 training:
   num_train_epochs: 1
   per_device_train_batch_size: 1
