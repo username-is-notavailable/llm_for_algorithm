@@ -143,6 +143,11 @@ v1 训练后出现了明显的代码重复：同一份完整程序同时作为 `
 1,310/5,411/6,140/9,976，最大 15,431。四张 A100-40GB 的正式 8K 配置按长度选择
 train 492 与 dev 37，仅排除 9 条超 8K 轨迹；冻结文件本身不裁剪。
 
+首轮 `1e-5` 学习率实验虽然将 Agent action 有效率提升到 100%，但 3 卡同配置 smoke 中
+Agent success 从官方模型的 50% 降至 20%，并出现 7/10 次相同代码重试。后续
+`m11_agent_sft_4b_post_lr2e6_pilot.yaml` 从官方 Qwen3-4B 重新起训，将峰值学习率降至
+`2e-6`，保持同一冻结数据和单 epoch，用于隔离 catastrophic forgetting 是否主要由更新过猛导致。
+
 ## Output Protocol v1
 
 第一阶段的 SFT、GRPO rollout 和正式评测统一使用以下 C++ 响应协议：

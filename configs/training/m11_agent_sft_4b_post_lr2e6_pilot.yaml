@@ -1,0 +1,47 @@
+experiment:
+  name: m11-agent-sft-v2-4b-post-lr2e6-pilot
+  output_dir: outputs/training
+  seed: 20260827
+model:
+  name_or_path: Qwen/Qwen3-4B
+  revision: 1cfa9a7208912126459214e8b04321603b3df60c
+  dtype: bfloat16
+  attn_implementation: flash_attention_2
+data:
+  path: data/processed/agent_sft_v2/train.jsonl
+  eval_path: data/processed/agent_sft_v2/dev.jsonl
+  selection: shortest
+  limit: 492
+  eval_selection: shortest
+  eval_limit: 37
+  max_length: 8192
+training:
+  num_train_epochs: 1
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  # Three A100s are currently available. A global batch of 12 preserves four
+  # gradient-accumulation microsteps per optimizer update.
+  global_batch_size: 12
+  learning_rate: 0.000002
+  lr_scheduler_type: cosine
+  warmup_steps: 3
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  bf16: true
+  tf32: true
+  gradient_checkpointing: false
+  fsdp: full_shard auto_wrap
+  fsdp_config:
+    transformer_layer_cls_to_wrap: Qwen3DecoderLayer
+    activation_checkpointing: true
+    use_orig_params: true
+    sync_module_states: true
+    limit_all_gathers: true
+  optim: adamw_torch_fused
+  logging_steps: 1
+  eval_strategy: epoch
+  # This is a disposable pilot. Keep only the final inference model and avoid
+  # another 32 GB optimizer checkpoint.
+  save_strategy: "no"
+  save_only_model: true
+  dataloader_num_workers: 0
