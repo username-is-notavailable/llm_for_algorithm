@@ -184,6 +184,20 @@
   提交。原始 accepted/rejected 因 prompt snapshots 重复 checker/tests 合计约 6 GB，流式 compact 后
   canonical 为 6,394,184 bytes、escalation 为 624,489 bytes，哈希见
   `data/splits/m11_repair_8b_escalation_v1_manifest.json`。
+- M11 正式 Agent SFT v3 将 300 条 one-shot 与 238 条 checker-backed repair 候选按真实在线状态
+  重建；5 条 repair 因“初始失败 + teacher 修复”超过 3 次 execution budget 而排除，最终按 problem
+  去重后冻结 497 train / 36 dev。8K 完整长度门槛再排除 8 条，实际训练为 490 train / 35 dev；
+  repair 的初始错误 assistant turn 仅作为 mask 后的 context，execution feedback 使用独立 tool turn，
+  teacher 修复和 final 才计算 assistant-only loss。
+- 2026-08-27，Qwen3-4B 官方后训练模型起点、3x A100-40GB、LR `2e-6`、1 epoch 的 v3 pilot
+  完成 41 steps（937,568 input tokens），train loss 0.4594、dev loss 0.4008，运行 797 秒；产物为
+  `m11-agent-sft-v3-4b-post-rollout-lr2e6-pilot-20260827-220626`。固定 10 题三卡 Agent smoke 得到
+  first-attempt/agent success 3/10、repair success 0/7、valid action 100%；termination 为 success 3、
+  repeated code 5、execution budget 1、final incorrect 1。虽然最终成功率未超过官方模型的
+  first-attempt 4/10、agent 5/10，但 v3 在 7 条首轮失败轨迹中有 4 条至少生成一次不同代码，
+  相比 v2 LR `2e-6` 的 7/7 失败均直接重复已有明显行为改善。结论：rollout-aligned schema 有效，
+  但 233 条 repair supervision 尚不足以产生成功修复；下一轮应优先扩充高质量 repair 状态并改善
+  feedback/target 配对，而不是增加 epoch。
 
 ## Milestone 0
 

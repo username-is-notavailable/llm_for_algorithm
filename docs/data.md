@@ -81,7 +81,11 @@ system → user(problem)
 所有 feedback 的 execution budget 按包含初始失败在内的真实 Agent horizon 重新计算。总 execution
 超过协议上限 3 的轨迹整条拒绝，不截断成功路径。现有 42 条中 3 条因此拒绝，剩余 39 条稳定划分为
 31 train / 8 dev；共 39 个 context-only initial assistant turns 和 85 个可训练 teacher turns。
-v3 仍是结构与可学习性 smoke，不足以作为正式训练集。
+上述 42 条数据用于早期结构 smoke。正式 v3 随后使用 300 条 one-shot 和 238 条 repair 候选；5 条
+repair 因总 execution 次数超过 3 而排除，按 problem 稳定划分后为 497 train / 36 dev。8K 完整
+序列门槛排除 8 条，实际训练输入为 490 train / 35 dev。对应冻结 manifest 为
+`data/splits/m11_agent_sft_v3_manifest.json`，派生 JSONL 位于 `data/processed/agent_sft_v3/`（不提交
+Git）。这仍是 pilot 规模数据，不作为最终正式训练集。
 
 下一阶段在本地从同一固定 CodeContests+ revision 准备 300 题 checker-backed source pool，同时导出
 真实错误提交 repair pool 与 checker full-pass one-shot seed。该阶段只需 CPU、磁盘和网络：
