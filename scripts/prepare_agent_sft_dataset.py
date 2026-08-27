@@ -110,6 +110,79 @@ def repair_messages(
     return messages
 
 
+def rollout_aligned_repair_messages(
+    row: dict[str, Any],
+    problem_row: dict[str, Any],
+    *,
+    agent_config: AgentConfig,
+    verifier_config: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Render repair supervision in the same state layout used by online rollout."""
+
+    problem = load_problem(problem_row, verifier_config)
+    messages: list[dict[str, Any]] = build_initial_messages(problem, agent_config)
+    initial_code = row["initial_submission"]["code"].strip()
+    initial_feedback = row["initial_observation"]["model_feedback"]
+    messages.extend(
+        [
+            {
+                "role": "assistant",
+                "content": (
+                    "<action>execute_code</action>\n"
+                    f"```cpp\n{initial_code}\n```"
+                ),
+                # Preserve the failed action as rollout context without teaching
+                # the model to reproduce the known-wrong program.
+                "trainable": False,
+            },
+            {
+                "role": "tool",
+                "content": feedback_with_budget(
+                    initial_feedback, agent_config.max_execute_calls - 1
+                ),
+            },
+        ]
+    )
+
+    teacher_execute_calls = 0
+    steps = row["repair_trajectory"]["steps"]
+    if not steps or steps[-1]["submission"]["effective_action"] != "final":
+        raise ValueError(f"{row['task_id']}: repair trajectory must end in final")
+    for step in steps:
+        submission = step["submission"]
+        action = submission["effective_action"]
+        final_reuses_teacher_code = action == "final" and teacher_execute_calls > 0
+        messages.append(
+            {
+                "role": "assistant",
+                "content": (
+                    "<action>final</action>"
+                    if final_reuses_teacher_code
+                    else canonical_response(submission)
+                ),
+                "trainable": True,
+            }
+        )
+        if action == "execute_code":
+            teacher_execute_calls += 1
+            total_execute_calls = 1 + teacher_execute_calls
+            if total_execute_calls > agent_config.max_execute_calls:
+                raise ValueError(f"{row['task_id']}: aligned repair exceeds execution budget")
+            observation = step.get("observation") or {}
+            feedback = observation.get("model_feedback")
+            if not isinstance(feedback, str):
+                raise ValueError(f"{row['task_id']}: execute step has no feedback")
+            messages.append(
+                {
+                    "role": "tool",
+                    "content": feedback_with_budget(
+                        feedback, agent_config.max_execute_calls - total_execute_calls
+                    ),
+                }
+            )
+    return messages
+
+
 def token_stats(values: Iterable[int]) -> dict[str, int | float]:
     ordered = sorted(values)
     if not ordered:
@@ -129,7 +202,7 @@ def token_stats(values: Iterable[int]) -> dict[str, int | float]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build the frozen M11 Agent SFT dataset")
-    parser.add_argument("--config", default="configs/data/m11_agent_sft_v2.yaml")
+    parser.add_argument("--config", default="configs/data/m11_agent_sft_v3.yaml")
     args = parser.parse_args()
     config = load_config(args.config)
     require_sections(config, "input", "output", "split", "tokenizer", "agent", "verifier")
@@ -143,6 +216,9 @@ def main() -> int:
     repair_sources = [
         row for path in inputs["repair"] for row in read_jsonl(path)
     ]
+    repair_layout = inputs.get("repair_layout", "embedded_failure_v1")
+    if repair_layout not in {"embedded_failure_v1", "rollout_aligned_v1"}:
+        raise ValueError(f"Unsupported repair_layout: {repair_layout}")
     repair_ids = [row["problem_id"] for row in repair_sources]
     if len(set(repair_ids)) != len(repair_ids):
         raise ValueError("Repair sources contain duplicate problem IDs")
@@ -157,15 +233,41 @@ def main() -> int:
         value = dict(row)
         value["metadata"] = {**value.get("metadata", {}), "trajectory_family": "one_shot"}
         rows.append(value)
+    budget_excluded = []
     for source in repair_sources:
+        teacher_execute_calls = sum(
+            step["submission"]["effective_action"] == "execute_code"
+            for step in source["repair_trajectory"]["steps"]
+        )
+        if (
+            repair_layout == "rollout_aligned_v1"
+            and 1 + teacher_execute_calls > agent_config.max_execute_calls
+        ):
+            budget_excluded.append(
+                {
+                    "problem_id": source["problem_id"],
+                    "task_id": source["task_id"],
+                    "teacher_execute_calls": teacher_execute_calls,
+                }
+            )
+            continue
+        message_builder = (
+            rollout_aligned_repair_messages
+            if repair_layout == "rollout_aligned_v1"
+            else repair_messages
+        )
         rows.append(
             {
-                "schema_version": "agent-sft-messages-v5",
+                "schema_version": (
+                    "agent-sft-messages-v6"
+                    if repair_layout == "rollout_aligned_v1"
+                    else "agent-sft-messages-v5"
+                ),
                 "problem_id": source["problem_id"],
                 "task_id": source["task_id"],
                 "source": source.get("source"),
                 "teacher_model": source.get("teacher_model"),
-                "messages": repair_messages(
+                "messages": message_builder(
                     source,
                     store.get(source["problem_id"]),
                     agent_config=agent_config,
@@ -175,6 +277,7 @@ def main() -> int:
                     "trajectory_family": "repair",
                     "failure_producer_model": source.get("failure_producer_model"),
                     "normalization": source.get("normalization"),
+                    "repair_layout": repair_layout,
                     "final_reuses_last_executed_code": any(
                         step["submission"]["effective_action"] == "execute_code"
                         for step in source["repair_trajectory"]["steps"]
@@ -227,7 +330,11 @@ def main() -> int:
         for split, values in (("all", accepted), ("train", train), ("dev", dev))
     }
     manifest = {
-        "schema_version": "agent-sft-v2-manifest",
+        "schema_version": (
+            "agent-sft-v3-manifest"
+            if repair_layout == "rollout_aligned_v1"
+            else "agent-sft-v2-manifest"
+        ),
         "config": config,
         "source_sha256": {
             "one_shot": sha256_file(inputs["one_shot"]),
@@ -240,6 +347,7 @@ def main() -> int:
             "dev": len(dev),
             "unique_problems": len(all_problem_ids),
             "over_length": len(over_length),
+            "budget_excluded": len(budget_excluded),
             "families": family_counts,
         },
         "token_counts": {
@@ -248,6 +356,7 @@ def main() -> int:
         },
         "dev_problem_ids": sorted(dev_ids),
         "over_length": over_length,
+        "budget_excluded": budget_excluded,
         "sha256": {"train": sha256_file(output["train"]), "dev": sha256_file(output["dev"])},
     }
     manifest_path = Path(output["manifest"])

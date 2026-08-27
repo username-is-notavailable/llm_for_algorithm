@@ -32,6 +32,7 @@ data/splits/*
 !data/splits/m11_repair_235b_final_v1_manifest.json
 !data/splits/m11_agent_sft_v1_manifest.json
 !data/splits/m11_agent_sft_v2_manifest.json
+!data/splits/m11_agent_sft_v3_manifest.json
 outputs/
 .third_party/
 *.log

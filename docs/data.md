@@ -148,6 +148,11 @@ Agent success 从官方模型的 50% 降至 20%，并出现 7/10 次相同代码
 `m11_agent_sft_4b_post_lr2e6_pilot.yaml` 从官方 Qwen3-4B 重新起训，将峰值学习率降至
 `2e-6`，保持同一冻结数据和单 epoch，用于隔离 catastrophic forgetting 是否主要由更新过猛导致。
 
+进一步审计发现 v2 repair 将错误代码和反馈嵌入初始 user prompt，与真实 rollout 的
+`assistant execute -> tool feedback -> assistant repair` 状态不一致。v3 改为保留初始失败 assistant turn
+作为不计 loss 的上下文，然后监督后续修复动作。233 条 repair 中 5 条因加上初始执行后超过 3 次
+execute 总预算而排除；冻结结果为 533 条，8K 三卡 pilot 使用 train 490、dev 35。
+
 ## Output Protocol v1
 
 第一阶段的 SFT、GRPO rollout 和正式评测统一使用以下 C++ 响应协议：

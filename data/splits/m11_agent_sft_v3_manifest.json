@@ -1,0 +1,152 @@
+{
+  "schema_version": "agent-sft-v3-manifest",
+  "config": {
+    "input": {
+      "repair_layout": "rollout_aligned_v1",
+      "one_shot": "data/processed/agent_sft_source_v2/one_shot_300.jsonl",
+      "repair": [
+        "data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl",
+        "data/processed/agent_sft_source_v1/repair_235b_canonical.jsonl"
+      ],
+      "problem_dataset": "data/processed/codecontests_plus_repair_300_v2/problems.jsonl",
+      "problem_index": "data/processed/codecontests_plus_repair_300_v2/problems.index.json"
+    },
+    "output": {
+      "train": "data/processed/agent_sft_v3/train.jsonl",
+      "dev": "data/processed/agent_sft_v3/dev.jsonl",
+      "manifest": "data/splits/m11_agent_sft_v3_manifest.json"
+    },
+    "split": {
+      "seed": 20260827,
+      "dev_problems": 20
+    },
+    "tokenizer": {
+      "name_or_path": "Qwen/Qwen3-4B",
+      "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+      "max_length": 16384
+    },
+    "agent": {
+      "max_execute_calls": 3,
+      "max_feedback_bytes": 4096
+    },
+    "verifier": {
+      "compile_timeout_seconds": 15,
+      "execution_timeout_seconds": 4,
+      "memory_limit_mb": 512,
+      "output_limit_bytes": 16777216
+    }
+  },
+  "source_sha256": {
+    "one_shot": "3af5b3cf7ae8a3cd7c2adf0e0347605d02a7610afb972563d48b8d74ee10f1cf",
+    "repair": {
+      "data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl": "86c6ee0ec71492027b036944ad70c979b0f9326da207676cee8f39f8564d4ee8",
+      "data/processed/agent_sft_source_v1/repair_235b_canonical.jsonl": "549bcf8a6146e2140afc701150270ab5d208bddb5034593161f8988b13f7c56c"
+    }
+  },
+  "counts": {
+    "source_rows": 533,
+    "accepted": 533,
+    "train": 497,
+    "dev": 36,
+    "unique_problems": 300,
+    "over_length": 0,
+    "budget_excluded": 5,
+    "families": {
+      "all": {
+        "one_shot": 300,
+        "repair": 233
+      },
+      "train": {
+        "one_shot": 280,
+        "repair": 217
+      },
+      "dev": {
+        "repair": 16,
+        "one_shot": 20
+      }
+    }
+  },
+  "token_counts": {
+    "all": {
+      "min": 400,
+      "p50": 1277,
+      "p90": 5266,
+      "p95": 5931,
+      "p99": 9440,
+      "max": 15329,
+      "mean": 2029.31
+    },
+    "train": {
+      "min": 400,
+      "p50": 1281,
+      "p90": 5266,
+      "p95": 5931,
+      "p99": 9369,
+      "max": 15329,
+      "mean": 2030.38
+    },
+    "dev": {
+      "min": 412,
+      "p50": 1174,
+      "p90": 5183,
+      "p95": 5903,
+      "p99": 9440,
+      "max": 9440,
+      "mean": 2014.47
+    }
+  },
+  "dev_problem_ids": [
+    "ccplus:AIZU:p00036",
+    "ccplus:AIZU:p01011",
+    "ccplus:AIZU:p01158",
+    "ccplus:AIZU:p01963",
+    "ccplus:AIZU:p02150",
+    "ccplus:AIZU:p02463",
+    "ccplus:AtCoder:p02748",
+    "ccplus:AtCoder:p02848",
+    "ccplus:AtCoder:p03556",
+    "ccplus:Codeforces:1054_B",
+    "ccplus:Codeforces:110_B",
+    "ccplus:Codeforces:1156_C",
+    "ccplus:Codeforces:1167_E",
+    "ccplus:Codeforces:1178_D",
+    "ccplus:Codeforces:1501_A",
+    "ccplus:Codeforces:216_A",
+    "ccplus:Codeforces:588_F",
+    "ccplus:Codeforces:743_B",
+    "ccplus:Codeforces:80_A",
+    "ccplus:Codeforces:938_B"
+  ],
+  "over_length": [],
+  "budget_excluded": [
+    {
+      "problem_id": "ccplus:AIZU:p00036",
+      "task_id": "038a38e2007a5b004fed3f3a142ae558b6174f728ac420336aaa5f7f20d531ae",
+      "teacher_execute_calls": 3
+    },
+    {
+      "problem_id": "ccplus:Codeforces:1156_C",
+      "task_id": "59fc7b5090a94f39bf36b7dd0315389485c61cf88c697c9cc44d956f77f52396",
+      "teacher_execute_calls": 3
+    },
+    {
+      "problem_id": "ccplus:AIZU:p00085",
+      "task_id": "bde4479de6087be7054b139705f0c7eb36d0a5dd021d2afdd449f346c4b125dd",
+      "teacher_execute_calls": 3
+    },
+    {
+      "problem_id": "ccplus:Codeforces:1436_C",
+      "task_id": "d52df89240b2a4290a7e28ce43f76872a8a0d529a89b079a944c4bbc34b2a1a1",
+      "teacher_execute_calls": 3
+    },
+    {
+      "problem_id": "ccplus:Codeforces:1102_B",
+      "task_id": "fd9e6c624fac139dfa3ac9ffaca3aa0ca6958346a40838b90ab3199d3ca12ba3",
+      "teacher_execute_calls": 3
+    }
+  ],
+  "sha256": {
+    "train": "665792ad160c388723f39c124506ac6550726096b4d9c5efe8cf706e636d0577",
+    "dev": "04d067c4e79d315eaa4d362d343310c16185de78f68a16f83bfc8f05a53aa346"
+  }
+}

@@ -1,5 +1,5 @@
 input:
-  repair_layout: embedded_failure_v1
+  repair_layout: rollout_aligned_v1
   one_shot: data/processed/agent_sft_source_v2/one_shot_300.jsonl
   repair:
     - data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl
@@ -7,9 +7,9 @@ input:
   problem_dataset: data/processed/codecontests_plus_repair_300_v2/problems.jsonl
   problem_index: data/processed/codecontests_plus_repair_300_v2/problems.index.json
 output:
-  train: data/processed/agent_sft_v2/train.jsonl
-  dev: data/processed/agent_sft_v2/dev.jsonl
-  manifest: data/splits/m11_agent_sft_v2_manifest.json
+  train: data/processed/agent_sft_v3/train.jsonl
+  dev: data/processed/agent_sft_v3/dev.jsonl
+  manifest: data/splits/m11_agent_sft_v3_manifest.json
 split:
   seed: 20260827
   dev_problems: 20

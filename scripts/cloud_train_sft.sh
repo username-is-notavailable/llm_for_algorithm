@@ -28,8 +28,9 @@ case "${MODE}" in
   agent-4b-post-smoke) CONFIG="configs/training/m11_agent_sft_4b_post_smoke.yaml" ;;
   agent-4b-post-1epoch) CONFIG="configs/training/m11_agent_sft_4b_post_1epoch.yaml" ;;
   agent-4b-post-lr2e6-pilot) CONFIG="configs/training/m11_agent_sft_4b_post_lr2e6_pilot.yaml" ;;
+  agent-4b-post-rollout-v3-pilot) CONFIG="configs/training/m11_agent_sft_4b_post_rollout_v3_pilot.yaml" ;;
   *)
-    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot|compact-4epoch|ab-short-pilot|ab-code-pilot|ab-short-1k|ab-code-1k|ab-short-1k-4epoch|weighted-smoke|weighted-short-1k-4epoch|agent-smoke|agent-4b-smoke|agent-4b-1epoch|agent-4b-post-smoke|agent-4b-post-1epoch|agent-4b-post-lr2e6-pilot} [--resume CHECKPOINT]" >&2
+    echo "Usage: SFT_GPU_COUNT=N bash scripts/cloud_train_sft.sh {local-smoke|smoke|throughput|sft1k|sft1k-short-pilot|sft1k-compact-pilot|compact-4epoch|ab-short-pilot|ab-code-pilot|ab-short-1k|ab-code-1k|ab-short-1k-4epoch|weighted-smoke|weighted-short-1k-4epoch|agent-smoke|agent-4b-smoke|agent-4b-1epoch|agent-4b-post-smoke|agent-4b-post-1epoch|agent-4b-post-lr2e6-pilot|agent-4b-post-rollout-v3-pilot} [--resume CHECKPOINT]" >&2
     exit 2
     ;;
 esac
@@ -49,6 +50,8 @@ elif [[ "${MODE}" == "agent-4b-smoke" || "${MODE}" == "agent-4b-1epoch" ]]; then
   REQUIRED_DATA="data/processed/agent_sft_v1/train.jsonl"
 elif [[ "${MODE}" == "agent-4b-post-smoke" || "${MODE}" == "agent-4b-post-1epoch" || "${MODE}" == "agent-4b-post-lr2e6-pilot" ]]; then
   REQUIRED_DATA="data/processed/agent_sft_v2/train.jsonl"
+elif [[ "${MODE}" == "agent-4b-post-rollout-v3-pilot" ]]; then
+  REQUIRED_DATA="data/processed/agent_sft_v3/train.jsonl"
 elif [[ "${MODE}" == "ab-short-pilot" || "${MODE}" == "ab-short-1k" || "${MODE}" == "ab-short-1k-4epoch" || "${MODE}" == "weighted-smoke" || "${MODE}" == "weighted-short-1k-4epoch" ]]; then
   REQUIRED_DATA="data/processed/sft_1k_short_reasoning_v2.jsonl"
 elif [[ "${MODE}" == "ab-code-pilot" || "${MODE}" == "ab-code-1k" ]]; then
@@ -74,6 +77,10 @@ if [[ "${MODE}" == "agent-4b-1epoch" && ! -f "${PROJECT_ROOT}/data/processed/age
 fi
 if [[ ("${MODE}" == "agent-4b-post-1epoch" || "${MODE}" == "agent-4b-post-lr2e6-pilot") && ! -f "${PROJECT_ROOT}/data/processed/agent_sft_v2/dev.jsonl" ]]; then
   echo "Missing evaluation data: data/processed/agent_sft_v2/dev.jsonl" >&2
+  exit 1
+fi
+if [[ "${MODE}" == "agent-4b-post-rollout-v3-pilot" && ! -f "${PROJECT_ROOT}/data/processed/agent_sft_v3/dev.jsonl" ]]; then
+  echo "Missing evaluation data: data/processed/agent_sft_v3/dev.jsonl" >&2
   exit 1
 fi
 
