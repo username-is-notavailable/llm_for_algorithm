@@ -26,10 +26,12 @@ data/splits/*
 !data/splits/codecontests_plus_repair_300_v1_manifest.json
 !data/splits/codecontests_plus_repair_300_v2_manifest.json
 !data/splits/agent_one_shot_300_v1_manifest.json
+!data/splits/agent_one_shot_300_v2_manifest.json
 !data/splits/m11_repair_8b_escalation_v1_manifest.json
 !data/splits/m11_teacher_bakeoff_20_v1_manifest.json
 !data/splits/m11_repair_235b_final_v1_manifest.json
 !data/splits/m11_agent_sft_v1_manifest.json
+!data/splits/m11_agent_sft_v2_manifest.json
 outputs/
 .third_party/
 *.log

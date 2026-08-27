@@ -30,11 +30,13 @@ def build_initial_messages(problem: AgentProblem, config: AgentConfig) -> list[d
                 "Choose <action>execute_code</action> to run visible tests and receive feedback, "
                 "or <action>final</action> to submit your final program. "
                 f"You may request execution feedback at most {config.max_execute_calls} times. "
+                "After executing a program, <action>final</action> by itself submits the most "
+                "recently executed program; do not repeat that program. If no program has been "
+                "executed yet, a final action must include one complete program. "
                 "If current feedback tests pass but private validation fails, the environment may "
                 "reveal one counterexample; treat it as a new feedback test. "
-                "Never omit the action tag. Your visible response must use exactly this shape: "
-                "<action>execute_code</action> (or <action>final</action>), followed by exactly "
-                "one complete program in a ```cpp code fence."
+                "Never omit the action tag. An execute response must contain exactly one complete "
+                "program in a ```cpp code fence."
             ),
         },
         {"role": "user", "content": problem.problem.strip()},
@@ -74,6 +76,7 @@ def run_agent(
     messages = build_initial_messages(problem, config)
     generation_options = dict(generation or {})
     code_hashes: set[str] = set()
+    last_executed_code: str | None = None
     last_visible_pass_rate: float | None = None
     active_problem = problem
     revealed_counterexamples = initial_revealed_counterexamples
@@ -85,7 +88,16 @@ def run_agent(
             execute_calls=trajectory.execute_calls,
             max_execute_calls=config.max_execute_calls,
         )
-        if parsed.code is None:
+        candidate_code = parsed.code
+        reused_last_code = False
+        if (
+            candidate_code is None
+            and parsed.action == ActionType.FINAL
+            and last_executed_code is not None
+        ):
+            candidate_code = last_executed_code
+            reused_last_code = True
+        if candidate_code is None:
             trajectory.steps.append(
                 AgentStep(
                     turn=turn,
@@ -118,7 +130,7 @@ def run_agent(
             )
             break
 
-        code_hash = hashlib.sha256(parsed.code.encode("utf-8")).hexdigest()
+        code_hash = hashlib.sha256(candidate_code.encode("utf-8")).hexdigest()
         token_total_after = trajectory.total_generation_tokens + generated.token_count
         token_auto_final = token_total_after >= config.max_total_generation_tokens
         execution_auto_final = (
@@ -135,10 +147,13 @@ def run_agent(
             or slot_auto_final
             else ActionType.EXECUTE_CODE
         )
+        provider_metadata = dict(generated.provider_metadata)
+        if reused_last_code:
+            provider_metadata["final_reused_last_code"] = True
         submission = CandidateSubmission(
             turn=turn,
             response=generated.text,
-            code=parsed.code,
+            code=candidate_code,
             code_sha256=code_hash,
             requested_action=parsed.requested_action,
             effective_action=effective_action,
@@ -147,7 +162,7 @@ def run_agent(
             generation_tokens=generated.token_count,
             finish_reason=generated.finish_reason,
             reasoning_content=generated.reasoning_content,
-            provider_metadata=dict(generated.provider_metadata),
+            provider_metadata=provider_metadata,
         )
 
         if (
@@ -169,7 +184,7 @@ def run_agent(
             )
             try:
                 trajectory.hidden_evaluation = backend.evaluate_hidden(
-                    parsed.code, full_gate_problem(active_problem)
+                    candidate_code, full_gate_problem(active_problem)
                 )
             except Exception:
                 trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
@@ -188,6 +203,9 @@ def run_agent(
             break
         code_hashes.add(code_hash)
 
+        if effective_action == ActionType.EXECUTE_CODE:
+            last_executed_code = candidate_code
+
         if effective_action == ActionType.FINAL:
             trajectory.steps.append(
                 AgentStep(
@@ -203,7 +221,7 @@ def run_agent(
             )
             try:
                 trajectory.hidden_evaluation = backend.evaluate_hidden(
-                    parsed.code, full_gate_problem(active_problem)
+                    candidate_code, full_gate_problem(active_problem)
                 )
             except Exception:
                 trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
@@ -228,7 +246,7 @@ def run_agent(
         executions_remaining = config.max_execute_calls - trajectory.execute_calls - 1
         try:
             observation = backend.execute_visible(
-                parsed.code,
+                candidate_code,
                 active_problem,
                 executions_remaining=executions_remaining,
                 max_feedback_bytes=config.max_feedback_bytes,
@@ -252,7 +270,7 @@ def run_agent(
         hidden_evaluation = None
         if config.evaluate_hidden_each_submission:
             try:
-                hidden_evaluation = backend.evaluate_hidden(parsed.code, active_problem)
+                hidden_evaluation = backend.evaluate_hidden(candidate_code, active_problem)
             except Exception:
                 trajectory.termination_reason = TerminationReason.SANDBOX_ERROR
         if (
@@ -265,7 +283,7 @@ def run_agent(
             try:
                 revealed = reveal_hidden_counterexample(
                     backend,
-                    parsed.code,
+                    candidate_code,
                     active_problem,
                     hidden_evaluation,
                     executions_remaining=executions_remaining,
@@ -305,7 +323,8 @@ def run_agent(
                         observation.model_feedback
                         + "\n\nProtocol reminder: begin the next visible response with exactly "
                         "<action>execute_code</action> to test a correction, or "
-                        "<action>final</action> if the last passing program is final."
+                        "<action>final</action> by itself if the most recently executed program "
+                        "is final; do not repeat that program."
                     ),
                 },
             ]

@@ -31,6 +31,7 @@ RIGHT_FINAL = """<action>final</action>
 ```cpp
 int main() { return 0; }
 ```"""
+FINAL_REFERENCE = "<action>final</action>"
 
 
 class FakeGenerator:
@@ -141,6 +142,39 @@ def test_agent_repairs_after_feedback_and_explicitly_finalizes() -> None:
     assert "Never omit the action tag" in generator.messages_seen[0][0]["content"]
     assert all("hidden" not in str(messages).lower() for messages in generator.messages_seen)
     assert json.loads(json.dumps(trajectory.to_dict()))["outcome"]["repaired"] is True
+
+
+def test_final_reference_submits_most_recently_executed_code() -> None:
+    right_code = _code(RIGHT_EXECUTE)
+    trajectory = run_agent(
+        trajectory_id="trajectory-final-reference",
+        problem=_problem(),
+        model={},
+        config=AgentConfig(),
+        generator=FakeGenerator([RIGHT_EXECUTE, FINAL_REFERENCE]),
+        backend=FakeBackend(
+            visible_success_by_code={right_code: True},
+            hidden_success_by_code={right_code: True},
+        ),
+    )
+    final = trajectory.steps[-1].submission
+    assert trajectory.termination_reason == TerminationReason.SUCCESS
+    assert final.response == FINAL_REFERENCE
+    assert final.code == right_code
+    assert final.provider_metadata["final_reused_last_code"] is True
+
+
+def test_final_reference_without_prior_execute_has_no_code() -> None:
+    trajectory = run_agent(
+        trajectory_id="trajectory-empty-final-reference",
+        problem=_problem(),
+        model={},
+        config=AgentConfig(),
+        generator=FakeGenerator([FINAL_REFERENCE]),
+        backend=FakeBackend({}, {}),
+    )
+    assert trajectory.termination_reason == TerminationReason.MODEL_STOP_WITHOUT_CODE
+    assert trajectory.steps[-1].submission.code is None
 
 
 def test_fourth_execute_is_recorded_as_auto_final_without_visible_feedback() -> None:

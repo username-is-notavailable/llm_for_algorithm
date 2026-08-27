@@ -31,7 +31,7 @@ def sha256_file(path: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build verified one-shot Agent SFT messages")
-    parser.add_argument("--config", default="configs/data/m11_agent_one_shot_300_v1.yaml")
+    parser.add_argument("--config", default="configs/data/m11_agent_one_shot_300_v2.yaml")
     parser.add_argument("--max-samples", type=int)
     parser.add_argument("--output")
     parser.add_argument("--manifest")
@@ -81,19 +81,20 @@ def main() -> int:
             {"role": "tool", "content": visible.model_feedback},
             {
                 "role": "assistant",
-                "content": f"<action>final</action>\n{response}",
+                "content": "<action>final</action>",
                 "trainable": True,
             },
         ])
         rows.append({
-            "schema_version": "agent-sft-messages-v4",
+            "schema_version": "agent-sft-messages-v5",
             "problem_id": problem.problem_id,
             "task_id": f"one-shot:{problem.problem_id}",
             "source": problem.source,
             "teacher_model": "CodeContests+ verified correct submission",
             "messages": messages,
             "metadata": {
-                "trajectory_type": "one_shot_execute_pass_final",
+                "trajectory_type": "one_shot_execute_pass_final_reference",
+                "final_reuses_last_executed_code": True,
                 "source_judge": seed.get("source_judge"),
             },
         })
@@ -103,7 +104,7 @@ def main() -> int:
     output = config["output"]
     write_jsonl(output["dataset"], rows)
     manifest = {
-        "schema_version": "agent-one-shot-300-v1",
+        "schema_version": "agent-one-shot-300-v2",
         "config": config,
         "counts": {"samples": len(rows), "assistant_targets": len(rows) * 2},
         "problem_ids": [row["problem_id"] for row in rows],

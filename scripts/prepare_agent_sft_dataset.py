@@ -79,10 +79,15 @@ def repair_messages(
     for step in steps:
         submission = step["submission"]
         action = submission["effective_action"]
+        final_reuses_last_code = action == "final" and execute_calls > 0
         messages.append(
             {
                 "role": "assistant",
-                "content": canonical_response(submission),
+                "content": (
+                    "<action>final</action>"
+                    if final_reuses_last_code
+                    else canonical_response(submission)
+                ),
                 "trainable": True,
             }
         )
@@ -124,7 +129,7 @@ def token_stats(values: Iterable[int]) -> dict[str, int | float]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Build the frozen M11 Agent SFT dataset")
-    parser.add_argument("--config", default="configs/data/m11_agent_sft_v1.yaml")
+    parser.add_argument("--config", default="configs/data/m11_agent_sft_v2.yaml")
     args = parser.parse_args()
     config = load_config(args.config)
     require_sections(config, "input", "output", "split", "tokenizer", "agent", "verifier")
@@ -155,7 +160,7 @@ def main() -> int:
     for source in repair_sources:
         rows.append(
             {
-                "schema_version": "agent-sft-messages-v4",
+                "schema_version": "agent-sft-messages-v5",
                 "problem_id": source["problem_id"],
                 "task_id": source["task_id"],
                 "source": source.get("source"),
@@ -170,6 +175,10 @@ def main() -> int:
                     "trajectory_family": "repair",
                     "failure_producer_model": source.get("failure_producer_model"),
                     "normalization": source.get("normalization"),
+                    "final_reuses_last_executed_code": any(
+                        step["submission"]["effective_action"] == "execute_code"
+                        for step in source["repair_trajectory"]["steps"]
+                    ),
                 },
             }
         )
@@ -218,7 +227,7 @@ def main() -> int:
         for split, values in (("all", accepted), ("train", train), ("dev", dev))
     }
     manifest = {
-        "schema_version": "agent-sft-v1-manifest",
+        "schema_version": "agent-sft-v2-manifest",
         "config": config,
         "source_sha256": {
             "one_shot": sha256_file(inputs["one_shot"]),

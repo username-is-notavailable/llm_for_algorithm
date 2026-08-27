@@ -1,0 +1,41 @@
+experiment:
+  name: m11-agent-sft-v2-4b-post-smoke
+  output_dir: outputs/training
+  seed: 20260827
+model:
+  name_or_path: Qwen/Qwen3-4B
+  revision: 1cfa9a7208912126459214e8b04321603b3df60c
+  dtype: bfloat16
+  attn_implementation: flash_attention_2
+data:
+  path: data/processed/agent_sft_v2/train.jsonl
+  selection: shortest
+  limit: 32
+  max_length: 8192
+training:
+  max_steps: 4
+  num_train_epochs: 1
+  per_device_train_batch_size: 1
+  global_batch_size: 8
+  learning_rate: 0.00001
+  lr_scheduler_type: cosine
+  warmup_steps: 1
+  weight_decay: 0.0
+  max_grad_norm: 1.0
+  bf16: true
+  tf32: true
+  gradient_checkpointing: false
+  fsdp: full_shard auto_wrap
+  fsdp_config:
+    transformer_layer_cls_to_wrap: Qwen3DecoderLayer
+    activation_checkpointing: true
+    use_orig_params: true
+    sync_module_states: true
+    limit_all_gathers: true
+  optim: adamw_torch_fused
+  logging_steps: 1
+  save_strategy: steps
+  save_steps: 4
+  save_total_limit: 1
+  save_only_model: false
+  dataloader_num_workers: 0

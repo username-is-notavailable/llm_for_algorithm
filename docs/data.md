@@ -125,6 +125,24 @@ tokenizer 计数。split 以 problem ID 为单位，确保同题的 one-shot 与
 `data/splits/m11_agent_sft_v1_manifest.json`；训练数据位于被 Git 忽略的
 `data/processed/agent_sft_v1/{train,dev}.jsonl`。
 
+### Agent SFT v2：final 引用已执行代码
+
+v1 训练后出现了明显的代码重复：同一份完整程序同时作为 `execute_code` 和后续 `final` 的监督目标，
+模型容易在长生成中反复续写程序。v2 将提交语义改为：只要当前轨迹已经执行过代码，
+`<action>final</action>` 单独出现就提交最近一次已执行程序，不再重复输出代码。若此前没有执行记录，
+仍允许并要求 `final` 携带一个完整程序，因此首轮直接作答和历史 final-only 教师轨迹保持可用。
+
+新数据由 `configs/data/m11_agent_one_shot_300_v2.yaml` 与
+`configs/data/m11_agent_sft_v2.yaml` 构造，写入
+`data/processed/agent_sft_source_v2` 和 `data/processed/agent_sft_v2`。训练起点同时从
+`Qwen/Qwen3-4B-Base` 改为官方后训练模型 `Qwen/Qwen3-4B`，以利用其已有的停止与指令遵循能力；
+本项目继续训练的是 execution-feedback policy，而不是要求 Base 模型从少量样本中重新学习完整对话行为。
+
+冻结的 v2 数据共有 538 条（300 one-shot、238 repair），按 problem ID 划分为 train 500 与 dev 38，
+没有样本超过 16,384-token 数据窗口。全体长度 P50/P90/P95/P99 为
+1,310/5,411/6,140/9,976，最大 15,431。四张 A100-40GB 的正式 8K 配置按长度选择
+train 492 与 dev 37，仅排除 9 条超 8K 轨迹；冻结文件本身不裁剪。
+
 ## Output Protocol v1
 
 第一阶段的 SFT、GRPO rollout 和正式评测统一使用以下 C++ 响应协议：

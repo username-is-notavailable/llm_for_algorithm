@@ -1,0 +1,123 @@
+{
+  "schema_version": "agent-sft-v2-manifest",
+  "config": {
+    "input": {
+      "one_shot": "data/processed/agent_sft_source_v2/one_shot_300.jsonl",
+      "repair": [
+        "data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl",
+        "data/processed/agent_sft_source_v1/repair_235b_canonical.jsonl"
+      ],
+      "problem_dataset": "data/processed/codecontests_plus_repair_300_v2/problems.jsonl",
+      "problem_index": "data/processed/codecontests_plus_repair_300_v2/problems.index.json"
+    },
+    "output": {
+      "train": "data/processed/agent_sft_v2/train.jsonl",
+      "dev": "data/processed/agent_sft_v2/dev.jsonl",
+      "manifest": "data/splits/m11_agent_sft_v2_manifest.json"
+    },
+    "split": {
+      "seed": 20260827,
+      "dev_problems": 20
+    },
+    "tokenizer": {
+      "name_or_path": "Qwen/Qwen3-4B",
+      "revision": "1cfa9a7208912126459214e8b04321603b3df60c",
+      "max_length": 16384
+    },
+    "agent": {
+      "max_execute_calls": 3,
+      "max_feedback_bytes": 4096
+    },
+    "verifier": {
+      "compile_timeout_seconds": 15,
+      "execution_timeout_seconds": 4,
+      "memory_limit_mb": 512,
+      "output_limit_bytes": 16777216
+    }
+  },
+  "source_sha256": {
+    "one_shot": "3af5b3cf7ae8a3cd7c2adf0e0347605d02a7610afb972563d48b8d74ee10f1cf",
+    "repair": {
+      "data/processed/agent_sft_source_v1/repair_8b_canonical.jsonl": "86c6ee0ec71492027b036944ad70c979b0f9326da207676cee8f39f8564d4ee8",
+      "data/processed/agent_sft_source_v1/repair_235b_canonical.jsonl": "549bcf8a6146e2140afc701150270ab5d208bddb5034593161f8988b13f7c56c"
+    }
+  },
+  "counts": {
+    "source_rows": 538,
+    "accepted": 538,
+    "train": 500,
+    "dev": 38,
+    "unique_problems": 300,
+    "over_length": 0,
+    "families": {
+      "all": {
+        "one_shot": 300,
+        "repair": 238
+      },
+      "train": {
+        "one_shot": 280,
+        "repair": 220
+      },
+      "dev": {
+        "repair": 18,
+        "one_shot": 20
+      }
+    }
+  },
+  "token_counts": {
+    "all": {
+      "min": 400,
+      "p50": 1310,
+      "p90": 5411,
+      "p95": 6140,
+      "p99": 9976,
+      "max": 15431,
+      "mean": 2119.12
+    },
+    "train": {
+      "min": 400,
+      "p50": 1317,
+      "p90": 5411,
+      "p95": 6140,
+      "p99": 9976,
+      "max": 15431,
+      "mean": 2109.31
+    },
+    "dev": {
+      "min": 412,
+      "p50": 1268,
+      "p90": 5286,
+      "p95": 6029,
+      "p99": 9542,
+      "max": 9542,
+      "mean": 2248.16
+    }
+  },
+  "dev_problem_ids": [
+    "ccplus:AIZU:p00036",
+    "ccplus:AIZU:p01011",
+    "ccplus:AIZU:p01158",
+    "ccplus:AIZU:p01963",
+    "ccplus:AIZU:p02150",
+    "ccplus:AIZU:p02463",
+    "ccplus:AtCoder:p02748",
+    "ccplus:AtCoder:p02848",
+    "ccplus:AtCoder:p03556",
+    "ccplus:Codeforces:1054_B",
+    "ccplus:Codeforces:110_B",
+    "ccplus:Codeforces:1156_C",
+    "ccplus:Codeforces:1167_E",
+    "ccplus:Codeforces:1178_D",
+    "ccplus:Codeforces:1501_A",
+    "ccplus:Codeforces:216_A",
+    "ccplus:Codeforces:588_F",
+    "ccplus:Codeforces:743_B",
+    "ccplus:Codeforces:80_A",
+    "ccplus:Codeforces:938_B"
+  ],
+  "over_length": [],
+  "sha256": {
+    "train": "4ca37bf439336c8d426f2d9526f2a22077ef908d34437d27b18e7d4b5769bca4",
+    "dev": "83508b971715dc59a16e31c17aab3198b25851ecdf5f718cc90e5eecc8b6a559"
+  }
+}
