@@ -16,22 +16,17 @@ if [[ ! -f data/processed/codecontests_plus_repair_300_v2/problems.index.json ]]
   exit 1
 fi
 
-RAW_DIR="data/processed/codecontests_plus_repair_1000_v1_raw"
-COMPACT_DIR="data/processed/codecontests_plus_repair_1000_v2"
+CHECKPOINT="data/processed/codecontests_plus_repair_1000_v2/prepare.checkpoint.json"
+RESUME_ARGS=()
+if [[ -f "${CHECKPOINT}" ]]; then
+  RESUME_ARGS+=(--resume)
+fi
 
-echo "[1/2] Selecting 1000 new checker-backed problems (excluding the frozen 300)"
-"${VERL_PYTHON}" scripts/prepare_codecontests_plus_repair.py \
-  --config configs/data/m12_codecontests_plus_repair_1000_v1.yaml
+echo "Selecting and streaming 1000 new checker-backed problems (excluding the frozen 300)"
+"${VERL_PYTHON}" scripts/prepare_codecontests_plus_repair_resumable.py \
+  --config configs/data/m12_codecontests_plus_repair_1000_v1.yaml \
+  "${RESUME_ARGS[@]}"
 
-echo "[2/2] Compacting tests/checkers and building the byte-offset problem index"
-"${VERL_PYTHON}" scripts/compact_codecontests_plus_repair.py \
-  --problems "${RAW_DIR}/problems_1000.jsonl" \
-  --failure-pool "${RAW_DIR}/failure_pool_1000.jsonl" \
-  --one-shot-seeds "${RAW_DIR}/one_shot_seeds_1000.jsonl" \
-  --output-dir "${COMPACT_DIR}" \
-  --manifest data/splits/codecontests_plus_repair_1000_v2_manifest.json
-
-echo "Compact pool ready. The raw directory can be deleted after checking the manifest:"
-echo "  ${RAW_DIR}"
+echo "Compact pool ready: data/processed/codecontests_plus_repair_1000_v2"
 echo "Next: export DASHSCOPE_API_KEY=..."
 echo "  bash scripts/cloud_generate_repair_api.sh configs/data/m12_repair_api_codecontests_plus_1000_8b.yaml"

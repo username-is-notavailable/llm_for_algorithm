@@ -202,6 +202,10 @@
   同一 CodeContests+ revision 筛选 1000 个新问题，并通过旧 300 题 compact index 显式排重。
   生产顺序冻结为 checker-backed source → compact → qwen3-8b repair → 失败任务 qwen3-32b
   escalation → full-checker audit → rollout-aligned SFT。各 API 阶段均使用可恢复 SQLite queue。
+- M12 首次 source preparation 在 accepted 约 53/1000 时因 WSL 重启丢失进程内结果，确认旧入口
+  只在全部完成后写文件。新入口改为边筛选边 compact，并以原子 checkpoint 保存 candidate index、
+  counters、problem byte-offset index 和三份输出的 committed sizes；重启后自动截断未提交尾部并
+  续跑。同时移除随 accepted rows 线性增长的内存列表，适配 WSL 24GB 内存上限。
 
 ## Milestone 0
 

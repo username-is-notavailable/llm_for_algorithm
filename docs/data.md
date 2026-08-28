@@ -100,6 +100,13 @@ API 接收率不是训练质量指标；最终仅冻结经过完整 checker、�
 budget 的 rollout-aligned trajectory。新池与旧池合并后，目标约为 1000 条 repair 和 400 条
 one-shot，实际数量以最终 checker audit 为准，不为凑数放宽门禁。
 
+Source preparation 使用 streaming compact checkpoint：每个 accepted problem 立即写入 compact problem
+store、failure pool 和 one-shot seed，并在三份文件 `fsync` 后原子更新已提交字节偏移；每个 rejected
+candidate 也更新扫描位置但不触发无意义的数据文件同步。恢复时先按 checkpoint 截断可能存在的未
+提交尾部，再从冻结 candidate index 继续。因而 WSL 重启不会产生半行、三文件错位或重复 problem，
+内存占用也不随 accepted 数量增长。重复执行 `scripts/prepare_m12_repair_pool.sh` 会自动检测 checkpoint
+并进入 resume 模式。
+
 早期阶段曾在本地从同一固定 CodeContests+ revision 准备 300 题 checker-backed source pool，同时导出
 真实错误提交 repair pool 与 checker full-pass one-shot seed。该阶段只需 CPU、磁盘和网络：
 

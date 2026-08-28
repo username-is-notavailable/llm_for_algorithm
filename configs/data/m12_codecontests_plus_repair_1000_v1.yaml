@@ -30,7 +30,9 @@ testlib:
   revision: 1e4e8a24c79c6bad3becbdb5a332ffc352b7d5dd
   cache_path: cache/codecontests_plus/testlib.h
 output:
-  dataset: data/processed/codecontests_plus_repair_1000_v1_raw/problems_1000.jsonl
-  failure_pool: data/processed/codecontests_plus_repair_1000_v1_raw/failure_pool_1000.jsonl
-  one_shot_seeds: data/processed/codecontests_plus_repair_1000_v1_raw/one_shot_seeds_1000.jsonl
-  manifest: data/splits/codecontests_plus_repair_1000_v1_manifest.json
+  dataset: data/processed/codecontests_plus_repair_1000_v2/problems.jsonl
+  failure_pool: data/processed/codecontests_plus_repair_1000_v2/failure_pool.jsonl
+  one_shot_seeds: data/processed/codecontests_plus_repair_1000_v2/one_shot_seeds.jsonl
+  problem_index: data/processed/codecontests_plus_repair_1000_v2/problems.index.json
+  checkpoint: data/processed/codecontests_plus_repair_1000_v2/prepare.checkpoint.json
+  manifest: data/splits/codecontests_plus_repair_1000_v2_manifest.json
