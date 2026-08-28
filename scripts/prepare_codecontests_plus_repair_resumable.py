@@ -8,12 +8,24 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, BinaryIO
 
-from scripts.audit_codecontests_plus import cpp_submissions, ensure_testlib, prepare_contest_submission
-from scripts.prepare_codecontests_plus_repair import (
-    excluded_problem_ids,
-    iter_candidate_rows,
-    source_shards,
-)
+try:
+    from scripts.audit_codecontests_plus import (
+        cpp_submissions,
+        ensure_testlib,
+        prepare_contest_submission,
+    )
+    from scripts.prepare_codecontests_plus_repair import (
+        excluded_problem_ids,
+        iter_candidate_rows,
+        source_shards,
+    )
+except ModuleNotFoundError:
+    from audit_codecontests_plus import cpp_submissions, ensure_testlib, prepare_contest_submission
+    from prepare_codecontests_plus_repair import (
+        excluded_problem_ids,
+        iter_candidate_rows,
+        source_shards,
+    )
 from src.data.agent_eval import row_test_hash, split_visible_hidden_tests
 from src.data.sft import is_eval_leak
 from src.utils.config import load_config, require_sections
