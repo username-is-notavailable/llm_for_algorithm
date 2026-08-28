@@ -2,7 +2,7 @@ source:
   dataset: ByteDance-Seed/Code-Contests-Plus
   revision: 96c850540fade31d384a25766461e0da6b08f5fc
   shard_glob: ccplus_1x/part-*.parquet
-  shard_count: 5
+  shard_count: 6
   row_groups_per_shard: 10
   streaming: true
   eval_fingerprints: data/splits/eval_v1_fingerprints.json
@@ -35,4 +35,8 @@ output:
   one_shot_seeds: data/processed/codecontests_plus_repair_1000_v2/one_shot_seeds.jsonl
   problem_index: data/processed/codecontests_plus_repair_1000_v2/problems.index.json
   checkpoint: data/processed/codecontests_plus_repair_1000_v2/prepare.checkpoint.json
+  # The first run exhausted five shards at 953/1000. This permits only that
+  # frozen checkpoint to resume with one additional source shard.
+  resume_config_sha256_allowlist:
+    - 5570af28ab505b982329c214c622f40a1825d74aed645ec162d00f54d0d908ab
   manifest: data/splits/codecontests_plus_repair_1000_v2_manifest.json

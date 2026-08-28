@@ -114,8 +114,19 @@ def open_outputs(
         if not state_path.is_file():
             raise FileNotFoundError(f"No checkpoint to resume: {state_path}")
         state = json.loads(state_path.read_text(encoding="utf-8"))
-        if state["config_sha256"] != config_digest(config):
+        requested_digest = config_digest(config)
+        checkpoint_digest = state["config_sha256"]
+        compatible = set(config["output"].get("resume_config_sha256_allowlist", []))
+        if checkpoint_digest != requested_digest and checkpoint_digest not in compatible:
             raise ValueError("Checkpoint config differs from the requested config")
+        if checkpoint_digest != requested_digest:
+            state.setdefault("resumed_from_config_sha256", []).append(checkpoint_digest)
+            state["config_sha256"] = requested_digest
+            print(
+                "Accepting an explicitly allowlisted config expansion: "
+                f"{checkpoint_digest} -> {requested_digest}",
+                flush=True,
+            )
         if state.get("complete"):
             raise ValueError("Checkpoint is already complete")
         handles = {name: path.open("a+b") for name, path in files.items()}

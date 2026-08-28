@@ -60,6 +60,23 @@ def test_resume_rejects_changed_config(tmp_path) -> None:
         open_outputs(value, resume=True)
 
 
+def test_resume_accepts_allowlisted_config_expansion(tmp_path) -> None:
+    value = config(tmp_path)
+    _, handles, _, state_path = open_outputs(value, resume=False)
+    for handle in handles.values():
+        handle.close()
+    previous = json.loads(state_path.read_text(encoding="utf-8"))["config_sha256"]
+    value["new_setting"] = True
+    value["output"]["resume_config_sha256_allowlist"] = [previous]
+    state, resumed_handles, _, _ = open_outputs(value, resume=True)
+    try:
+        assert state["resumed_from_config_sha256"] == [previous]
+        assert state["config_sha256"] == config_digest(value)
+    finally:
+        for handle in resumed_handles.values():
+            handle.close()
+
+
 def test_fresh_run_refuses_to_overwrite_partial_data(tmp_path) -> None:
     value = config(tmp_path)
     _, handles, _, _ = open_outputs(value, resume=False)
